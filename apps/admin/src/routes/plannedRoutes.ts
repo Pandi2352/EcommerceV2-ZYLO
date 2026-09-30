@@ -10,13 +10,24 @@ export interface PlannedRoute {
 
 /** Open to every staff role */
 export const STAFF_PLANNED: PlannedRoute[] = [
-  { path: ROUTES.ORDERS, title: 'Orders' },
-  { path: ROUTES.CUSTOMERS, title: 'Customers' },
+  { path: ROUTES.ORDERS, title: 'Orders Management' },
+  { path: ROUTES.SHIPMENTS, title: 'Shipments & Fulfillment' },
+  { path: ROUTES.RETURNS, title: 'Returns & Refunds' },
+  { path: ROUTES.INVOICES, title: 'Invoices & Receipts' },
+  { path: ROUTES.CUSTOMERS, title: 'Customer Directory' },
+  { path: ROUTES.REVIEWS, title: 'Product Reviews & Ratings' },
+  { path: ROUTES.COUPONS, title: 'Coupons & Vouchers' },
+  { path: ROUTES.PROMOTIONS, title: 'Promotions & Flash Deals' },
+  { path: ROUTES.DASHBOARDS_ANALYTICS, title: 'Sales Analytics & Reports' },
 ];
 
 /** Requires ADMIN or above */
 export const MANAGER_PLANNED: PlannedRoute[] = [
-  { path: ROUTES.PRODUCTS, title: 'Products' },
-  { path: ROUTES.CATEGORIES, title: 'Categories' },
-  { path: ROUTES.ANALYTICS, title: 'Analytics' },
+  { path: ROUTES.PRODUCTS, title: 'Product Catalog Management' },
+  { path: ROUTES.CATEGORIES, title: 'Categories Management' },
+  { path: ROUTES.BRANDS, title: 'Brands Management' },
+  { path: ROUTES.INVENTORY, title: 'Inventory & Stock Control' },
+  { path: ROUTES.STAFF, title: 'Staff Accounts & Permissions' },
+  { path: ROUTES.SETTINGS_PAYMENTS, title: 'Payment Gateways Setup' },
+  { path: ROUTES.SETTINGS_SHIPPING, title: 'Shipping Methods & Rates' },
 ];

@@ -54,6 +54,7 @@ export const AppRoutes: React.FC = () => {
 
         <Route element={<AdminLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<AdminDashboardPage />} />
+          <Route path={ROUTES.DASHBOARDS_ECOMMERCE} element={<AdminDashboardPage />} />
           <Route path={ROUTES.SETTINGS} element={<AdminSecurityPage />} />
           {renderPlanned(STAFF_PLANNED)}
 

@@ -9,14 +9,37 @@ export const ROUTES = {
   RESET_PASSWORD: '/reset-password',
   CHANGE_PASSWORD: '/change-password',
 
+  // Dashboards
   DASHBOARD: '/',
+  DASHBOARDS_ECOMMERCE: '/dashboard/ecommerce',
+  DASHBOARDS_ANALYTICS: '/dashboard/analytics',
+
+  // Catalog
   PRODUCTS: '/products',
   CATEGORIES: '/categories',
+  BRANDS: '/brands',
+  INVENTORY: '/inventory',
+
+  // Sales & Fulfillment
   ORDERS: '/orders',
+  SHIPMENTS: '/orders/shipments',
+  RETURNS: '/returns',
+  INVOICES: '/invoices',
+
+  // Customers & Community
   CUSTOMERS: '/customers',
-  ANALYTICS: '/analytics',
+  REVIEWS: '/reviews',
+
+  // Marketing & Discounts
+  COUPONS: '/coupons',
+  PROMOTIONS: '/promotions',
+
+  // Platform & Administration
+  STAFF: '/staff',
   AUDIT_LOGS: '/audit-logs',
   SETTINGS: '/settings',
+  SETTINGS_PAYMENTS: '/settings/payments',
+  SETTINGS_SHIPPING: '/settings/shipping',
 
   NOT_FOUND: '*',
 } as const;
