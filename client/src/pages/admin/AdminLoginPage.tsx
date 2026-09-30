@@ -93,25 +93,26 @@ export default function AdminLoginPage() {
     <div className="relative min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans overflow-hidden">
       {/* Subtle Corner Dots (Top-Left & Bottom-Right only) */}
       <CornerDots />
-      {/* Brand Header with Optimized Centered Hierarchy */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center flex flex-col items-center">
-        <Link
-          to="/"
-          className="inline-flex items-center justify-center transition-transform duration-200 hover:scale-105 mb-4 cursor-pointer"
-        >
-          <ZyloLogo variant="full" size="lg" theme="light" badge="ADMIN" />
-        </Link>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight text-center">
-          Admin Portal Sign In
-        </h1>
-        <p className="mt-1.5 text-xs text-slate-500 text-center max-w-sm">
-          Authorized personnel only. All access attempts are strictly monitored.
-        </p>
-      </div>
 
       {/* Main Login Card (Zero Shadows, Clean Borders) */}
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white border border-slate-200 rounded-md p-6 sm:p-8">
+          {/* Brand Header inside Card — Aligned Left */}
+          <div className="mb-6 text-left">
+            <Link
+              to="/"
+              className="inline-flex items-center transition-transform duration-200 hover:scale-105 mb-4 cursor-pointer"
+            >
+              <ZyloLogo variant="full" size="md" theme="light" />
+            </Link>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Admin Portal Sign In
+            </h1>
+            <p className="mt-1.5 text-xs text-slate-500">
+              Authorized personnel only. All access attempts are strictly monitored.
+            </p>
+          </div>
+
           {/* Global Alert Banner */}
           {errorMessage && (
             <div className="mb-6 p-3.5 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
@@ -122,14 +123,14 @@ export default function AdminLoginPage() {
 
           {/* Form with noValidate to trigger custom light-red border styling */}
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
-            {/* Admin Email */}
+            {/* Work Email */}
             <InputField
-              label="Staff Email"
+              label="Work Email"
               type="email"
               name="email"
               required
               autoComplete="off"
-              placeholder="admin@zylo.internal"
+              placeholder="name@zylo.internal"
               value={formData.email}
               onChange={handleChange}
               leftIcon={<Mail className="w-4 h-4 text-slate-400" />}

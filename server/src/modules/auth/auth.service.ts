@@ -21,6 +21,7 @@ export interface AuthResult {
   user: UserDocument;
   accessToken: string;
   refreshToken: string;
+  rememberMe?: boolean;
 }
 
 @Injectable()
@@ -51,16 +52,18 @@ export class AuthService {
       isEmailVerified: false,
     });
 
-    const tokens = await this.generateTokens(user);
+    // Default registration gets standard duration (can be extended upon login)
+    const tokens = await this.generateTokens(user, false);
 
     return {
       user,
+      rememberMe: false,
       ...tokens,
     };
   }
 
   /**
-   * Authenticate customer or admin credentials
+   * Authenticate customer or admin credentials with Remember Me support
    */
   async login(dto: LoginDto): Promise<AuthResult> {
     const user = await this.usersService.findByEmailWithPassword(dto.email);
@@ -77,10 +80,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const tokens = await this.generateTokens(user);
+    const rememberMe = Boolean(dto.rememberMe);
+    const tokens = await this.generateTokens(user, rememberMe);
 
     return {
       user,
+      rememberMe,
       ...tokens,
     };
   }
@@ -103,10 +108,12 @@ export class AuthService {
         throw new UnauthorizedException('User session is invalid');
       }
 
-      const tokens = await this.generateTokens(user);
+      const rememberMe = Boolean(payload.rememberMe);
+      const tokens = await this.generateTokens(user, rememberMe);
 
       return {
         user,
+        rememberMe,
         ...tokens,
       };
     } catch {
@@ -115,14 +122,22 @@ export class AuthService {
   }
 
   /**
-   * Generate dual Access & Refresh JWT tokens
+   * Generate dual Access & Refresh JWT tokens with configurable lifespan
    */
-  private async generateTokens(user: UserDocument): Promise<TokenPair> {
+  private async generateTokens(
+    user: UserDocument,
+    rememberMe: boolean = false
+  ): Promise<TokenPair> {
     const payload = {
       sub: user._id,
       email: user.email,
       role: user.role,
+      rememberMe,
     };
+
+    const refreshExpiresIn = rememberMe
+      ? authConfig.jwt.refreshExpiresInRemember
+      : authConfig.jwt.refreshExpiresInStandard;
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
@@ -131,7 +146,7 @@ export class AuthService {
       }),
       this.jwtService.signAsync(payload, {
         secret: authConfig.jwt.refreshSecret,
-        expiresIn: authConfig.jwt.refreshExpiresIn as any,
+        expiresIn: refreshExpiresIn as any,
       }),
     ]);
 
@@ -139,9 +154,14 @@ export class AuthService {
   }
 
   /**
-   * Set secure HttpOnly cookies on the HTTP response
+   * Set secure HttpOnly cookies on the HTTP response with Remember Me duration adjustments
    */
-  setAuthCookies(res: Response, accessToken: string, refreshToken?: string): void {
+  setAuthCookies(
+    res: Response,
+    accessToken: string,
+    refreshToken?: string,
+    rememberMe: boolean = false
+  ): void {
     res.cookie(
       authConfig.cookies.accessTokenName,
       accessToken,
@@ -149,10 +169,14 @@ export class AuthService {
     );
 
     if (refreshToken) {
+      const refreshMaxAge = rememberMe
+        ? authConfig.cookies.refreshMaxAgeRemember
+        : authConfig.cookies.refreshMaxAgeStandard;
+
       res.cookie(
         authConfig.cookies.refreshTokenName,
         refreshToken,
-        authConfig.cookies.options(authConfig.cookies.refreshMaxAge)
+        authConfig.cookies.options(refreshMaxAge)
       );
     }
   }

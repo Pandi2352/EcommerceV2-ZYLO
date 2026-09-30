@@ -66,7 +66,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response
   ) {
     const result = await this.authService.login(dto);
-    this.authService.setAuthCookies(res, result.accessToken, result.refreshToken);
+    this.authService.setAuthCookies(res, result.accessToken, result.refreshToken, result.rememberMe);
 
     return {
       user: result.user,
@@ -90,7 +90,7 @@ export class AuthController {
     }
 
     const result = await this.authService.refresh(refreshToken);
-    this.authService.setAuthCookies(res, result.accessToken, result.refreshToken);
+    this.authService.setAuthCookies(res, result.accessToken, result.refreshToken, result.rememberMe);
 
     return {
       user: result.user,

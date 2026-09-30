@@ -15,7 +15,11 @@ export interface ZyloLogoProps {
    */
   theme?: 'light' | 'dark';
   /**
-   * Optional badge / subtitle e.g. 'ADMIN', 'STORE'
+   * Multi-color stylish typography for the brand name (default: true)
+   */
+  multiColor?: boolean;
+  /**
+   * Optional badge / subtitle (e.g. 'STOREFRONT') - leave undefined if no badge wanted
    */
   badge?: string;
   /**
@@ -28,6 +32,7 @@ export const ZyloLogo: React.FC<ZyloLogoProps> = ({
   variant = 'full',
   size = 'md',
   theme = 'light',
+  multiColor = true,
   badge,
   className = '',
 }) => {
@@ -68,7 +73,7 @@ export const ZyloLogo: React.FC<ZyloLogoProps> = ({
           </linearGradient>
         </defs>
 
-        {/* Clean Light Background Container (Replaced harsh black box) */}
+        {/* Clean Light Background Container */}
         {theme === 'dark' ? (
           <>
             <rect width="64" height="64" rx="14" fill="#1E293B" />
@@ -107,13 +112,22 @@ export const ZyloLogo: React.FC<ZyloLogoProps> = ({
       {/* Wordmark Typography */}
       {variant === 'full' && (
         <div className="flex items-center gap-2">
-          <span
-            className={`font-black tracking-tight leading-none ${currentSize.text} ${
-              theme === 'dark' ? 'text-white' : 'text-slate-900'
-            }`}
-          >
-            ZYLO
-          </span>
+          {multiColor ? (
+            /* Stylish Multi-Color Brand Typography */
+            <span
+              className={`font-black tracking-tight leading-none ${currentSize.text} bg-gradient-to-r from-[#0284C7] via-[#2563EB] to-[#EA580C] bg-clip-text text-transparent drop-shadow-xs`}
+            >
+              ZYLO
+            </span>
+          ) : (
+            <span
+              className={`font-black tracking-tight leading-none ${currentSize.text} ${
+                theme === 'dark' ? 'text-white' : 'text-slate-900'
+              }`}
+            >
+              ZYLO
+            </span>
+          )}
 
           {badge && (
             <span

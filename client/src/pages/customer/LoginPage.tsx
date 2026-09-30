@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { extractErrorMessage } from '../../services/api';
@@ -11,16 +11,29 @@ import SocialAuthButtons from '../../components/auth/SocialAuthButtons';
 
 export default function CustomerLoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
 
+  const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Restore remembered email on initial load if previously saved
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('zylo_remembered_customer_email');
+    if (savedEmail) {
+      setFormData((prev) => ({ ...prev, email: savedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -62,8 +75,17 @@ export default function CustomerLoginPage() {
       await login({
         email: formData.email.trim(),
         password: formData.password,
+        rememberMe,
       });
-      navigate('/');
+
+      // Manage local remember preference
+      if (rememberMe) {
+        localStorage.setItem('zylo_remembered_customer_email', formData.email.trim());
+      } else {
+        localStorage.removeItem('zylo_remembered_customer_email');
+      }
+
+      navigate(from, { replace: true });
     } catch (err: unknown) {
       setErrorMessage(extractErrorMessage(err));
     } finally {
@@ -118,13 +140,21 @@ export default function CustomerLoginPage() {
                 showStrengthMeter={false}
               />
 
+              {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between text-xs">
-                <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
+                <label className="flex items-center gap-2 text-slate-600 cursor-pointer select-none group">
                   <input
                     type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
                     className="rounded border-slate-300 text-[#2A3B5C] focus:ring-0 cursor-pointer"
                   />
-                  <span>Remember me</span>
+                  <span className="group-hover:text-slate-900 transition-colors">
+                    Remember me
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">
+                    (30 days)
+                  </span>
                 </label>
                 <a href="#forgot" className="text-cyan-600 hover:text-cyan-700 font-medium cursor-pointer">
                   Forgot password?

@@ -6,13 +6,13 @@
 - [x] Email format & strong password validation (Min 8 chars, 1 uppercase, 1 number, 1 symbol)
 - [x] Password strength indicator meter on registration UI
 - [x] Password visibility toggle (Show / Hide password)
-- [ ] User login with email and password
-- [ ] "Remember me" option on login (Adjusts cookie duration)
+- [x] User login with email and password
+- [x] "Remember me" option on login (Adjusts cookie duration)
 - [ ] User logout (Cookie clearance & server-side token invalidation)
 - [x] Current authenticated user endpoint (`GET /api/v1/auth/me`)
 - [x] Client auth state initialization on app load / page refresh
-- [ ] Protected route wrapper for customer accounts (`ProtectedRoute`)
-- [ ] Auto-redirect to previously attempted URL after login
+- [x] Protected route wrapper for customer accounts (`ProtectedRoute`)
+- [x] Auto-redirect to previously attempted URL after login
 
 ### Email Verification & Password Recovery
 - [ ] Email verification token generation on registration

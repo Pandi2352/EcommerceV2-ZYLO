@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({
@@ -17,4 +17,14 @@ export class LoginDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @ApiProperty({
+    example: true,
+    required: false,
+    default: false,
+    description: 'When true, extends refresh token cookie duration to 30 days',
+  })
+  @IsOptional()
+  @IsBoolean()
+  rememberMe?: boolean;
 }
