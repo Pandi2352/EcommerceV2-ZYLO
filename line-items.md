@@ -8,7 +8,7 @@
 - [x] Password visibility toggle (Show / Hide password)
 - [x] User login with email and password
 - [x] "Remember me" option on login (Adjusts cookie duration)
-- [ ] User logout (Cookie clearance & server-side token invalidation)
+- [x] User logout (Cookie clearance & server-side token invalidation)
 - [x] Current authenticated user endpoint (`GET /api/v1/auth/me`)
 - [x] Client auth state initialization on app load / page refresh
 - [x] Protected route wrapper for customer accounts (`ProtectedRoute`)
@@ -29,10 +29,10 @@
 - [x] Secure cookie configuration (`httpOnly: true`, `secure: true`, `sameSite: 'lax'`)
 - [x] Silent token refresh endpoint (`POST /api/v1/auth/refresh`)
 - [x] Axios response interceptor for transparent 401 token refresh and request retry
-- [ ] Refresh token rotation (Issues a fresh refresh token on every refresh call)
-- [ ] Refresh token reuse detection (Revokes entire token family if stolen token is replayed)
+- [x] Refresh token rotation (Issues a fresh refresh token on every refresh call)
+- [x] Refresh token reuse detection (Revokes entire token family if stolen token is replayed)
 - [ ] Logout from all active sessions / devices (Revokes all user refresh tokens)
-- [ ] Brute-force rate limiting on auth endpoints (Max 5 attempts per min per IP via Throttler)
+- [x] Brute-force rate limiting on auth endpoints (Max 5 attempts per min per IP via Throttler)
 - [ ] Account temporary lockout / cooldown after 5 consecutive failed login attempts
 - [x] Password hashing with `bcryptjs` / `argon2` (Salt rounds: 12)
 
@@ -45,7 +45,7 @@
 - [x] Dedicated Admin login endpoint
 - [x] Admin profile view & session check
 - [x] NestJS `JwtAuthGuard` and `RolesGuard` integration
-- [ ] `@Roles('ADMIN')` decorator enforcing endpoint permissions
+- [x] `@Roles('ADMIN')` decorator enforcing endpoint permissions
 - [ ] Role hierarchy support (`SUPER_ADMIN`, `ADMIN`, `SUPPORT_AGENT`)
 - [x] Admin protected route wrapper (`AdminRoute`)
 - [ ] Admin login audit log (Records timestamp, IP address, and user-agent)
@@ -349,8 +349,8 @@
 ## 21. Database Schemas, Indexes & Data Seeders
 - [ ] Mongoose Schema & Model definitions with strict typing
 - [ ] MongoDB compound and unique indexing scripts
-- [ ] Seed script: Super Admin user initialization
-- [ ] Seed script: Default sample categories & subcategories
+- [x] Seed script: Super Admin user initialization
+- [x] Seed script: Default sample categories & subcategories
 - [ ] Seed script: Demo products with variants and images
 - [ ] Seed script: Demo customer account with sample orders
 
@@ -368,15 +368,15 @@
 ---
 
 ## 23. API, Security & System Foundations
-- [ ] NestJS modular architecture (Modules, Controllers, Services, Schemas/Models)
-- [ ] Interactive Swagger UI documentation at `/api/docs`
-- [ ] Global request DTO validation pipe with `class-validator`
-- [ ] Global HTTP exception filter with uniform error envelopes
+- [x] NestJS modular architecture (Modules, Controllers, Services, Schemas/Models)
+- [x] Interactive Swagger UI documentation at `/api/docs`
+- [x] Global request DTO validation pipe with `class-validator`
+- [x] Global HTTP exception filter with uniform error envelopes
 - [ ] Global response transform interceptor (`{ success, data, meta }`)
-- [ ] MongoDB connection pool with `@nestjs/mongoose` and `mongoose` (Compass / Atlas)
-- [ ] Health check endpoint (`GET /api/v1/health`)
-- [ ] Helmet security headers
-- [ ] CORS whitelisting configuration
-- [ ] Rate limiting on auth and sensitive routes via `@nestjs/throttler`
-- [ ] Secure HttpOnly, SameSite, Secure cookie handling
-- [ ] Docker Compose orchestration (MongoDB 7, NestJS, React)
+- [x] MongoDB connection pool with `@nestjs/mongoose` and `mongoose` (Compass / Atlas)
+- [x] Health check endpoint (`GET /api/v1/health`)
+- [x] Helmet security headers
+- [x] CORS whitelisting configuration
+- [x] Rate limiting on auth and sensitive routes via `@nestjs/throttler`
+- [x] Secure HttpOnly, SameSite, Secure cookie handling
+- [x] Docker Compose orchestration (MongoDB 7, NestJS, React)

@@ -5,11 +5,11 @@
 1. **The Server is the Sole Arbiter of Money**:
    - The frontend never submits unit prices, discounts, subtotal, shipping fee, tax, or grand total.
    - The frontend submits only product IDs, variant IDs, quantities, address IDs, and coupon codes.
-   - The NestJS backend loads product rows from PostgreSQL, evaluates verified prices, applies active discounts, and calculates the exact final sum.
+   - The NestJS backend loads product documents from MongoDB, evaluates verified prices, applies active discounts, and calculates the exact final sum.
 
 2. **Immutable Historical Records**:
-   - When an order is placed, an immutable snapshot of item prices, variant titles, product names, and shipping addresses is persisted in `order_items` and `orders`.
-   - Subsequent price alterations or catalog edits in the `products` table MUST NEVER mutate historical order rows.
+   - When an order is placed, an immutable snapshot of item prices, variant titles, product names, and shipping addresses is persisted as embedded `items` subdocuments in the `orders` collection.
+   - Subsequent price alterations or catalog edits in the `products` collection MUST NEVER mutate historical order documents.
 
 3. **Client Payment Status Cannot Be Trusted**:
    - Any client-side payment confirmation is treated as pending.
@@ -17,15 +17,24 @@
 
 ---
 
-## 2. Inventory & Stock Rules in PostgreSQL
+## 2. Inventory & Stock Rules in MongoDB
 
-### 2.1 Concurrency & Pessimistic Row Locking
+### 2.1 Concurrency & Conditional Atomic Stock Updates
 - During checkout, multiple concurrent buyers may attempt to purchase the same inventory.
-- Stock checks and deductions MUST utilize PostgreSQL row-level locks within an explicit ACID transaction:
-  ```sql
-  SELECT * FROM products WHERE id = $1 FOR UPDATE;
+- Stock checks and deductions MUST happen in a single conditional atomic update, never as a separate read-then-write:
+  ```typescript
+  const result = await this.productModel.updateOne(
+    { _id: productId, 'variants._id': variantId, 'variants.stock': { $gte: qty } },
+    { $inc: { 'variants.$.stock': -qty } },
+    { session },
+  );
+  if (result.modifiedCount !== 1) {
+    throw new BadRequestException('Insufficient stock');
+  }
   ```
-- If `stock_quantity < requested_quantity`, abort and rollback immediately with `BadRequestException('Insufficient stock')`.
+- If `modifiedCount` is `0` (available stock is lower than the requested quantity), abort and roll back immediately with `BadRequestException('Insufficient stock')`.
+- When several documents must commit together (the order, stock decrements across multiple products, and coupon usage), run all writes inside a Mongoose session transaction (`connection.startSession()` + `session.withTransaction(...)`), passing `{ session }` to every operation.
+- MongoDB transactions require a replica set: MongoDB Atlas in hosted environments, or a single-node replica set (`mongod --replSet rs0`) locally and in Docker.
 
 ### 2.2 Inventory Mathematics
 ```
@@ -87,5 +96,5 @@ A coupon code is valid if and only if all of the following conditions pass:
 ## 5. Review & Rating Eligibility
 
 - Only customers who have completed an order with `order_status = 'DELIVERED'` containing the specified `product_id` can review that product.
-- Enforced by a PostgreSQL unique constraint on `(product_id, user_id)`.
-- Product `rating_avg` and `review_count` are recomputed via SQL aggregation whenever a review is posted or deleted.
+- Enforced by a unique compound index `{ product: 1, user: 1 }` on the `reviews` collection.
+- Product `rating_avg` and `review_count` are recomputed via a MongoDB aggregation pipeline whenever a review is posted or deleted.

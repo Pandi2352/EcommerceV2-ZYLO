@@ -1,25 +1,36 @@
-import { CookieOptions } from 'express';
+import { registerAs } from '@nestjs/config';
+import { parseDurationMs } from '../common/utils/duration.util';
 
-export const authConfig = {
-  jwt: {
-    accessSecret: process.env.JWT_ACCESS_SECRET || 'zylo_super_secret_access_jwt_key_2026_dev',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'zylo_super_secret_refresh_jwt_key_2026_dev',
-    accessExpiresIn: '15m',
-    refreshExpiresInStandard: '1d', // 1 day for standard session
-    refreshExpiresInRemember: '30d', // 30 days when "Remember Me" is enabled
-  },
-  cookies: {
-    accessTokenName: 'access_token',
-    refreshTokenName: 'refresh_token',
-    options: (maxAgeMs?: number): CookieOptions => ({
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-      path: '/',
-      ...(maxAgeMs !== undefined ? { maxAge: maxAgeMs } : {}),
-    }),
-    accessMaxAge: 15 * 60 * 1000, // 15 minutes in ms
-    refreshMaxAgeStandard: 24 * 60 * 60 * 1000, // 1 day in ms
-    refreshMaxAgeRemember: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
-  },
-};
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value || value.trim() === '') {
+    throw new Error(`Missing required environment variable: ${name}. Set it in .env (see .env.example).`);
+  }
+  return value;
+}
+
+/**
+ * Authentication settings loaded from environment variables.
+ * JWT secrets have no fallback: the server refuses to boot without them.
+ */
+export const authConfig = registerAs('auth', () => {
+  const accessSecret = requireEnv('JWT_ACCESS_SECRET');
+  const refreshSecret = requireEnv('JWT_REFRESH_SECRET');
+  if (accessSecret === refreshSecret) {
+    throw new Error('JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different values.');
+  }
+
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  return {
+    accessSecret,
+    refreshSecret,
+    accessTtlMs: parseDurationMs(process.env.JWT_ACCESS_EXPIRY || '15m'),
+    refreshTtlMs: parseDurationMs(process.env.JWT_REFRESH_EXPIRY || '7d'),
+    refreshRememberTtlMs: parseDurationMs(process.env.JWT_REFRESH_REMEMBER_EXPIRY || '30d'),
+    cookieSecure: isProduction,
+    cookieSameSite: (isProduction ? 'strict' : 'lax') as 'strict' | 'lax',
+  };
+});
+
+export type AuthConfig = ReturnType<typeof authConfig>;

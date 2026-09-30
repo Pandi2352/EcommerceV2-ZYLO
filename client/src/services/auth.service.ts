@@ -35,16 +35,16 @@ export interface ApiResponseEnvelope<T> {
 }
 
 export const authService = {
-  async register(payload: RegisterPayload): Promise<{ user: AuthUser; accessToken: string }> {
-    const response = await api.post<ApiResponseEnvelope<{ user: AuthUser; accessToken: string }>>(
+  async register(payload: RegisterPayload): Promise<{ user: AuthUser }> {
+    const response = await api.post<ApiResponseEnvelope<{ user: AuthUser }>>(
       '/auth/register',
       payload
     );
     return response.data.data;
   },
 
-  async login(payload: LoginPayload): Promise<{ user: AuthUser; accessToken: string }> {
-    const response = await api.post<ApiResponseEnvelope<{ user: AuthUser; accessToken: string }>>(
+  async login(payload: LoginPayload): Promise<{ user: AuthUser }> {
+    const response = await api.post<ApiResponseEnvelope<{ user: AuthUser }>>(
       '/auth/login',
       payload
     );

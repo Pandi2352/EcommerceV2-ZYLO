@@ -7,7 +7,7 @@
          /  \        End-to-End Tests (Playwright)
         / E2E\       Critical paths: Registration ➔ Catalog ➔ Checkout
        /------\
-      /        \     Integration Tests (NestJS TestModule + Supertest + PostgreSQL)
+      /        \     Integration Tests (NestJS TestModule + Supertest + MongoDB)
      /  Integ.  \    API endpoints, Guards, Pipes, Database Transactions
     /------------\
    /              \  Unit Tests (Vitest / Jest)
@@ -23,7 +23,7 @@
 |---|---|---|
 | **Backend Unit & Integration** | `@nestjs/testing` + Jest / Vitest | Native NestJS testing module with dependency injection mocking |
 | **HTTP API Testing** | Supertest | Direct HTTP invocation of `app.getHttpServer()` |
-| **Test Database** | PostgreSQL Test Container / Local Test DB | Real relational SQL queries and foreign key constraints |
+| **Test Database** | `mongodb-memory-server` (replica set mode) | Real Mongoose queries, unique indexes, and session transactions |
 | **Frontend Unit & Component** | Vitest + React Testing Library | Component assertions, accessibility checks, and hook validation |
 | **End-to-End Browser Tests** | Playwright | Multi-browser headless automation of complete customer purchase journey |
 
@@ -34,27 +34,27 @@
 ```typescript
 // server/src/modules/products/products.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { getModelToken } from '@nestjs/mongoose';
 import { ProductsService } from './products.service';
-import { Product } from './entities/product.entity';
+import { Product } from './schemas/product.schema';
 import { NotFoundException } from '@nestjs/common';
 
 describe('ProductsService', () => {
   let service: ProductsService;
-  let mockProductRepo: any;
+  let mockProductModel: any;
 
   beforeEach(async () => {
-    mockProductRepo = {
-      findOne: vi.fn(),
-      save: vi.fn(),
+    mockProductModel = {
+      findById: vi.fn(),
+      create: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductsService,
         {
-          provide: getRepositoryToken(Product),
-          useValue: mockProductRepo,
+          provide: getModelToken(Product.name),
+          useValue: mockProductModel,
         },
       ],
     }).compile();
@@ -63,7 +63,7 @@ describe('ProductsService', () => {
   });
 
   it('should throw NotFoundException if product is missing', async () => {
-    mockProductRepo.findOne.mockResolvedValue(null);
+    mockProductModel.findById.mockReturnValue({ exec: vi.fn().mockResolvedValue(null) });
     await expect(service.findById('non-existent-id')).rejects.toThrow(NotFoundException);
   });
 });

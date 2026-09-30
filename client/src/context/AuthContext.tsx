@@ -5,6 +5,7 @@ import { authService } from '../services/auth.service';
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  /** True only while the initial session check runs on app load */
   isLoading: boolean;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
   login: (payload: LoginPayload) => Promise<AuthUser>;
@@ -34,26 +35,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshUser();
   }, []);
 
+  // Login/register don't touch isLoading: toggling it would make AppRoutes swap
+  // the page for a loader, unmounting the form and losing its error state.
+  // Forms track their own submitting state instead.
   const register = async (payload: RegisterPayload): Promise<AuthUser> => {
-    setIsLoading(true);
-    try {
-      const result = await authService.register(payload);
-      setUser(result.user);
-      return result.user;
-    } finally {
-      setIsLoading(false);
-    }
+    const result = await authService.register(payload);
+    setUser(result.user);
+    return result.user;
   };
 
   const login = async (payload: LoginPayload): Promise<AuthUser> => {
-    setIsLoading(true);
-    try {
-      const result = await authService.login(payload);
-      setUser(result.user);
-      return result.user;
-    } finally {
-      setIsLoading(false);
-    }
+    const result = await authService.login(payload);
+    setUser(result.user);
+    return result.user;
   };
 
   const logout = async (): Promise<void> => {

@@ -5,6 +5,19 @@ const bcrypt = serverRequire('bcryptjs');
 const crypto = require('crypto');
 
 /**
+ * Resolve a seed password from the environment. Dev defaults are only allowed
+ * outside production so real deployments never get well-known credentials.
+ */
+function seedPassword(envName, devDefault) {
+  const value = process.env[envName];
+  if (value) return value;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`${envName} must be set when seeding in production`);
+  }
+  return devDefault;
+}
+
+/**
  * Seed users collection
  * @param {import('mongoose').Connection} db
  * @param {boolean} clean
@@ -21,11 +34,14 @@ async function seedUsers(db, clean = false) {
   const salt = await bcrypt.genSalt(saltRounds);
   const now = new Date();
 
+  const adminPassword = seedPassword('SEED_ADMIN_PASSWORD', 'AdminPassword123!');
+  const customerPassword = seedPassword('SEED_CUSTOMER_PASSWORD', 'CustomerPassword123!');
+
   const userRecords = [
     {
       name: 'System Administrator',
       email: 'admin@zylo.internal',
-      password: 'AdminPassword123!',
+      password: adminPassword,
       role: 'ADMIN',
       isActive: true,
       isEmailVerified: true,
@@ -33,7 +49,7 @@ async function seedUsers(db, clean = false) {
     {
       name: 'Test Customer',
       email: 'customer@zylo.internal',
-      password: 'CustomerPassword123!',
+      password: customerPassword,
       role: 'CUSTOMER',
       isActive: true,
       isEmailVerified: true,
@@ -41,7 +57,7 @@ async function seedUsers(db, clean = false) {
     {
       name: 'John Doe',
       email: 'john.doe@example.com',
-      password: 'CustomerPassword123!',
+      password: customerPassword,
       role: 'CUSTOMER',
       isActive: true,
       isEmailVerified: true,

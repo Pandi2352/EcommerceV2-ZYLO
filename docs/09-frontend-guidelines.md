@@ -3,7 +3,7 @@
 ## 1. General Principles
 - **Strict TypeScript**: Avoid `any`. All props, states, and API responses must have explicit interfaces or shared DTO types.
 - **Component Decomposition**: Break screens into small, cohesive subcomponents (< 200 lines).
-- **Client Routing**: Use declarative routing via **React Router DOM v6+** with layout routes, loaders, and navigation guards (`ProtectedRoute`, `AdminRoute`).
+- **Client Routing**: Use declarative routing via **React Router DOM v7+** with layout routes, loaders, and navigation guards (`ProtectedRoute`, `AdminRoute`).
 - **HTTP Client**: Use **Axios** with centralized interceptors for automatic token refresh, cookie handling, and unified error parsing.
 - **Styling**: Rely purely on **Tailwind CSS** with cohesive design tokens, responsive modifiers, and micro-interactions.
 
@@ -49,7 +49,7 @@ apiClient.interceptors.response.use(
 
 ---
 
-## 3. React Router DOM v6 Navigation Patterns
+## 3. React Router DOM v7 Navigation Patterns
 
 ```tsx
 // client/src/routes/AppRoutes.tsx

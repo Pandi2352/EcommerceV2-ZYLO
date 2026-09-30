@@ -43,7 +43,7 @@ To build a highly structured, scalable, type-safe, and resilient e-commerce plat
 - **Background Queues**: BullMQ (`@nestjs/bullmq`)
 - **Real-time WebSockets**: NestJS WebSockets (`@nestjs/websockets`, Socket.io)
 - **Object Storage**: AWS S3 / Cloudinary (abstracted via storage provider)
-- **Search Engine**: PostgreSQL Full-Text Search (tsvector) evolving to Meilisearch
+- **Search Engine**: MongoDB text indexes evolving to Meilisearch / Atlas Search
 - **AI Integrations**: OpenAI / Gemini APIs with structured validation pipelines
 
 ---
@@ -66,7 +66,7 @@ To build a highly structured, scalable, type-safe, and resilient e-commerce plat
 ```
 [Phase 1-4: Core MVP] ──► [Phase 5: Performance & Async] ──► [Phase 6-7: Business & AI] ──► [Phase 8: Enterprise Prod]
 • NestJS Monolith         • Redis Caching                 • Multi-vendor             • Microservices / K8s (if needed)
-• PostgreSQL Relational   • BullMQ Queue Workers          • AI Recommendations       • Distributed Tracing
+• MongoDB Documents       • BullMQ Queue Workers          • AI Recommendations       • Distributed Tracing
 • React + Tailwind Client • WebSockets Real-time Tracking • Automated Promotions     • Global CDN & NGINX SSL
 • Swagger Documentation   • S3 Cloud Object Storage       • Semantic Search          • CI/CD Deployment Pipelines
 ```
@@ -79,6 +79,6 @@ To build a highly structured, scalable, type-safe, and resilient e-commerce plat
 3. **NestJS Architecture Purity**:
    - `Controllers` handle HTTP routing, request DTO validation, and Swagger annotations.
    - `Services` implement business logic, pricing math, and transactional workflows.
-   - `Repositories / Entities` handle database interaction via PostgreSQL ORM.
-   - No direct SQL queries inside controllers or React components.
+   - `Mongoose Models / Schemas` handle database interaction via `@nestjs/mongoose`.
+   - No direct database queries inside controllers or React components.
 4. **Interactive API Documentation**: All endpoints must be decorated with Swagger OpenAPI annotations (`@ApiTags`, `@ApiOperation`, `@ApiResponse`, `@ApiBearerAuth`).

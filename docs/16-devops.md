@@ -145,7 +145,7 @@ STRIPE_WEBHOOK_SECRET=whsec_xxx
 
 ## 4. Health Check Endpoint
 - Route: `GET /api/v1/health`
-- Verifies: NestJS process uptime, memory usage, and PostgreSQL database connectivity.
+- Verifies: NestJS process uptime, memory usage, and MongoDB database connectivity.
 - Response:
 ```json
 {

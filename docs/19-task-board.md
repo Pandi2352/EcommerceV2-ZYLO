@@ -17,17 +17,17 @@
 
 ---
 
-### TASK-002: PostgreSQL Database & TypeORM Setup
+### TASK-002: MongoDB & Mongoose Setup
 - **Module**: `server/src/config/database.config.ts`
-- **Status**: `READY` (Configured, ready for database instance boot)
+- **Status**: `DONE` (one sub-item remaining: DB check in health endpoint)
 - **Priority**: High (Blocker)
 - **Requirements**:
-  - PostgreSQL connection configured using `@nestjs/typeorm` and `pg`.
+  - MongoDB connection configured using `@nestjs/mongoose` and `mongoose`.
   - Environment variables loaded via `@nestjs/config`.
   - Health check endpoint `GET /api/v1/health` checking database connectivity.
 - **Acceptance Criteria**:
-  - Backend connects to local or Dockerized PostgreSQL 16 on boot.
-  - `GET /api/v1/health` returns status `200` with `"database": "connected"`.
+  - Backend connects to local or Dockerized MongoDB 7 on boot.
+  - [ ] **Remaining**: `GET /api/v1/health` returns status `200` with `"database": "connected"` (the health endpoint does not check DB connectivity yet).
 
 ---
 
@@ -38,7 +38,7 @@
 - **Requirements**:
   - Vite React TypeScript template initialized.
   - Tailwind CSS configured with custom color tokens (`indigo`, `slate`, `emerald`, `rose`).
-  - React Router DOM v6 router hierarchy with layout shells.
+  - React Router DOM v7 router hierarchy with layout shells.
   - Axios HTTP client configured with base URL and cookie support.
 - **Acceptance Criteria**:
   - Frontend launches via `npm run dev --prefix client`.
@@ -48,20 +48,20 @@
 
 ## 2. Sprint 2: Authentication & User Accounts (Day 2 Focus)
 
-### TASK-004: User & Address PostgreSQL Entities
+### TASK-004: User & Address Mongoose Schemas
 - **Module**: `server/src/modules/users/`
-- **Status**: `TODO`
+- **Status**: `DONE`
 - **Requirements**:
-  - TypeORM `User` entity (UUID, email UNIQUE, password_hash, role ENUM).
-  - TypeORM `Address` entity linked to `User` with `isDefault` flag.
+  - Mongoose `User` schema in `schemas/` (UUID string `_id`, unique email index, password hash, role enum).
+  - `Address` subdocument schema embedded in `User` with `isDefault` flag.
 
 ### TASK-005: NestJS AuthModule & Passport JWT
 - **Module**: `server/src/modules/auth/`
-- **Status**: `TODO`
+- **Status**: `DONE`
 - **Requirements**:
-  - Register, Login, Refresh, and Logout controllers with Swagger annotations.
+  - Register, Login, Refresh (token rotation with reuse detection), Logout, and Me endpoints with Swagger annotations.
   - Dual JWT tokens in HttpOnly cookies.
-  - `JwtAuthGuard`, `RolesGuard`, and `@CurrentUser()` decorator.
+  - `JwtAuthGuard` and `RolesGuard` registered globally, plus the `@CurrentUser()` decorator.
 
 ---
 
@@ -71,14 +71,14 @@
 - **Module**: `server/src/modules/categories/`
 - **Status**: `TODO`
 - **Requirements**:
-  - Category entity with self-referencing `parentId` for subcategories.
+  - Category schema with self-referencing `parentId` for subcategories.
   - Slug generation and Admin CRUD endpoints documented in Swagger.
 
 ### TASK-007: Product Catalog & Variant Matrix
 - **Module**: `server/src/modules/products/`
 - **Status**: `TODO`
 - **Requirements**:
-  - Entities for `Product`, `ProductImage`, and `ProductVariant`.
+  - Mongoose schemas for `Product`, `ProductImage`, and `ProductVariant`.
   - Multi-filter search endpoint with pagination, price range, and category filter.
 
 ---
@@ -89,14 +89,14 @@
 - **Module**: `server/src/modules/cart/`
 - **Status**: `TODO`
 - **Requirements**:
-  - `Cart` and `CartItem` entities.
+  - `Cart` and `CartItem` schemas.
   - Live stock verification and server-side subtotal computation.
 
 ### TASK-009: Transactional Order Placement & Stock Lock
 - **Module**: `server/src/modules/orders/`
 - **Status**: `TODO`
 - **Requirements**:
-  - TypeORM transaction reserving stock with row lock (`FOR UPDATE`).
+  - Mongoose session transaction reserving stock with a conditional atomic decrement (`$inc` guarded by `stock: { $gte: qty }`).
   - Order state machine supporting `PENDING` to `DELIVERED`.
 
 ---

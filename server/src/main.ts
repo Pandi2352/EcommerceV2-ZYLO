@@ -1,6 +1,8 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -10,21 +12,33 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const config = app.get(ConfigService);
+
+  // Behind a reverse proxy (nginx in Docker), trust X-Forwarded-For so rate
+  // limiting keys on the real client IP instead of the proxy's.
+  const trustProxy = config.get<string>('TRUST_PROXY');
+  if (trustProxy) {
+    app.set('trust proxy', /^\d+$/.test(trustProxy) ? parseInt(trustProxy, 10) : trustProxy);
+  }
 
   // Security Middleware
   app.use(helmet());
   app.use(cookieParser());
 
-  // CORS Configuration
+  // CORS Configuration: credentialed requests require an explicit origin allowlist
+  const allowedOrigins = [config.get<string>('CLIENT_URL'), config.get<string>('ADMIN_URL')]
+    .flatMap((value) => (value ? value.split(',') : []))
+    .map((origin) => origin.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: '*',
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   // Global API Prefix
-  const apiPrefix = process.env.API_PREFIX || '/api/v1';
+  const apiPrefix = config.get<string>('API_PREFIX', '/api/v1');
   app.setGlobalPrefix(apiPrefix.replace(/^\//, ''));
 
   // Global DTO Validation Pipe
@@ -46,7 +60,7 @@ async function bootstrap() {
   // Dedicated OpenAPI Swagger Setup
   setupSwagger(app);
 
-  const port = parseInt(process.env.PORT || '5000', 10);
+  const port = parseInt(config.get<string>('PORT', '5000'), 10);
   await app.listen(port);
 
   logger.log(`=======================================================`);

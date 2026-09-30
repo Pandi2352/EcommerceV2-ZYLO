@@ -58,6 +58,6 @@ Before reporting a task as completed to the user, the agent MUST verify:
 - [ ] `npm run build --prefix server` and `npm run build --prefix client` compile with 0 errors.
 - [ ] Endpoints are registered in Swagger and visible at `/api/docs`.
 - [ ] All inputs are strictly validated via DTOs with `class-validator`.
-- [ ] Database mutations use PostgreSQL transactions where financial or inventory consistency is required.
+- [ ] Database mutations use MongoDB transactions (Mongoose sessions) / conditional atomic updates where financial or inventory consistency is required.
 - [ ] UI states account for all 4 states: Loading, Error, Empty, and Success.
 - [ ] Relevant documentation or task status in `docs/19-task-board.md` has been updated.

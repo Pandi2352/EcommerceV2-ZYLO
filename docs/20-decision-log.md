@@ -56,10 +56,10 @@ Each Architecture Decision Record (ADR) outlines the Context, Decision, Rational
 
 ---
 
-## ADR-006: React Router DOM v6 and Axios for Client
+## ADR-006: React Router DOM v7 and Axios for Client
 - **Status**: Accepted
 - **Context**: The client application needs clean client-side routing with nested layouts and robust HTTP communication.
-- **Decision**: Standardize on **React Router DOM v6+** for declarative routing and **Axios** with response interceptors for silent token refresh.
+- **Decision**: Standardize on **React Router DOM v7+** for declarative routing and **Axios** with response interceptors for silent token refresh.
 - **Consequences**:
   - Consistent layout routing and route guards (`ProtectedRoute`, `AdminRoute`).
   - Seamless handling of expired tokens without disruptive user logouts.

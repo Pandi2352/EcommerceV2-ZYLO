@@ -1,34 +1,30 @@
 import {
+  Inject,
   Injectable,
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
+import { CookieOptions, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
-import { User, UserDocument, UserRole } from '../users/schemas/user.schema';
+import { UserDocument, UserRole } from '../users/schemas/user.schema';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { authConfig } from '../../config/auth.config';
-
-export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-}
+import { authConfig, AuthConfig } from '../../config/auth.config';
+import { TokenService, IssuedTokens } from './token.service';
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from './auth.constants';
 
 export interface AuthResult {
   user: UserDocument;
-  accessToken: string;
-  refreshToken: string;
-  rememberMe?: boolean;
+  tokens: IssuedTokens;
 }
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
+    private readonly tokenService: TokenService,
+    @Inject(authConfig.KEY) private readonly config: AuthConfig,
   ) {}
 
   /**
@@ -52,14 +48,7 @@ export class AuthService {
       isEmailVerified: false,
     });
 
-    // Default registration gets standard duration (can be extended upon login)
-    const tokens = await this.generateTokens(user, false);
-
-    return {
-      user,
-      rememberMe: false,
-      ...tokens,
-    };
+    return { user, tokens: await this.tokenService.issue(user, false) };
   }
 
   /**
@@ -80,122 +69,51 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const rememberMe = Boolean(dto.rememberMe);
-    const tokens = await this.generateTokens(user, rememberMe);
-
-    return {
-      user,
-      rememberMe,
-      ...tokens,
-    };
+    return { user, tokens: await this.tokenService.issue(user, Boolean(dto.rememberMe)) };
   }
 
   /**
-   * Refresh session access token using a valid refresh token
+   * Rotate the refresh token: the presented token is consumed and a new pair
+   * is issued in the same session family.
    */
   async refresh(refreshToken: string): Promise<AuthResult> {
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token is required');
+    const session = await this.tokenService.consume(refreshToken);
+
+    const user = await this.usersService.findById(session.userId);
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('User session is invalid');
     }
 
-    try {
-      const payload = await this.jwtService.verifyAsync(refreshToken, {
-        secret: authConfig.jwt.refreshSecret,
-      });
-
-      const user = await this.usersService.findById(payload.sub);
-      if (!user || !user.isActive) {
-        throw new UnauthorizedException('User session is invalid');
-      }
-
-      const rememberMe = Boolean(payload.rememberMe);
-      const tokens = await this.generateTokens(user, rememberMe);
-
-      return {
-        user,
-        rememberMe,
-        ...tokens,
-      };
-    } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
-    }
+    const tokens = await this.tokenService.issue(user, session.rememberMe, session.familyId);
+    return { user, tokens };
   }
 
   /**
-   * Generate dual Access & Refresh JWT tokens with configurable lifespan
+   * Revoke the refresh session server-side (the access token expires on its own)
    */
-  private async generateTokens(
-    user: UserDocument,
-    rememberMe: boolean = false
-  ): Promise<TokenPair> {
-    const payload = {
-      sub: user._id.toString(),
-      email: user.email,
-      role: user.role,
-      rememberMe,
-    };
-
-    const refreshExpiresIn = rememberMe
-      ? authConfig.jwt.refreshExpiresInRemember
-      : authConfig.jwt.refreshExpiresInStandard;
-
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: authConfig.jwt.accessSecret,
-        expiresIn: authConfig.jwt.accessExpiresIn as any,
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: authConfig.jwt.refreshSecret,
-        expiresIn: refreshExpiresIn as any,
-      }),
-    ]);
-
-    return { accessToken, refreshToken };
-  }
-
-  /**
-   * Set secure HttpOnly cookies on the HTTP response with Remember Me duration adjustments
-   */
-  setAuthCookies(
-    res: Response,
-    accessToken: string,
-    refreshToken?: string,
-    rememberMe: boolean = false
-  ): void {
-    res.cookie(
-      authConfig.cookies.accessTokenName,
-      accessToken,
-      authConfig.cookies.options(authConfig.cookies.accessMaxAge)
-    );
-
+  async logout(refreshToken?: string): Promise<void> {
     if (refreshToken) {
-      const refreshMaxAge = rememberMe
-        ? authConfig.cookies.refreshMaxAgeRemember
-        : authConfig.cookies.refreshMaxAgeStandard;
-
-      res.cookie(
-        authConfig.cookies.refreshTokenName,
-        refreshToken,
-        authConfig.cookies.options(refreshMaxAge)
-      );
+      await this.tokenService.revoke(refreshToken);
     }
   }
 
-  /**
-   * Clear authentication session cookies on logout
-   */
+  setAuthCookies(res: Response, tokens: IssuedTokens): void {
+    res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, this.cookieOptions(this.config.accessTtlMs));
+    res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, this.cookieOptions(tokens.refreshTtlMs));
+  }
+
   clearAuthCookies(res: Response): void {
-    res.clearCookie(authConfig.cookies.accessTokenName, {
-      path: '/',
+    res.clearCookie(ACCESS_TOKEN_COOKIE, this.cookieOptions());
+    res.clearCookie(REFRESH_TOKEN_COOKIE, this.cookieOptions());
+  }
+
+  private cookieOptions(maxAgeMs?: number): CookieOptions {
+    return {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-    });
-    res.clearCookie(authConfig.cookies.refreshTokenName, {
+      secure: this.config.cookieSecure,
+      sameSite: this.config.cookieSameSite,
       path: '/',
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-    });
+      ...(maxAgeMs !== undefined ? { maxAge: maxAgeMs } : {}),
+    };
   }
 }

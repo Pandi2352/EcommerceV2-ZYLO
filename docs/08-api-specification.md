@@ -124,7 +124,7 @@ Uncaught exceptions and validation failures are formatted by `HttpExceptionFilte
 ### 2.7 `@ApiTags('Orders')` (`/api/v1/orders`)
 | Method | Endpoint | Auth | Description | Swagger DTO |
 |---|---|---|---|---|
-| `POST` | `/orders` | Authenticated | Place order (PostgreSQL transaction) | `CreateOrderDto` |
+| `POST` | `/orders` | Authenticated | Place order (MongoDB multi-document transaction) | `CreateOrderDto` |
 | `GET` | `/orders` | Authenticated | Customer order history (paginated) | `PaginationQueryDto` |
 | `GET` | `/orders/:id` | Authenticated | Get order details and items | N/A |
 | `POST` | `/orders/:id/cancel` | Authenticated | Cancel order (if `PENDING`/`CONFIRMED`) | N/A |

@@ -1,22 +1,25 @@
 # Application Security Guidelines
 
-## 1. Zero-Trust Security in NestJS & PostgreSQL
+## 1. Zero-Trust Security in NestJS & MongoDB
 
-Every incoming HTTP request is treated as untrusted. The backend relies on parameterized queries, strict DTO validation pipes, and route guards to enforce absolute isolation.
+Every incoming HTTP request is treated as untrusted. The backend relies on NoSQL injection defenses, strict DTO validation pipes, and route guards to enforce absolute isolation.
 
 ---
 
 ## 2. Core OWASP Protections
 
-### 2.1 SQL Injection Defense
-- **Parameterized Queries**: All database queries executed through TypeORM repositories or query builders automatically use parameterized queries (`$1, $2, ...`).
-- **Forbidden**: Never use string concatenation to build raw SQL strings:
+### 2.1 NoSQL Injection Defense
+- **Validated DTOs Only**: Every query and body input passes through a `class-validator` DTO (`whitelist: true`) before it reaches a Mongoose filter.
+- **Cast to Primitives**: Cast filter values to the expected primitive type (`String(...)`, `Number(...)`) so an attacker cannot smuggle in operator objects such as `{ "$ne": null }`.
+- **Reject Operator Keys**: Reject any user-supplied key that starts with `$` in filter input.
+- **Mongoose Safeguards**: Enable `sanitizeFilter` and keep `strictQuery` on, so injected query operators and unknown paths are stripped.
+- **Forbidden**: Never pass raw `req.query` / `req.body` objects into filters:
   ```typescript
   // STRICTLY FORBIDDEN
-  queryRunner.query(`SELECT * FROM products WHERE name = '${input}'`);
+  this.userModel.findOne({ email: req.body.email });
 
-  // MANDATORY
-  queryRunner.query('SELECT * FROM products WHERE name = $1', [input]);
+  // MANDATORY (validated DTO, cast to primitive)
+  this.userModel.findOne({ email: String(dto.email) });
   ```
 
 ### 2.2 Strict DTO Whitelisting
