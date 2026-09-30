@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import TopBar from './TopBar';
 import CustomerNavbar from './CustomerNavbar';
+import SubNavBar from './SubNavBar';
 import CategoryRail from './CategoryRail';
 import EmailVerificationBanner from '../../features/auth/components/EmailVerificationBanner';
 
@@ -12,18 +13,22 @@ export interface CustomerLayoutProps {
 
 export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   children,
-  showRail = true,
+  showRail = false,
 }) => {
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-800 antialiased font-sans">
-      {/* Top utility bar */}
+      {/* Top utility announcement bar */}
       <TopBar />
 
-      {/* Main customer navbar */}
+      {/* Main search and customer action navbar */}
       <CustomerNavbar />
+
+      {/* Sub category and navigation bar */}
+      <SubNavBar />
+
       <EmailVerificationBanner />
 
-      {/* Content wrapper with optional left category icon rail */}
+      {/* Main content wrapper */}
       <div className="flex-1 flex w-full">
         {showRail && <CategoryRail />}
         <main className="flex-1 min-w-0 bg-white">

@@ -141,7 +141,7 @@ export class OrdersService {
         const product = await this.productModel.findOneAndUpdate(
           { _id: item.productId, stock: { $gte: item.quantity } },
           { $inc: { stock: -item.quantity } },
-          { session, new: true },
+          { session, returnDocument: 'after' },
         );
 
         if (!product) {

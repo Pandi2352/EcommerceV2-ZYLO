@@ -81,7 +81,7 @@ export class TokenService {
       .findOneAndUpdate(
         { _id: payload.jti, revokedAt: null },
         { $set: { revokedAt: new Date() } },
-        { new: false },
+        { returnDocument: 'before' },
       )
       .exec();
 

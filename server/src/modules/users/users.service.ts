@@ -44,7 +44,7 @@ export class UsersService {
   }
 
   async update(id: string, update: UpdateQuery<User>): Promise<UserDocument> {
-    const user = await this.userModel.findByIdAndUpdate(id, update, { new: true }).exec();
+    const user = await this.userModel.findByIdAndUpdate(id, update, { returnDocument: 'after' }).exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -53,7 +53,7 @@ export class UsersService {
 
   /** Conditional update; returns null when no document matched the filter. */
   async updateWhere(filter: QueryFilter<User>, update: UpdateQuery<User>): Promise<UserDocument | null> {
-    return this.userModel.findOneAndUpdate(filter, update, { new: true }).exec();
+    return this.userModel.findOneAndUpdate(filter, update, { returnDocument: 'after' }).exec();
   }
 
   async addAddress(userId: string, address: Address): Promise<UserDocument | null> {
