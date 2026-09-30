@@ -10,7 +10,6 @@ import {
   User,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import CustomerLayout from '../../components/layout/CustomerLayout';
 
 export default function CustomerHomePage() {
   const { user, isAuthenticated } = useAuth();
@@ -27,8 +26,7 @@ export default function CustomerHomePage() {
   ];
 
   return (
-    <CustomerLayout showRail={true}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans">
         {/* Active Auth Callout */}
         <div className="bg-indigo-50 border border-indigo-200 rounded-md p-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -178,6 +176,5 @@ export default function CustomerHomePage() {
           </div>
         </div>
       </div>
-    </CustomerLayout>
   );
 }

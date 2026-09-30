@@ -1,11 +1,10 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ROUTES } from './routePaths';
 import PageLoader from '../components/common/PageLoader';
 
 export interface PublicOnlyRouteProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export const PublicOnlyRoute: React.FC<PublicOnlyRouteProps> = ({ children }) => {
@@ -21,7 +20,7 @@ export const PublicOnlyRoute: React.FC<PublicOnlyRouteProps> = ({ children }) =>
     return <Navigate to={target} replace />;
   }
 
-  return <>{children}</>;
+  return <>{children || <Outlet />}</>;
 };
 
 export default PublicOnlyRoute;

@@ -129,7 +129,7 @@ export class AuthService {
     rememberMe: boolean = false
   ): Promise<TokenPair> {
     const payload = {
-      sub: user._id,
+      sub: user._id.toString(),
       email: user.email,
       role: user.role,
       rememberMe,

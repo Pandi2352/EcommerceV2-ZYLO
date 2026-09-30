@@ -1,10 +1,11 @@
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 import TopBar from './TopBar';
 import CustomerNavbar from './CustomerNavbar';
 import CategoryRail from './CategoryRail';
 
 export interface CustomerLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   showRail?: boolean;
 }
 
@@ -20,10 +21,12 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
       {/* Main customer navbar */}
       <CustomerNavbar />
 
-      {/* Content wrapper with optional left icon rail */}
+      {/* Content wrapper with optional left category icon rail */}
       <div className="flex-1 flex w-full">
         {showRail && <CategoryRail />}
-        <main className="flex-1 min-w-0 bg-white">{children}</main>
+        <main className="flex-1 min-w-0 bg-white">
+          {children || <Outlet />}
+        </main>
       </div>
     </div>
   );

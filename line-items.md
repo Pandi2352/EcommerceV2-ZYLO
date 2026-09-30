@@ -25,16 +25,16 @@
 - [ ] Prevent reusing the immediate old password
 
 ### Security, Session & Token Lifecycle
-- [ ] Dual-token scheme: Short-lived access token (15 min) + Long-lived refresh token (7 days)
-- [ ] Secure cookie configuration (`httpOnly: true`, `secure: true`, `sameSite: 'lax'`)
-- [ ] Silent token refresh endpoint (`POST /api/v1/auth/refresh`)
-- [ ] Axios response interceptor for transparent 401 token refresh and request retry
+- [x] Dual-token scheme: Short-lived access token (15 min) + Long-lived refresh token (7 days)
+- [x] Secure cookie configuration (`httpOnly: true`, `secure: true`, `sameSite: 'lax'`)
+- [x] Silent token refresh endpoint (`POST /api/v1/auth/refresh`)
+- [x] Axios response interceptor for transparent 401 token refresh and request retry
 - [ ] Refresh token rotation (Issues a fresh refresh token on every refresh call)
 - [ ] Refresh token reuse detection (Revokes entire token family if stolen token is replayed)
 - [ ] Logout from all active sessions / devices (Revokes all user refresh tokens)
 - [ ] Brute-force rate limiting on auth endpoints (Max 5 attempts per min per IP via Throttler)
 - [ ] Account temporary lockout / cooldown after 5 consecutive failed login attempts
-- [ ] Password hashing with `bcryptjs` / `argon2` (Salt rounds: 12)
+- [x] Password hashing with `bcryptjs` / `argon2` (Salt rounds: 12)
 
 ### Social Authentication (OAuth2)
 - [ ] Google OAuth2 registration and login (`passport-google-oauth20`)
@@ -42,12 +42,12 @@
 - [ ] OAuth2 redirect callback handler and auth cookie issuance
 
 ### Admin Authentication & RBAC
-- [ ] Dedicated Admin login endpoint
-- [ ] Admin profile view & session check
-- [ ] NestJS `JwtAuthGuard` and `RolesGuard` integration
+- [x] Dedicated Admin login endpoint
+- [x] Admin profile view & session check
+- [x] NestJS `JwtAuthGuard` and `RolesGuard` integration
 - [ ] `@Roles('ADMIN')` decorator enforcing endpoint permissions
 - [ ] Role hierarchy support (`SUPER_ADMIN`, `ADMIN`, `SUPPORT_AGENT`)
-- [ ] Admin protected route wrapper (`AdminRoute`)
+- [x] Admin protected route wrapper (`AdminRoute`)
 - [ ] Admin login audit log (Records timestamp, IP address, and user-agent)
 - [ ] Force password reset on first initial admin login
 
