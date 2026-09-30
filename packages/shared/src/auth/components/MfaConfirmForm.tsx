@@ -42,7 +42,13 @@ export const MfaConfirmForm: React.FC<MfaConfirmFormProps> = ({
       <p className="text-xs text-slate-600">{description}</p>
       {form.formError && <Alert tone="error">{form.formError.message}</Alert>}
       {requirePassword && (
-        <PasswordField label="Password" required autoComplete="current-password" {...form.field('password')} />
+        <PasswordField
+          label="Password"
+          required
+          autoComplete="current-password"
+          placeholder="Enter your account password"
+          {...form.field('password')}
+        />
       )}
       <InputField
         label="Authentication code"

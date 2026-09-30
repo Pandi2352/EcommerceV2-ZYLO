@@ -60,9 +60,28 @@ export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ submitLa
         </Alert>
       )}
 
-      <PasswordField label="Current password" required autoComplete="current-password" {...form.field('currentPassword')} />
-      <PasswordField label="New password" required autoComplete="new-password" showStrengthMeter {...form.field('newPassword')} />
-      <PasswordField label="Confirm new password" required autoComplete="new-password" {...form.field('confirmPassword')} />
+      <PasswordField
+        label="Current password"
+        required
+        autoComplete="current-password"
+        placeholder="Enter your current password"
+        {...form.field('currentPassword')}
+      />
+      <PasswordField
+        label="New password"
+        required
+        autoComplete="new-password"
+        placeholder="Enter at least 8 characters"
+        showStrengthMeter
+        {...form.field('newPassword')}
+      />
+      <PasswordField
+        label="Confirm new password"
+        required
+        autoComplete="new-password"
+        placeholder="Re-enter your new password"
+        {...form.field('confirmPassword')}
+      />
 
       <Button type="submit" variant="primary" isLoading={form.isSubmitting}>
         {submitLabel}

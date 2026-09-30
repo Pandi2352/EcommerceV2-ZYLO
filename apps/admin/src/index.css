@@ -2,6 +2,20 @@
 /* Generate classes used by shared components too */
 @source "../../../packages/shared/src";
 
+/* Universal Placeholder Styling */
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important; /* slate-400 */
+  opacity: 1 !important; /* Firefox default opacity override */
+  font-weight: 400;
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: #cbd5e1 !important; /* slate-300 on focus for subtle interaction */
+  transition: color 0.15s ease-in-out;
+}
+
 /* Custom Autofill Styling: Override browser default light blue tint */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
@@ -10,4 +24,55 @@ input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 40px #ffffff inset !important;
   -webkit-text-fill-color: #0f172a !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+
+/* Custom Scrollbar for Outlet Area & General Scrollable Panels */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Custom Dark Scrollbar for Sidebar navigation */
+.custom-scrollbar-dark {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb {
+  background-color: #334155;
+  border-radius: 9999px;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background-color: #475569;
 }

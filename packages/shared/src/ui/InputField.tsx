@@ -36,6 +36,12 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
     const inputId = id || generatedId;
 
     const hasValue = value !== undefined && value !== null && String(value).length > 0;
+    const effectivePlaceholder =
+      props.placeholder !== undefined
+        ? props.placeholder
+        : label
+        ? `Enter ${label.toLowerCase()}`
+        : undefined;
 
     return (
       <div className={`w-full ${containerClassName}`}>
@@ -63,7 +69,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
             value={value}
             disabled={disabled}
             required={required}
-            className={`w-full py-2.5 text-sm rounded-md transition-colors placeholder:text-slate-400 bg-white outline-none focus:outline-none focus:ring-0 ${
+            placeholder={effectivePlaceholder}
+            className={`w-full py-2.5 text-sm rounded-md transition-colors placeholder:text-slate-400 placeholder:text-sm placeholder:font-normal bg-white outline-none focus:outline-none focus:ring-0 ${
               leftIcon ? 'pl-10' : 'pl-3.5'
             } ${
               rightElement || (clearable && hasValue) ? 'pr-10' : 'pr-3.5'

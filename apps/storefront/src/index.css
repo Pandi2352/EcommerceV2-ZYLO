@@ -7,6 +7,20 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Universal Placeholder Styling */
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important; /* slate-400 */
+  opacity: 1 !important; /* Firefox default opacity override */
+  font-weight: 400;
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: #cbd5e1 !important; /* slate-300 on focus */
+  transition: color 0.15s ease-in-out;
+}
+
 /* Custom Autofill Styling: Override browser default light blue tint */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 

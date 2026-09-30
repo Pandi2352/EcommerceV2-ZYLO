@@ -19,13 +19,13 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '../../routes/routePaths';
 import { toast } from '@shared/ui/Toast';
 
-export interface AdminHeaderProps {
+export interface NavbarProps {
   isCollapsed?: boolean;
   onToggleCollapse: () => void;
   onOpenMobileMenu?: () => void;
 }
 
-export const AdminHeader: React.FC<AdminHeaderProps> = ({
+export const Navbar: React.FC<NavbarProps> = ({
   onToggleCollapse,
   onOpenMobileMenu,
 }) => {
@@ -36,7 +36,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   const profileRef = useRef<HTMLDivElement>(null);
   const appsRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns on click outside
+  // Close popovers on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
@@ -59,13 +59,18 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   };
 
   const displayName = user?.name || 'Anna Adame';
-  const roleName = user?.role === 'SUPER_ADMIN' ? 'Founder' : user?.role === 'ADMIN' ? 'Administrator' : 'Staff';
+  const roleName =
+    user?.role === 'SUPER_ADMIN'
+      ? 'Founder'
+      : user?.role === 'ADMIN'
+      ? 'Administrator'
+      : 'Staff';
 
   return (
     <header className="h-16 bg-white border-b border-slate-200/90 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 select-none">
-      {/* Left: Hamburger Toggle & Search Input */}
-      <div className="flex items-center gap-4 flex-1 max-w-md">
-        {/* Desktop Hamburger Toggle */}
+      {/* Left: Menu button & Search (No breadcrumbs) */}
+      <div className="flex items-center gap-3 sm:gap-4 flex-1 max-w-md">
+        {/* Desktop Collapse Toggle */}
         <button
           type="button"
           onClick={onToggleCollapse}
@@ -97,22 +102,22 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         </div>
       </div>
 
-      {/* Right Tools & Profile Pill matching screenshot */}
+      {/* Right Tools & Account Settings */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Flag Selector (USA) */}
         <button
           type="button"
           className="p-2 rounded-md hover:bg-slate-100 text-sm transition-colors cursor-pointer"
-          title="Change Language"
+          title="Language: English (US)"
         >
           <span className="text-base leading-none">🇺🇸</span>
         </button>
 
-        {/* App Launcher Grid Icon */}
+        {/* Quick App Launcher Grid */}
         <div className="relative" ref={appsRef}>
           <button
             type="button"
-            onClick={() => setAppsDropdownOpen(!appsDropdownOpen)}
+            onClick={() => setAppsDropdownOpen((prev) => !prev)}
             className="p-2 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
             title="App Launcher"
           >
@@ -120,9 +125,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           </button>
 
           {appsDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-md shadow-lg p-3 z-50 animate-in fade-in duration-100">
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-md shadow-md p-3 z-50 animate-in fade-in duration-100">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                Quick Apps
+                Quick Modules
               </p>
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
                 <Link
@@ -147,18 +152,18 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                   className="p-2 rounded-md hover:bg-slate-50 text-slate-700 flex flex-col items-center gap-1"
                 >
                   <span className="text-lg">👥</span>
-                  <span>Users</span>
+                  <span>Customers</span>
                 </Link>
               </div>
             </div>
           )}
         </div>
 
-        {/* Shopping Bag with Count 5 */}
+        {/* Shopping / Orders quick access badge */}
         <Link
           to={ROUTES.ORDERS}
           className="relative p-2 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-          title="Recent Cart & Orders"
+          title="Recent Orders"
         >
           <ShoppingBag className="w-4.5 h-4.5" />
           <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#299cdb] text-white text-[9px] font-bold flex items-center justify-center">
@@ -166,7 +171,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           </span>
         </Link>
 
-        {/* Fullscreen Toggle */}
+        {/* Fullscreen toggle */}
         <button
           type="button"
           onClick={handleFullscreen}
@@ -176,20 +181,22 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <Maximize2 className="w-4.5 h-4.5" />
         </button>
 
-        {/* Light/Dark Toggle */}
+        {/* Theme Toggle (Light / Dark) */}
         <button
           type="button"
           onClick={() => {
-            setIsDarkMode(!isDarkMode);
-            toast.info(isDarkMode ? 'Switched to Light mode' : 'Switched to Dark mode');
+            const nextMode = !isDarkMode;
+            setIsDarkMode(nextMode);
+            toast.info(nextMode ? 'Switched to Dark mode' : 'Switched to Light mode');
           }}
           className="p-2 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
           title="Toggle Theme"
+          aria-label="Toggle Theme"
         >
           {isDarkMode ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
         </button>
 
-        {/* Notification Bell with Count 3 */}
+        {/* Notifications */}
         <button
           type="button"
           onClick={() => toast.info('You have 3 unread store alerts')}
@@ -202,14 +209,15 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           </span>
         </button>
 
-        {/* User Profile Pill matching screenshot */}
+        {/* Settings & Account Profile */}
         <div className="relative pl-1 sm:pl-2" ref={profileRef}>
           <button
             type="button"
-            onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+            onClick={() => setProfileDropdownOpen((prev) => !prev)}
             className="flex items-center gap-2.5 p-1 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+            aria-label="User Account Menu"
           >
-            {/* Avatar Image */}
+            {/* Avatar */}
             <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-slate-300 shrink-0">
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
@@ -230,12 +238,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden lg:block" />
           </button>
 
-          {/* Profile Dropdown Menu */}
+          {/* Profile & Settings Dropdown */}
           {profileDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-md shadow-lg py-1 z-50 animate-in fade-in duration-100 text-xs">
+            <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-md shadow-md py-1 z-50 animate-in fade-in duration-100 text-xs">
               <div className="px-4 py-2 border-b border-slate-100">
                 <p className="font-bold text-slate-800 truncate">{displayName}</p>
-                <p className="text-[11px] text-slate-400 truncate">{user?.email || 'admin@zylo.internal'}</p>
+                <p className="text-[11px] text-slate-400 truncate">
+                  {user?.email || 'admin@zylo.internal'}
+                </p>
               </div>
 
               <Link
@@ -262,7 +272,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 <Lock className="w-3.5 h-3.5 text-slate-400" />
-                <span>Lock Screen</span>
+                <span>Security & Logs</span>
               </Link>
 
               <div className="border-t border-slate-100 my-1" />
@@ -287,4 +297,4 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   );
 };
 
-export default AdminHeader;
+export default Navbar;

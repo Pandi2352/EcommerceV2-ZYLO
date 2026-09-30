@@ -66,8 +66,22 @@ export default function ResetPasswordPage() {
             {form.formError.message}
           </Alert>
         )}
-        <PasswordField label="New password" required autoComplete="new-password" showStrengthMeter autoFocus {...form.field('password')} />
-        <PasswordField label="Confirm new password" required autoComplete="new-password" {...form.field('confirmPassword')} />
+        <PasswordField
+          label="New password"
+          required
+          autoComplete="new-password"
+          placeholder="Enter at least 8 characters"
+          showStrengthMeter
+          autoFocus
+          {...form.field('password')}
+        />
+        <PasswordField
+          label="Confirm new password"
+          required
+          autoComplete="new-password"
+          placeholder="Re-enter your new password"
+          {...form.field('confirmPassword')}
+        />
         <Button type="submit" variant="primary" fullWidth isLoading={form.isSubmitting} className="py-3">
           Reset password
         </Button>

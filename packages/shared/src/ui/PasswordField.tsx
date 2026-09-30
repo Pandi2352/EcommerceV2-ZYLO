@@ -46,6 +46,19 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
     const evaluation = evaluatePassword(passwordStr);
     const strength = STRENGTH_META[evaluation.strength];
 
+    const effectivePlaceholder =
+      props.placeholder !== undefined
+        ? props.placeholder
+        : label
+        ? label.toLowerCase().includes('confirm')
+          ? 'Re-enter your password'
+          : label.toLowerCase().includes('current')
+          ? 'Enter your current password'
+          : label.toLowerCase().includes('new')
+          ? 'Enter a new password'
+          : 'Enter your password'
+        : 'Enter your password';
+
     return (
       <div className={`w-full ${containerClassName}`}>
         {/* Label & Optional Strength badge */}
@@ -78,7 +91,8 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
             value={value}
             disabled={disabled}
             required={required}
-            className={`w-full py-2.5 text-sm rounded-md transition-colors placeholder:text-slate-400 bg-white outline-none focus:outline-none focus:ring-0 ${
+            placeholder={effectivePlaceholder}
+            className={`w-full py-2.5 text-sm rounded-md transition-colors placeholder:text-slate-400 placeholder:text-sm placeholder:font-normal bg-white outline-none focus:outline-none focus:ring-0 ${
               leftIcon ? 'pl-10' : 'pl-3.5'
             } pr-10 ${
               error

@@ -13,7 +13,7 @@ import { USER_ROLES } from '@shared/constants/roles';
 import { ROUTES } from './routePaths';
 import { MANAGER_PLANNED, STAFF_PLANNED, type PlannedRoute } from './plannedRoutes';
 
-import AdminLayout from '../components/layout/AdminLayout';
+import { AppLayout } from '../layouts/AppLayout';
 import AdminLoginPage from '../pages/AdminLoginPage';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
 import AdminChangePasswordPage from '../pages/AdminChangePasswordPage';
@@ -52,7 +52,7 @@ export const AppRoutes: React.FC = () => {
       <Route element={<ProtectedRoute />}>
         <Route path={ROUTES.CHANGE_PASSWORD} element={<AdminChangePasswordPage />} />
 
-        <Route element={<AdminLayout />}>
+        <Route element={<AppLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<AdminDashboardPage />} />
           <Route path={ROUTES.DASHBOARDS_ECOMMERCE} element={<AdminDashboardPage />} />
           <Route path={ROUTES.SETTINGS} element={<AdminSecurityPage />} />
