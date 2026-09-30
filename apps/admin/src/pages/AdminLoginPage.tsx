@@ -6,6 +6,7 @@ import { STORAGE_KEYS } from '@shared/constants/storageKeys';
 import { resolvePostLoginRedirect } from '@shared/utils/redirect';
 import AuthCard from '@shared/auth/components/AuthCard';
 import LoginForm from '@shared/auth/components/LoginForm';
+import { toast } from '@shared/ui/Toast';
 
 /** Admin portal sign-in. Staff accounts only; there is no admin registration. */
 export default function AdminLoginPage() {
@@ -32,7 +33,10 @@ export default function AdminLoginPage() {
         emailPlaceholder="name@zylo.internal"
         submitLabel="Authenticate & Access"
         submitIcon={<Lock className="w-4 h-4" />}
-        onAuthenticated={() => navigate(redirect, { replace: true })}
+        onAuthenticated={(user) => {
+          toast.success(`Welcome, ${user.name}! Authenticated to Admin Console.`);
+          navigate(redirect, { replace: true });
+        }}
         onMfaRequired={() => navigate(`${ROUTES.LOGIN_VERIFY}?redirect=${encodeURIComponent(redirect)}`)}
       />
     </AuthCard>

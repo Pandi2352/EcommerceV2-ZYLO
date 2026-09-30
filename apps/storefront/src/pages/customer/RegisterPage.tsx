@@ -12,6 +12,7 @@ import PasswordField from '@shared/ui/PasswordField';
 import Checkbox from '@shared/ui/Checkbox';
 import Button from '@shared/ui/Button';
 import Alert from '@shared/ui/Alert';
+import { toast } from '@shared/ui/Toast';
 
 type RegisterValues = {
   name: string;
@@ -43,6 +44,7 @@ export default function CustomerRegisterPage() {
     rules,
     onSubmit: async (values) => {
       await register({ name: values.name.trim(), email: values.email.trim(), password: values.password });
+      toast.success('Account created successfully! Welcome to ZYLO.');
       // The storefront shows a verification reminder until the email link is used
       navigate(ROUTES.CUSTOMER.HOME, { replace: true });
     },

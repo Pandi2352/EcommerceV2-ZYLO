@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@shared/auth/AuthContext';
 import { ROUTES } from '../../../routes/routePaths';
+import { toast } from '@shared/ui/Toast';
 
 export const AccountMenu: React.FC = () => {
   const { user, logout } = useAuth();
@@ -28,6 +29,7 @@ export const AccountMenu: React.FC = () => {
   const signOut = async () => {
     setOpen(false);
     await logout();
+    toast.info('You have been signed out.');
     navigate(ROUTES.CUSTOMER.HOME);
   };
 

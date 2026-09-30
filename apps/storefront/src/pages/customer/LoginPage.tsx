@@ -9,6 +9,7 @@ import AuthSplitLayout from '../../features/auth/components/AuthSplitLayout';
 import LoginForm from '@shared/auth/components/LoginForm';
 import SocialAuthButtons from '../../features/auth/components/SocialAuthButtons';
 import Alert from '@shared/ui/Alert';
+import { toast } from '@shared/ui/Toast';
 
 export default function CustomerLoginPage() {
   const navigate = useNavigate();
@@ -35,7 +36,10 @@ export default function CustomerLoginPage() {
         rememberStorageKey={STORAGE_KEYS.REMEMBERED_CUSTOMER_EMAIL}
         emailPlaceholder="stevenjob@gmail.com"
         onRememberChange={setRemember}
-        onAuthenticated={() => navigate(redirect, { replace: true })}
+        onAuthenticated={(user) => {
+          toast.success(`Welcome back, ${user.name.split(' ')[0]}! Signed in successfully.`);
+          navigate(redirect, { replace: true });
+        }}
         onMfaRequired={() => navigate(`${ROUTES.CUSTOMER.LOGIN_VERIFY}?redirect=${encodeURIComponent(redirect)}`)}
         footer={
           <p className="pt-2 text-center text-xs text-slate-500">
