@@ -78,7 +78,7 @@ export const CustomerNavbar: React.FC = () => {
             {/* Search Icon */}
             <button
               type="button"
-              className="px-3 text-slate-400 hover:text-slate-600 transition-colors"
+              className="px-3 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               aria-label="Search"
             >
               <Search className="w-4 h-4" />
@@ -89,31 +89,31 @@ export const CustomerNavbar: React.FC = () => {
         {/* Center Navigation Links */}
         <nav className="hidden xl:flex items-center gap-6 text-sm font-semibold text-slate-700">
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/">Home</Link>
+            <Link to="/" className="cursor-pointer">Home</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/shop">Shop</Link>
+            <Link to="/shop" className="cursor-pointer">Shop</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/vendors">Vendors</Link>
+            <Link to="/vendors" className="cursor-pointer">Vendors</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/pages">Pages</Link>
+            <Link to="/pages" className="cursor-pointer">Pages</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/blog">Blog</Link>
+            <Link to="/blog" className="cursor-pointer">Blog</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
-          <Link to="/contact" className="hover:text-indigo-600 transition-colors">
+          <Link to="/contact" className="hover:text-indigo-600 transition-colors cursor-pointer">
             Contact Us
           </Link>
         </nav>
@@ -170,7 +170,7 @@ export const CustomerNavbar: React.FC = () => {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="xl:hidden p-1 text-slate-600 hover:text-slate-900"
+            className="xl:hidden p-1 text-slate-600 hover:text-slate-900 cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -186,22 +186,22 @@ export const CustomerNavbar: React.FC = () => {
             className="w-full py-2 px-3 text-xs border border-slate-200 rounded-md"
           />
           <div className="flex flex-col gap-2.5 text-sm font-medium text-slate-700">
-            <Link to="/" className="py-1">
+            <Link to="/" className="py-1 cursor-pointer">
               Home
             </Link>
-            <Link to="/shop" className="py-1">
+            <Link to="/shop" className="py-1 cursor-pointer">
               Shop
             </Link>
-            <Link to="/vendors" className="py-1">
+            <Link to="/vendors" className="py-1 cursor-pointer">
               Vendors
             </Link>
-            <Link to="/pages" className="py-1">
+            <Link to="/pages" className="py-1 cursor-pointer">
               Pages
             </Link>
-            <Link to="/blog" className="py-1">
+            <Link to="/blog" className="py-1 cursor-pointer">
               Blog
             </Link>
-            <Link to="/contact" className="py-1">
+            <Link to="/contact" className="py-1 cursor-pointer">
               Contact Us
             </Link>
           </div>

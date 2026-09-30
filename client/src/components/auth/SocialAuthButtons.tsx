@@ -14,9 +14,8 @@ export const SocialAuthButtons: React.FC = () => {
           variant="social"
           size="md"
           fullWidth
-          className="justify-center border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 py-3"
+          className="justify-center border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 py-3 cursor-pointer"
           onClick={() => {
-            // Future OAuth integration
             console.log('Google Auth clicked');
           }}
         >
@@ -38,7 +37,7 @@ export const SocialAuthButtons: React.FC = () => {
           variant="social"
           size="md"
           fullWidth
-          className="justify-center border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 py-3"
+          className="justify-center border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 py-3 cursor-pointer"
           onClick={() => {
             console.log('Facebook Auth clicked');
           }}
@@ -54,7 +53,7 @@ export const SocialAuthButtons: React.FC = () => {
           variant="social"
           size="md"
           fullWidth
-          className="justify-center border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 py-3"
+          className="justify-center border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 py-3 cursor-pointer"
           onClick={() => {
             console.log('Amazon Auth clicked');
           }}
@@ -71,7 +70,7 @@ export const SocialAuthButtons: React.FC = () => {
         Buying for work?{' '}
         <a
           href="#business"
-          className="text-cyan-600 hover:text-cyan-700 font-medium hover:underline transition-colors"
+          className="text-cyan-600 hover:text-cyan-700 font-medium hover:underline transition-colors cursor-pointer"
         >
           Create a free business account
         </a>

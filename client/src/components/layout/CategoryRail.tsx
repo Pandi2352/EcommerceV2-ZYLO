@@ -42,7 +42,7 @@ export const CategoryRail: React.FC = () => {
               key={idx}
               type="button"
               title={item.label}
-              className="p-1.5 rounded hover:text-indigo-600 hover:bg-slate-50 transition-colors group relative"
+              className="p-1.5 rounded hover:text-indigo-600 hover:bg-slate-50 transition-colors group relative cursor-pointer"
             >
               <Icon className="w-4 h-4 stroke-[1.75]" />
               {/* Tooltip */}

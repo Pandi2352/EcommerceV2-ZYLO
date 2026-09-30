@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, AlertCircle, Lock } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ShieldCheck, AlertCircle, Lock, Mail, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { extractErrorMessage } from '../../services/api';
 import ZyloLogo from '../../components/common/ZyloLogo';
 import InputField from '../../components/common/InputField';
 import PasswordField from '../../components/common/PasswordField';
 import Button from '../../components/common/Button';
+import CornerDots from '../../components/common/CornerDots';
 
 /**
- * Admin Login Page
- * STRICT ARCHITECTURAL RULE:
- * Only for internal staff/administrators. No public registration exists for admin.
+ * Admin Login Page (Optimized Light Mode with Corner Accent Dots)
+ * - Harmonious centered alignment and logo placement
+ * - Subtle corner accent dots (top-left & bottom-right only)
+ * - Light-gray soft focus borders (no harsh dark outlines)
+ * - Light-red border highlighting on empty/invalid field submit
+ * - noValidate to suppress browser native popups
+ * - Browser autofill tint overrides
  */
 export default function AdminLoginPage() {
   const navigate = useNavigate();
@@ -29,6 +34,8 @@ export default function AdminLoginPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Real-time clearance of field errors on user keystroke
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
         const next = { ...prev };
@@ -41,14 +48,15 @@ export default function AdminLoginPage() {
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
+
     if (!formData.email.trim()) {
-      errors.email = 'Admin email is required';
+      errors.email = 'Staff email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = 'Please enter a valid administrative email address';
     }
 
     if (!formData.password) {
-      errors.password = 'Password is required';
+      errors.password = 'Security key / password is required';
     }
 
     setFieldErrors(errors);
@@ -82,51 +90,66 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <ZyloLogo variant="full" size="lg" theme="dark" badge="ADMIN PORTAL" />
-        <h1 className="mt-6 text-2xl font-bold text-white tracking-tight">
-          Administrator Control Panel
+    <div className="relative min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans overflow-hidden">
+      {/* Subtle Corner Dots (Top-Left & Bottom-Right only) */}
+      <CornerDots />
+      {/* Brand Header with Optimized Centered Hierarchy */}
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center flex flex-col items-center">
+        <Link
+          to="/"
+          className="inline-flex items-center justify-center transition-transform duration-200 hover:scale-105 mb-4 cursor-pointer"
+        >
+          <ZyloLogo variant="full" size="lg" theme="light" badge="ADMIN" />
+        </Link>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight text-center">
+          Admin Portal Sign In
         </h1>
-        <p className="mt-1.5 text-xs text-slate-400">
-          Authorized personnel only. All access attempts are audited.
+        <p className="mt-1.5 text-xs text-slate-500 text-center max-w-sm">
+          Authorized personnel only. All access attempts are strictly monitored.
         </p>
       </div>
 
+      {/* Main Login Card (Zero Shadows, Clean Borders) */}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-slate-800 border border-slate-700 rounded-md p-6 sm:p-8">
+        <div className="bg-white border border-slate-200 rounded-md p-6 sm:p-8">
+          {/* Global Alert Banner */}
           {errorMessage && (
-            <div className="mb-6 p-3.5 rounded-md bg-rose-950/50 border border-rose-800 text-rose-300 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="mb-6 p-3.5 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
               <div className="flex-1 font-medium leading-relaxed">{errorMessage}</div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Form with noValidate to trigger custom light-red border styling */}
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            {/* Admin Email */}
             <InputField
               label="Staff Email"
               type="email"
-              required
               name="email"
+              required
+              autoComplete="off"
               placeholder="admin@zylo.internal"
               value={formData.email}
               onChange={handleChange}
+              leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
               error={fieldErrors.email}
-              className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-500"
             />
 
+            {/* Admin Password */}
             <PasswordField
-              label="Secret Key / Password"
-              required
+              label="Security Key / Password"
               name="password"
+              required
+              autoComplete="new-password"
               placeholder="••••••••••••"
               value={formData.password}
               onChange={handleChange}
               error={fieldErrors.password}
               showStrengthMeter={false}
-              className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-500"
             />
 
+            {/* Submit Button */}
             <div className="pt-2">
               <Button
                 type="submit"
@@ -134,7 +157,7 @@ export default function AdminLoginPage() {
                 size="md"
                 fullWidth
                 isLoading={isSubmitting}
-                className="bg-indigo-600 hover:bg-indigo-700 py-3 text-sm font-semibold rounded-md"
+                className="bg-[#2A3B5C] hover:bg-[#1E2B43] py-3 text-sm font-semibold rounded-md text-white cursor-pointer"
                 leftIcon={<Lock className="w-4 h-4" />}
               >
                 Authenticate & Access
@@ -142,10 +165,22 @@ export default function AdminLoginPage() {
             </div>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-slate-700 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-cyan-400" />
-            <span>256-bit AES encrypted internal gateway</span>
+          {/* Security Notice */}
+          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
+            <ShieldCheck className="w-4 h-4 text-indigo-600" />
+            <span>256-bit SSL encrypted administrative channel</span>
           </div>
+        </div>
+
+        {/* Back to Customer Storefront Link */}
+        <div className="mt-6 text-center">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Return to Customer Storefront</span>
+          </Link>
         </div>
       </div>
     </div>

@@ -43,7 +43,7 @@ export const ZyloLogo: React.FC<ZyloLogoProps> = ({
 
   return (
     <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
-      {/* SVG Emblem: Isometric Z Shopping Bag with Upward Growth Arrow */}
+      {/* SVG Emblem: Dynamic Z Shopping Bag with White/Light Plate and Growth Arrow */}
       <svg
         width={currentSize.iconSize}
         height={currentSize.iconSize}
@@ -55,21 +55,35 @@ export const ZyloLogo: React.FC<ZyloLogoProps> = ({
         <defs>
           <linearGradient id="zylo-main-grad" x1="6" y1="6" x2="58" y2="58" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor="#06B6D4" />
-            <stop offset="50%" stopColor="#3B82F6" />
-            <stop offset="100%" stopColor="#6366F1" />
+            <stop offset="45%" stopColor="#2563EB" />
+            <stop offset="100%" stopColor="#4F46E5" />
           </linearGradient>
           <linearGradient id="zylo-handle-grad" x1="24" y1="6" x2="40" y2="18" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#22D3EE" />
-            <stop offset="100%" stopColor="#3B82F6" />
+            <stop offset="0%" stopColor="#06B6D4" />
+            <stop offset="100%" stopColor="#2563EB" />
+          </linearGradient>
+          <linearGradient id="zylo-arrow-grad" x1="36" y1="18" x2="52" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#F97316" />
+            <stop offset="100%" stopColor="#FB923C" />
           </linearGradient>
         </defs>
 
-        {/* Outer Rounded Container Plate */}
-        <rect width="64" height="64" rx="14" fill="#0F172A" />
+        {/* Clean Light Background Container (Replaced harsh black box) */}
+        {theme === 'dark' ? (
+          <>
+            <rect width="64" height="64" rx="14" fill="#1E293B" />
+            <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" stroke="#334155" strokeWidth="1.5" />
+          </>
+        ) : (
+          <>
+            <rect width="64" height="64" rx="14" fill="#FFFFFF" />
+            <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" stroke="#E2E8F0" strokeWidth="1.5" />
+          </>
+        )}
 
         {/* Bag Handle */}
         <path
-          d="M25 18 V13 C25 9.5 28 7 32 7 C36 7 39 9.5 39 13 V18"
+          d="M25 18 V12 C25 8.5 28 6 32 6 C36 6 39 8.5 39 12 V18"
           stroke="url(#zylo-handle-grad)"
           strokeWidth="3.5"
           strokeLinecap="round"
@@ -81,13 +95,13 @@ export const ZyloLogo: React.FC<ZyloLogoProps> = ({
         <path d="M17 19 H47 L41 27 H17 L17 19 Z" fill="url(#zylo-main-grad)" />
 
         {/* Diagonal forward arrow slash */}
-        <path d="M17 40 L37 20 H47 L27 48 H17 V40 Z" fill="url(#zylo-main-grad)" opacity="0.95" />
+        <path d="M17 42 L38 20 H48 L27 50 H17 V42 Z" fill="url(#zylo-main-grad)" />
 
-        {/* Forward Arrow Fold */}
-        <polygon points="36,19 47,19 47,30 42,26 40,24" fill="#22D3EE" />
+        {/* Dynamic Forward Orange Arrow Accent */}
+        <polygon points="38,18 52,18 52,32 46,26 42,23" fill="url(#zylo-arrow-grad)" />
 
         {/* Base foundation */}
-        <path d="M23 40 H47 L42 48 H23 V40 Z" fill="url(#zylo-main-grad)" />
+        <path d="M23 42 H47 L42 50 H23 V42 Z" fill="url(#zylo-main-grad)" />
       </svg>
 
       {/* Wordmark Typography */}
@@ -119,4 +133,5 @@ export const ZyloLogo: React.FC<ZyloLogoProps> = ({
     </div>
   );
 };
+
 export default ZyloLogo;

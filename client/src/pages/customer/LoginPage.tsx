@@ -93,7 +93,7 @@ export default function CustomerLoginPage() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
               <InputField
                 label="Email Address"
                 type="email"
@@ -126,7 +126,7 @@ export default function CustomerLoginPage() {
                   />
                   <span>Remember me</span>
                 </label>
-                <a href="#forgot" className="text-cyan-600 hover:text-cyan-700 font-medium">
+                <a href="#forgot" className="text-cyan-600 hover:text-cyan-700 font-medium cursor-pointer">
                   Forgot password?
                 </a>
               </div>
@@ -138,7 +138,7 @@ export default function CustomerLoginPage() {
                   size="md"
                   fullWidth
                   isLoading={isSubmitting}
-                  className="py-3 text-sm font-semibold rounded-md"
+                  className="py-3 text-sm font-semibold rounded-md cursor-pointer"
                 >
                   Sign In
                 </Button>
@@ -149,7 +149,7 @@ export default function CustomerLoginPage() {
                 Don't have an account?{' '}
                 <Link
                   to="/register"
-                  className="font-semibold text-indigo-600 hover:text-indigo-700 underline"
+                  className="font-semibold text-indigo-600 hover:text-indigo-700 underline cursor-pointer"
                 >
                   Create customer account
                 </Link>

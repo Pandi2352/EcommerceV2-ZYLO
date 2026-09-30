@@ -157,7 +157,7 @@ export default function CustomerRegisterPage() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
               {/* Full Name */}
               <InputField
                 label="Full Name"
@@ -235,7 +235,7 @@ export default function CustomerRegisterPage() {
                     By clicking Register button, you agree our{' '}
                     <a
                       href="#terms"
-                      className="text-slate-700 hover:text-slate-900 underline font-medium"
+                      className="text-slate-700 hover:text-slate-900 underline font-medium cursor-pointer"
                     >
                       terms and policy
                     </a>

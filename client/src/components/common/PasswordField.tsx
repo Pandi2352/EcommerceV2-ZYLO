@@ -91,12 +91,12 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
             value={value}
             disabled={disabled}
             required={required}
-            className={`w-full py-2.5 text-sm rounded-md transition-colors placeholder:text-slate-400 bg-white ${
+            className={`w-full py-2.5 text-sm rounded-md transition-colors placeholder:text-slate-400 bg-white outline-none focus:outline-none focus:ring-0 ${
               leftIcon ? 'pl-10' : 'pl-3.5'
             } pr-10 ${
               error
-                ? 'border border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 text-slate-900'
-                : 'border border-slate-200 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-900'
+                ? 'border border-rose-300 focus:border-rose-400 text-slate-900 bg-rose-50/20'
+                : 'border border-slate-200 focus:border-slate-400 text-slate-900'
             } ${
               disabled ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' : ''
             } ${className}`}
@@ -107,7 +107,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
             disabled={disabled}
-            className="absolute right-3 p-1 rounded text-slate-400 hover:text-slate-600 transition-colors"
+            className="absolute right-3 p-1 rounded text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
