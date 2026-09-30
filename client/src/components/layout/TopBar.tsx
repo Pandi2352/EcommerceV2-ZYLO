@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronDown, PhoneCall } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '../../routes/routePaths';
 
 export const TopBar: React.FC = () => {
   return (
@@ -8,15 +9,15 @@ export const TopBar: React.FC = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Left Links */}
         <div className="flex items-center gap-4">
-          <Link to="/about" className="hover:text-slate-800 transition-colors">
+          <Link to={ROUTES.CUSTOMER.ABOUT} className="hover:text-slate-800 transition-colors">
             About Us
           </Link>
           <span className="text-slate-300">|</span>
-          <Link to="/careers" className="hover:text-slate-800 transition-colors">
+          <Link to={ROUTES.CUSTOMER.CAREERS} className="hover:text-slate-800 transition-colors">
             Careers
           </Link>
           <span className="text-slate-300">|</span>
-          <Link to="/open-shop" className="hover:text-slate-800 transition-colors">
+          <Link to={ROUTES.CUSTOMER.OPEN_SHOP} className="hover:text-slate-800 transition-colors">
             Open a shop
           </Link>
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '../../routes/routePaths';
 import {
   CheckCircle2,
   Layers,
@@ -46,7 +47,7 @@ export default function CustomerHomePage() {
           </div>
           {!isAuthenticated && (
             <Link
-              to="/register"
+              to={ROUTES.CUSTOMER.REGISTER}
               className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white transition-colors self-start sm:self-auto"
             >
               <span>Customer Registration</span>

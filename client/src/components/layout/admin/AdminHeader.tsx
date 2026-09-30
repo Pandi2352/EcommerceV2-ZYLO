@@ -1,6 +1,7 @@
 import React from 'react';
 import { Menu, ExternalLink, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '../../../routes/routePaths';
 import { useAuth } from '../../../context/AuthContext';
 
 export interface AdminHeaderProps {
@@ -42,7 +43,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onOpenMobileMenu }) =>
 
         {/* View Customer Storefront */}
         <Link
-          to="/"
+          to={ROUTES.CUSTOMER.HOME}
           target="_blank"
           className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 text-xs font-semibold transition-colors cursor-pointer"
         >

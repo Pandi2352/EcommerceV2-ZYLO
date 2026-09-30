@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '../../routes/routePaths';
 import {
   Search,
   ChevronDown,
@@ -31,7 +32,7 @@ export const CustomerNavbar: React.FC = () => {
     <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-3.5 flex items-center justify-between gap-4">
         {/* Left: Brand Logo */}
-        <Link to="/" className="shrink-0 flex items-center">
+        <Link to={ROUTES.CUSTOMER.HOME} className="shrink-0 flex items-center">
           <ZyloLogo variant="full" size="md" />
         </Link>
 
@@ -89,31 +90,31 @@ export const CustomerNavbar: React.FC = () => {
         {/* Center Navigation Links */}
         <nav className="hidden xl:flex items-center gap-6 text-sm font-semibold text-slate-700">
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/" className="cursor-pointer">Home</Link>
+            <Link to={ROUTES.CUSTOMER.HOME} className="cursor-pointer">Home</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/shop" className="cursor-pointer">Shop</Link>
+            <Link to={ROUTES.CUSTOMER.SHOP} className="cursor-pointer">Shop</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/vendors" className="cursor-pointer">Vendors</Link>
+            <Link to={ROUTES.CUSTOMER.VENDORS} className="cursor-pointer">Vendors</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/pages" className="cursor-pointer">Pages</Link>
+            <Link to={ROUTES.CUSTOMER.PAGES} className="cursor-pointer">Pages</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
           <div className="relative group flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors">
-            <Link to="/blog" className="cursor-pointer">Blog</Link>
+            <Link to={ROUTES.CUSTOMER.BLOG} className="cursor-pointer">Blog</Link>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
           </div>
 
-          <Link to="/contact" className="hover:text-indigo-600 transition-colors cursor-pointer">
+          <Link to={ROUTES.CUSTOMER.CONTACT} className="hover:text-indigo-600 transition-colors cursor-pointer">
             Contact Us
           </Link>
         </nav>
@@ -122,7 +123,7 @@ export const CustomerNavbar: React.FC = () => {
         <div className="flex items-center gap-5 text-slate-700 text-xs font-semibold">
           {/* Account */}
           <Link
-            to="/login"
+            to={ROUTES.CUSTOMER.LOGIN}
             className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors cursor-pointer"
           >
             <User className="w-4 h-4 text-slate-600" />
@@ -131,7 +132,7 @@ export const CustomerNavbar: React.FC = () => {
 
           {/* Wishlist */}
           <Link
-            to="/wishlist"
+            to={ROUTES.CUSTOMER.WISHLIST}
             className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors cursor-pointer"
           >
             <div className="relative">
@@ -145,7 +146,7 @@ export const CustomerNavbar: React.FC = () => {
 
           {/* Cart */}
           <Link
-            to="/cart"
+            to={ROUTES.CUSTOMER.CART}
             className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors cursor-pointer"
           >
             <div className="relative">
@@ -159,7 +160,7 @@ export const CustomerNavbar: React.FC = () => {
 
           {/* Compare */}
           <Link
-            to="/compare"
+            to={ROUTES.CUSTOMER.COMPARE}
             className="hidden md:flex items-center gap-1.5 hover:text-indigo-600 transition-colors cursor-pointer"
           >
             <ArrowLeftRight className="w-4 h-4 text-slate-600" />
@@ -186,22 +187,22 @@ export const CustomerNavbar: React.FC = () => {
             className="w-full py-2 px-3 text-xs border border-slate-200 rounded-md"
           />
           <div className="flex flex-col gap-2.5 text-sm font-medium text-slate-700">
-            <Link to="/" className="py-1 cursor-pointer">
+            <Link to={ROUTES.CUSTOMER.HOME} className="py-1 cursor-pointer">
               Home
             </Link>
-            <Link to="/shop" className="py-1 cursor-pointer">
+            <Link to={ROUTES.CUSTOMER.SHOP} className="py-1 cursor-pointer">
               Shop
             </Link>
-            <Link to="/vendors" className="py-1 cursor-pointer">
+            <Link to={ROUTES.CUSTOMER.VENDORS} className="py-1 cursor-pointer">
               Vendors
             </Link>
-            <Link to="/pages" className="py-1 cursor-pointer">
+            <Link to={ROUTES.CUSTOMER.PAGES} className="py-1 cursor-pointer">
               Pages
             </Link>
-            <Link to="/blog" className="py-1 cursor-pointer">
+            <Link to={ROUTES.CUSTOMER.BLOG} className="py-1 cursor-pointer">
               Blog
             </Link>
-            <Link to="/contact" className="py-1 cursor-pointer">
+            <Link to={ROUTES.CUSTOMER.CONTACT} className="py-1 cursor-pointer">
               Contact Us
             </Link>
           </div>

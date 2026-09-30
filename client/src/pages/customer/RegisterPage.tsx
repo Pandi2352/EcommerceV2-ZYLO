@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../routes/routePaths';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { extractErrorMessage } from '../../services/api';
@@ -114,7 +115,7 @@ export default function CustomerRegisterPage() {
 
       setSuccessMessage('Account created successfully! Welcome to Zylo.');
       setTimeout(() => {
-        navigate('/');
+        navigate(ROUTES.CUSTOMER.HOME);
       }, 1500);
     } catch (err: unknown) {
       setErrorMessage(extractErrorMessage(err));

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { ROUTES } from '../../routes/routePaths';
 import { AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { extractErrorMessage } from '../../services/api';
@@ -178,7 +179,7 @@ export default function CustomerLoginPage() {
               <p className="pt-2 text-center text-xs text-slate-500">
                 Don't have an account?{' '}
                 <Link
-                  to="/register"
+                  to={ROUTES.CUSTOMER.REGISTER}
                   className="font-semibold text-indigo-600 hover:text-indigo-700 underline cursor-pointer"
                 >
                   Create customer account

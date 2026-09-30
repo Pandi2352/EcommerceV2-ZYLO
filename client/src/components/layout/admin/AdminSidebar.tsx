@@ -73,7 +73,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ onCloseMobile }) => 
       {/* Quick Storefront Link */}
       <div className="px-4 py-3 border-t border-slate-100">
         <Link
-          to="/"
+          to={ROUTES.CUSTOMER.HOME}
           target="_blank"
           className="flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
         >

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { ROUTES } from '../../routes/routePaths';
 import { ShieldCheck, AlertCircle, Lock, Mail, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { extractErrorMessage } from '../../services/api';
@@ -81,7 +82,7 @@ export default function AdminLoginPage() {
         return;
       }
 
-      navigate('/admin');
+      navigate(ROUTES.ADMIN.DASHBOARD);
     } catch (err: unknown) {
       setErrorMessage(extractErrorMessage(err));
     } finally {
@@ -100,7 +101,7 @@ export default function AdminLoginPage() {
           {/* Brand Header inside Card — Aligned Left */}
           <div className="mb-6 text-left">
             <Link
-              to="/"
+              to={ROUTES.CUSTOMER.HOME}
               className="inline-flex items-center transition-transform duration-200 hover:scale-105 mb-4 cursor-pointer"
             >
               <ZyloLogo variant="full" size="md" theme="light" />
@@ -176,7 +177,7 @@ export default function AdminLoginPage() {
         {/* Back to Customer Storefront Link */}
         <div className="mt-6 text-center">
           <Link
-            to="/"
+            to={ROUTES.CUSTOMER.HOME}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />

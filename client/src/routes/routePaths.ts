@@ -21,6 +21,8 @@ export const ROUTES = {
     ABOUT: '/about',
     CAREERS: '/careers',
     TERMS: '/terms',
+    OPEN_SHOP: '/open-shop',
+    COMPARE: '/compare',
 
     // Customer Authentication (Customer site ONLY has registration)
     LOGIN: '/login',
