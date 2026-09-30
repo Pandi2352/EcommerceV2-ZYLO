@@ -2,15 +2,15 @@
 
 ## 1. Authentication & Authorization
 ### Customer Authentication
-- [ ] User registration (Email, password, name)
-- [ ] Email format & strong password validation (Min 8 chars, 1 uppercase, 1 number, 1 symbol)
-- [ ] Password strength indicator meter on registration UI
-- [ ] Password visibility toggle (Show / Hide password)
+- [x] User registration (Email, password, name)
+- [x] Email format & strong password validation (Min 8 chars, 1 uppercase, 1 number, 1 symbol)
+- [x] Password strength indicator meter on registration UI
+- [x] Password visibility toggle (Show / Hide password)
 - [ ] User login with email and password
 - [ ] "Remember me" option on login (Adjusts cookie duration)
 - [ ] User logout (Cookie clearance & server-side token invalidation)
-- [ ] Current authenticated user endpoint (`GET /api/v1/auth/me`)
-- [ ] Client auth state initialization on app load / page refresh
+- [x] Current authenticated user endpoint (`GET /api/v1/auth/me`)
+- [x] Client auth state initialization on app load / page refresh
 - [ ] Protected route wrapper for customer accounts (`ProtectedRoute`)
 - [ ] Auto-redirect to previously attempted URL after login
 
