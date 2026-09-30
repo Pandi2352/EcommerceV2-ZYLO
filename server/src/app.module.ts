@@ -6,6 +6,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './modules/health/health.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { mongooseAsyncConfig } from './config/database.config';
@@ -32,6 +33,7 @@ import { PasswordChangeGuard } from './common/guards/password-change.guard';
     HealthModule,
     UsersModule,
     AuthModule,
+    AdminModule,
   ],
   providers: [
     // Guards run in registration order: rate limit → authenticate → forced password change → authorize.

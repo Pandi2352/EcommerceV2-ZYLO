@@ -57,6 +57,9 @@ export class User extends BaseSchema {
   @Prop({ default: true })
   isActive: boolean;
 
+  @Prop({ type: [String], default: [] })
+  customPermissions: string[];
+
   @Prop({ trim: true })
   phone?: string;
 

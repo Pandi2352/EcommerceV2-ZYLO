@@ -49,3 +49,23 @@ export function mfaStatusTemplate(appName: string, name: string, enabled: boolea
     ],
   });
 }
+
+export function staffInvitationTemplate(
+  appName: string,
+  inviterName: string,
+  roleName: string,
+  url: string,
+): MailMessage {
+  return build(`You have been invited to join ${appName} as ${roleName}`, {
+    appName,
+    heading: 'Team Invitation',
+    paragraphs: [
+      `Hello,`,
+      `${inviterName} has invited you to join the ${appName} administration console as a ${roleName}.`,
+      'Click the button below to accept your invitation, set your account credentials, and begin collaborating.',
+    ],
+    action: { label: 'Accept Invitation', url },
+    footnote: 'This invitation link expires in 7 days. If you were not expecting this invitation, please ignore this email.',
+  });
+}
+

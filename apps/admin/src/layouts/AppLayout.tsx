@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { Sidebar } from './sidebar/Sidebar';
 import { Navbar } from './navbar/Navbar';
 import { SIDEBAR_DIMENSIONS } from './sidebar/sidebarStyles';
+import OutletErrorBoundary from './OutletErrorBoundary';
 
 export interface AppLayoutProps {
   children?: React.ReactNode;
@@ -62,7 +63,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           onOpenMobileMenu={() => setMobileSidebarOpen(true)}
         />
         <main className="flex-1 p-4 sm:p-6 lg:p-7 overflow-y-auto custom-scrollbar">
-          {children || <Outlet />}
+          <OutletErrorBoundary>
+            {children || <Outlet />}
+          </OutletErrorBoundary>
         </main>
       </div>
     </div>

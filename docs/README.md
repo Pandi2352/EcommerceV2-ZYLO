@@ -36,6 +36,7 @@ Welcome to the **ZYLO** engineering documentation. This directory serves as the 
 | [19-task-board.md](./19-task-board.md) | Active sprint backlog, task acceptance criteria, and progress tracker. |
 | [20-decision-log.md](./20-decision-log.md) | Architecture Decision Records (ADRs for NestJS, MongoDB, Swagger, React). |
 | [21-ai-agent-rules.md](./21-ai-agent-rules.md) | Operating guidelines and division of labor for Antigravity, Codex, and Claude. |
+| [modules/user-management.md](./modules/user-management.md) | Module plan: admin roles, seeded permissions, staff users, invitations, RBAC enforcement, audit. |
 
 ---
 

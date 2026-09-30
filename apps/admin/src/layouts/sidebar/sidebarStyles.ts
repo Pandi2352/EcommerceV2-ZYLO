@@ -7,6 +7,7 @@ import {
   Tag,
   ShieldCheck,
   Settings,
+  UserCheck,
 } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
 import type { SubPageItem } from './SidebarGroup';
@@ -156,6 +157,18 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
   {
     title: 'ADMINISTRATION',
     items: [
+      {
+        id: 'user-management',
+        label: 'User Management',
+        icon: UserCheck,
+        badge: { text: 'RBAC', color: 'bg-indigo-500/20 text-indigo-400' },
+        pages: [
+          { label: 'User List', to: ROUTES.USERS },
+          { label: 'Invited Users', to: ROUTES.USERS_INVITES },
+          { label: 'Roles', to: ROUTES.USERS_ROLES },
+          { label: 'Permissions', to: ROUTES.USERS_PERMISSIONS },
+        ],
+      },
       {
         id: 'security',
         label: 'Staff & Security',

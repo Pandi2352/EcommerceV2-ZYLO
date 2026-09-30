@@ -1,6 +1,7 @@
 export const USER_ROLES = {
   CUSTOMER: 'CUSTOMER',
   SUPPORT_AGENT: 'SUPPORT_AGENT',
+  MANAGER: 'MANAGER',
   ADMIN: 'ADMIN',
   SUPER_ADMIN: 'SUPER_ADMIN',
 } as const;
@@ -10,6 +11,7 @@ export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 /** Staff roles, lowest to highest privilege (mirrors the server hierarchy). */
 export const STAFF_ROLES: readonly UserRole[] = [
   USER_ROLES.SUPPORT_AGENT,
+  USER_ROLES.MANAGER,
   USER_ROLES.ADMIN,
   USER_ROLES.SUPER_ADMIN,
 ];
@@ -17,6 +19,7 @@ export const STAFF_ROLES: readonly UserRole[] = [
 export const ROLE_LABELS: Record<UserRole, string> = {
   CUSTOMER: 'Customer',
   SUPPORT_AGENT: 'Support Agent',
+  MANAGER: 'Store Manager',
   ADMIN: 'Administrator',
   SUPER_ADMIN: 'Super Administrator',
 };

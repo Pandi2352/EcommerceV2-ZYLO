@@ -9,6 +9,8 @@ export const ROUTES = {
   RESET_PASSWORD: '/reset-password',
   CHANGE_PASSWORD: '/change-password',
 
+  ACCEPT_INVITE: '/accept-invite',
+
   // Dashboards
   DASHBOARD: '/',
   DASHBOARDS_ECOMMERCE: '/dashboard/ecommerce',
@@ -33,6 +35,12 @@ export const ROUTES = {
   // Marketing & Discounts
   COUPONS: '/coupons',
   PROMOTIONS: '/promotions',
+
+  // User Management (Multi-Admin RBAC)
+  USERS: '/users',
+  USERS_INVITES: '/users/invites',
+  USERS_ROLES: '/users/roles',
+  USERS_PERMISSIONS: '/users/permissions',
 
   // Platform & Administration
   STAFF: '/staff',

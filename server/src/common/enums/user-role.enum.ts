@@ -1,6 +1,7 @@
 export enum UserRole {
   CUSTOMER = 'CUSTOMER',
   SUPPORT_AGENT = 'SUPPORT_AGENT',
+  MANAGER = 'MANAGER',
   ADMIN = 'ADMIN',
   SUPER_ADMIN = 'SUPER_ADMIN',
 }
@@ -8,6 +9,7 @@ export enum UserRole {
 /** Staff roles, lowest to highest privilege. Customers are outside this hierarchy. */
 export const STAFF_ROLES: readonly UserRole[] = [
   UserRole.SUPPORT_AGENT,
+  UserRole.MANAGER,
   UserRole.ADMIN,
   UserRole.SUPER_ADMIN,
 ];

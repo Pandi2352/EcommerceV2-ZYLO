@@ -71,7 +71,12 @@ api.interceptors.response.use(
       await refreshSession();
       return api(original);
     } catch (refreshError) {
-      sessionExpiredListeners.forEach((listener) => listener());
+      if (
+        axios.isAxiosError(refreshError) &&
+        (refreshError.response?.status === 401 || refreshError.response?.status === 403)
+      ) {
+        sessionExpiredListeners.forEach((listener) => listener());
+      }
       return Promise.reject(refreshError);
     }
   },

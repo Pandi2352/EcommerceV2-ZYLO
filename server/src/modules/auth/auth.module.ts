@@ -61,6 +61,6 @@ import { GoogleStrategy } from './strategies/google.strategy';
       useFactory: (config: OAuthConfig) => (config.google.enabled ? new GoogleStrategy(config) : null),
     },
   ],
-  exports: [AuthService, PassportModule],
+  exports: [AuthService, PassportModule, PasswordService],
 })
 export class AuthModule {}

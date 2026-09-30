@@ -19,6 +19,11 @@ import AdminDashboardPage from '../pages/AdminDashboardPage';
 import AdminChangePasswordPage from '../pages/AdminChangePasswordPage';
 import AdminSecurityPage from '../pages/AdminSecurityPage';
 import AdminAuditLogsPage from '../pages/AdminAuditLogsPage';
+import AcceptInvitePage from '../pages/AcceptInvitePage';
+import StaffUsersPage from '../pages/StaffUsersPage';
+import StaffInvitesPage from '../pages/StaffInvitesPage';
+import RolesOverviewPage from '../pages/RolesOverviewPage';
+import PermissionsMatrixPage from '../pages/PermissionsMatrixPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -47,6 +52,7 @@ export const AppRoutes: React.FC = () => {
       {/* 2. EMAILED LINKS */}
       <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
       <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+      <Route path={ROUTES.ACCEPT_INVITE} element={<AcceptInvitePage />} />
 
       {/* 3. CONSOLE (any staff role; the AuthProvider only admits staff sessions) */}
       <Route element={<ProtectedRoute />}>
@@ -60,6 +66,12 @@ export const AppRoutes: React.FC = () => {
 
           <Route element={<ProtectedRoute role={USER_ROLES.ADMIN} />}>
             <Route path={ROUTES.AUDIT_LOGS} element={<AdminAuditLogsPage />} />
+            {/* User Management & RBAC */}
+            <Route path={ROUTES.USERS} element={<StaffUsersPage />} />
+            <Route path={ROUTES.STAFF} element={<StaffUsersPage />} />
+            <Route path={ROUTES.USERS_INVITES} element={<StaffInvitesPage />} />
+            <Route path={ROUTES.USERS_ROLES} element={<RolesOverviewPage />} />
+            <Route path={ROUTES.USERS_PERMISSIONS} element={<PermissionsMatrixPage />} />
             {renderPlanned(MANAGER_PLANNED)}
           </Route>
 
