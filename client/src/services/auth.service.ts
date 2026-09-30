@@ -1,62 +1,71 @@
-import { api } from './api';
+import { api, unwrap, API_BASE_URL } from './api';
+import type { MessageResponse } from '../types/api';
+import type {
+  AuthPortal,
+  AuthProviders,
+  AuthUser,
+  BackupCodes,
+  ChangePasswordPayload,
+  LoginPayload,
+  LoginResult,
+  MfaSetup,
+  RegisterPayload,
+} from '../types/auth';
 
-export interface RegisterPayload {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-  rememberMe?: boolean;
-}
-
-export interface AuthUser {
-  id: string;
-  _id?: string;
-  name: string;
-  email: string;
-  role: 'CUSTOMER' | 'ADMIN';
-  isActive: boolean;
-  isEmailVerified: boolean;
-  phone?: string;
-  avatarUrl?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface ApiResponseEnvelope<T> {
-  success: boolean;
-  statusCode: number;
-  data: T;
-  timestamp?: string;
-  path?: string;
-}
+const LOGIN_PATHS: Record<AuthPortal, string> = {
+  customer: '/auth/login',
+  admin: '/auth/admin/login',
+};
 
 export const authService = {
-  async register(payload: RegisterPayload): Promise<{ user: AuthUser }> {
-    const response = await api.post<ApiResponseEnvelope<{ user: AuthUser }>>(
-      '/auth/register',
-      payload
-    );
-    return response.data.data;
-  },
+  // ─── Session ────────────────────────────────────────────────────────────────
+  register: (payload: RegisterPayload) =>
+    unwrap<{ user: AuthUser }>(api.post('/auth/register', payload)),
 
-  async login(payload: LoginPayload): Promise<{ user: AuthUser }> {
-    const response = await api.post<ApiResponseEnvelope<{ user: AuthUser }>>(
-      '/auth/login',
-      payload
-    );
-    return response.data.data;
-  },
+  login: (payload: LoginPayload, portal: AuthPortal) =>
+    unwrap<LoginResult>(api.post(LOGIN_PATHS[portal], payload)),
 
-  async getProfile(): Promise<AuthUser> {
-    const response = await api.get<ApiResponseEnvelope<{ user: AuthUser }>>('/auth/me');
-    return response.data.data.user;
-  },
+  /** Second factor for a pending sign-in (challenge travels in an HttpOnly cookie) */
+  verifyMfa: (code: string) =>
+    unwrap<{ user: AuthUser }>(api.post('/auth/mfa/verify', { code })),
 
-  async logout(): Promise<void> {
-    await api.post('/auth/logout');
-  },
+  getProfile: async () => (await unwrap<{ user: AuthUser }>(api.get('/auth/me'))).user,
+
+  logout: () => unwrap<MessageResponse>(api.post('/auth/logout')),
+
+  logoutAll: () => unwrap<MessageResponse>(api.post('/auth/logout-all')),
+
+  getProviders: () => unwrap<AuthProviders>(api.get('/auth/providers')),
+
+  /** Full-page navigation target for Google sign-in (not an XHR) */
+  googleSignInUrl: (redirect: string, remember: boolean) =>
+    `${API_BASE_URL}/auth/google?${new URLSearchParams({ redirect, remember: String(remember) })}`,
+
+  // ─── Password ───────────────────────────────────────────────────────────────
+  forgotPassword: (email: string) =>
+    unwrap<MessageResponse>(api.post('/auth/password/forgot', { email })),
+
+  resetPassword: (token: string, password: string) =>
+    unwrap<MessageResponse>(api.post('/auth/password/reset', { token, password })),
+
+  changePassword: (payload: ChangePasswordPayload) =>
+    unwrap<{ user: AuthUser }>(api.post('/auth/password/change', payload)),
+
+  // ─── Email verification ─────────────────────────────────────────────────────
+  verifyEmail: (token: string) =>
+    unwrap<MessageResponse>(api.post('/auth/email/verify', { token })),
+
+  resendVerification: () =>
+    unwrap<MessageResponse>(api.post('/auth/email/resend-verification')),
+
+  // ─── Two-factor authentication ──────────────────────────────────────────────
+  startMfaSetup: () => unwrap<MfaSetup>(api.post('/auth/mfa/setup')),
+
+  enableMfa: (code: string) => unwrap<BackupCodes>(api.post('/auth/mfa/enable', { code })),
+
+  disableMfa: (code: string, password?: string) =>
+    unwrap<MessageResponse>(api.post('/auth/mfa/disable', { code, password })),
+
+  regenerateBackupCodes: (code: string) =>
+    unwrap<BackupCodes>(api.post('/auth/mfa/backup-codes', { code })),
 };

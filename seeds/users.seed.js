@@ -36,15 +36,27 @@ async function seedUsers(db, clean = false) {
 
   const adminPassword = seedPassword('SEED_ADMIN_PASSWORD', 'AdminPassword123!');
   const customerPassword = seedPassword('SEED_CUSTOMER_PASSWORD', 'CustomerPassword123!');
+  const supportPassword = seedPassword('SEED_SUPPORT_PASSWORD', 'SupportPassword123!');
 
   const userRecords = [
     {
       name: 'System Administrator',
       email: 'admin@zylo.internal',
       password: adminPassword,
-      role: 'ADMIN',
+      role: 'SUPER_ADMIN',
       isActive: true,
       isEmailVerified: true,
+      // Seeded credentials are shared/known: force a change on first sign-in
+      mustChangePassword: true,
+    },
+    {
+      name: 'Support Agent',
+      email: 'support@zylo.internal',
+      password: supportPassword,
+      role: 'SUPPORT_AGENT',
+      isActive: true,
+      isEmailVerified: true,
+      mustChangePassword: true,
     },
     {
       name: 'Test Customer',
@@ -69,6 +81,13 @@ async function seedUsers(db, clean = false) {
   for (const record of userRecords) {
     const existing = await usersCollection.findOne({ email: record.email.toLowerCase() });
     const passwordHash = await bcrypt.hash(record.password, salt);
+    const securityFields = {
+      hasPassword: true,
+      passwordChangedAt: new Date(now.getTime() - 1000),
+      mustChangePassword: Boolean(record.mustChangePassword),
+      failedLoginAttempts: 0,
+      lockUntil: null,
+    };
 
     if (existing) {
       await usersCollection.updateOne(
@@ -80,8 +99,10 @@ async function seedUsers(db, clean = false) {
             role: record.role,
             isActive: record.isActive,
             isEmailVerified: record.isEmailVerified,
+            ...securityFields,
             updatedAt: now,
           },
+          $unset: { previousPasswordHash: 1 },
         }
       );
       console.log(`    ↳ Updated: ${record.email} (${record.role})`);
@@ -95,6 +116,8 @@ async function seedUsers(db, clean = false) {
         role: record.role,
         isActive: record.isActive,
         isEmailVerified: record.isEmailVerified,
+        ...securityFields,
+        mfaEnabled: false,
         addresses: [],
         createdAt: now,
         updatedAt: now,

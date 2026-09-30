@@ -8,24 +8,35 @@ import {
   Users,
   BarChart3,
   Settings,
+  ScrollText,
   LogOut,
   ExternalLink,
 } from 'lucide-react';
 import ZyloLogo from '../../common/ZyloLogo';
 import { useAuth } from '../../../context/AuthContext';
 import { ROUTES } from '../../../routes/routePaths';
+import { ROLE_LABELS, USER_ROLES, roleSatisfies, type UserRole } from '../../../constants/roles';
 
 export interface AdminSidebarProps {
   onCloseMobile?: () => void;
 }
 
-const navItems = [
+interface NavItem {
+  label: string;
+  to: string;
+  icon: typeof LayoutDashboard;
+  /** Minimum staff role that sees the item (defaults to every staff role) */
+  minRole?: UserRole;
+}
+
+const navItems: NavItem[] = [
   { label: 'Overview', to: ROUTES.ADMIN.DASHBOARD, icon: LayoutDashboard },
-  { label: 'Products', to: ROUTES.ADMIN.PRODUCTS, icon: Package },
-  { label: 'Categories', to: ROUTES.ADMIN.CATEGORIES, icon: FolderTree },
+  { label: 'Products', to: ROUTES.ADMIN.PRODUCTS, icon: Package, minRole: USER_ROLES.ADMIN },
+  { label: 'Categories', to: ROUTES.ADMIN.CATEGORIES, icon: FolderTree, minRole: USER_ROLES.ADMIN },
   { label: 'Orders', to: ROUTES.ADMIN.ORDERS, icon: ShoppingCart },
   { label: 'Customers', to: ROUTES.ADMIN.CUSTOMERS, icon: Users },
-  { label: 'Analytics', to: ROUTES.ADMIN.ANALYTICS, icon: BarChart3 },
+  { label: 'Analytics', to: ROUTES.ADMIN.ANALYTICS, icon: BarChart3, minRole: USER_ROLES.ADMIN },
+  { label: 'Security Logs', to: ROUTES.ADMIN.AUDIT_LOGS, icon: ScrollText, minRole: USER_ROLES.ADMIN },
   { label: 'Settings', to: ROUTES.ADMIN.SETTINGS, icon: Settings },
 ];
 
@@ -47,7 +58,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ onCloseMobile }) => 
           Management Console
         </p>
 
-        {navItems.map((item) => {
+        {navItems
+          .filter((item) => !item.minRole || (user && roleSatisfies(user.role, item.minRole)))
+          .map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
@@ -94,8 +107,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ onCloseMobile }) => 
             <p className="text-xs font-bold text-slate-800 truncate leading-tight">
               {user?.name || 'Administrator'}
             </p>
-            <p className="text-[10px] text-slate-500 font-mono truncate leading-tight">
-              {user?.email || 'admin@zylo.internal'}
+            <p className="text-[10px] text-slate-500 truncate leading-tight">
+              {user ? ROLE_LABELS[user.role] : 'Staff'}
             </p>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { authConfig, AuthConfig } from '../../../config/auth.config';
 import { UsersService } from '../../users/users.service';
 import { UserDocument } from '../../users/schemas/user.schema';
 import { ACCESS_TOKEN_COOKIE } from '../auth.constants';
-import { AccessTokenPayload } from '../token.service';
+import { AccessTokenPayload } from '../services/token.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -32,6 +32,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     const user = await this.usersService.findById(payload.sub);
     if (!user || !user.isActive) {
       throw new UnauthorizedException('User session is invalid or account is deactivated');
+    }
+    // Access tokens issued before the latest password change are no longer valid
+    if (user.passwordChangedAt && payload.iat && payload.iat * 1000 < user.passwordChangedAt.getTime()) {
+      throw new UnauthorizedException('Session expired after a password change');
     }
     return user;
   }

@@ -1,5 +1,14 @@
 import React, { useState, useId, forwardRef } from 'react';
 import { Eye, EyeOff, Lock, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { evaluatePassword, type PasswordStrength } from '../../utils/passwordPolicy';
+
+const STRENGTH_META: Record<PasswordStrength, { label: string; color: string; text: string; width: string }> = {
+  empty: { label: 'Empty', color: 'bg-slate-200', text: 'text-slate-400', width: '0%' },
+  weak: { label: 'Weak', color: 'bg-rose-500', text: 'text-rose-600', width: '25%' },
+  fair: { label: 'Fair', color: 'bg-amber-500', text: 'text-amber-600', width: '50%' },
+  good: { label: 'Good', color: 'bg-blue-500', text: 'text-blue-600', width: '75%' },
+  strong: { label: 'Strong', color: 'bg-emerald-500', text: 'text-emerald-600', width: '100%' },
+};
 
 export interface PasswordFieldProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -33,31 +42,9 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
     const inputId = id || generatedId;
     const [showPassword, setShowPassword] = useState(false);
 
-    // Password strength logic
     const passwordStr = String(value);
-    const hasMinLength = passwordStr.length >= 8;
-    const hasUppercase = /[A-Z]/.test(passwordStr);
-    const hasLowercase = /[a-z]/.test(passwordStr);
-    const hasNumber = /[0-9]/.test(passwordStr);
-    const hasSpecial = /[@$!%*?&#_]/.test(passwordStr);
-
-    const criteriaCount = [
-      hasMinLength,
-      hasUppercase,
-      hasLowercase,
-      hasNumber,
-      hasSpecial,
-    ].filter(Boolean).length;
-
-    const getStrengthMeta = () => {
-      if (!passwordStr) return { label: 'Empty', color: 'bg-slate-200', text: 'text-slate-400', width: '0%' };
-      if (criteriaCount <= 2) return { label: 'Weak', color: 'bg-rose-500', text: 'text-rose-600', width: '25%' };
-      if (criteriaCount === 3) return { label: 'Fair', color: 'bg-amber-500', text: 'text-amber-600', width: '50%' };
-      if (criteriaCount === 4) return { label: 'Good', color: 'bg-blue-500', text: 'text-blue-600', width: '75%' };
-      return { label: 'Strong', color: 'bg-emerald-500', text: 'text-emerald-600', width: '100%' };
-    };
-
-    const strength = getStrengthMeta();
+    const evaluation = evaluatePassword(passwordStr);
+    const strength = STRENGTH_META[evaluation.strength];
 
     return (
       <div className={`w-full ${containerClassName}`}>
@@ -124,24 +111,14 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-1 pt-0.5 text-[11px]">
-              <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-700' : 'text-slate-500'}`}>
-                {hasMinLength ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-slate-400" />}
-                <span>8+ chars</span>
-              </div>
-              <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-emerald-700' : 'text-slate-500'}`}>
-                {hasUppercase ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-slate-400" />}
-                <span>Uppercase (A-Z)</span>
-              </div>
-              <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-700' : 'text-slate-500'}`}>
-                {hasNumber ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-slate-400" />}
-                <span>Number (0-9)</span>
-              </div>
-              <div className={`flex items-center gap-1.5 ${hasSpecial ? 'text-emerald-700' : 'text-slate-500'}`}>
-                {hasSpecial ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-slate-400" />}
-                <span>Symbol (@$!%*?&#)</span>
-              </div>
-            </div>
+            <ul className="grid grid-cols-2 gap-1 pt-0.5 text-[11px]">
+              {evaluation.results.map(({ rule, passed }) => (
+                <li key={rule.id} className={`flex items-center gap-1.5 ${passed ? 'text-emerald-700' : 'text-slate-500'}`}>
+                  {passed ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-slate-400" />}
+                  <span>{rule.label}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

@@ -1,28 +1,22 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class LoginDto {
-  @ApiProperty({
-    example: 'alex.mercer@example.com',
-    description: 'Registered account email address',
-  })
+  @ApiProperty({ example: 'customer@zylo.internal', description: 'Registered account email address' })
   @IsEmail()
-  @IsNotEmpty()
+  @MaxLength(254)
   email: string;
 
-  @ApiProperty({
-    example: 'SecurePass123!',
-    description: 'Account password',
-  })
+  @ApiProperty({ example: 'CustomerPassword123!', description: 'Account password' })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(100)
   password: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: true,
-    required: false,
     default: false,
-    description: 'When true, extends refresh token cookie duration to 30 days',
+    description: 'When true, the session lasts JWT_REFRESH_REMEMBER_EXPIRY (default 30 days)',
   })
   @IsOptional()
   @IsBoolean()

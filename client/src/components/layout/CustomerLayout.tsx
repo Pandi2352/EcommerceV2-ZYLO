@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import TopBar from './TopBar';
 import CustomerNavbar from './CustomerNavbar';
 import CategoryRail from './CategoryRail';
+import EmailVerificationBanner from '../../features/auth/components/EmailVerificationBanner';
 
 export interface CustomerLayoutProps {
   children?: React.ReactNode;
@@ -20,6 +21,7 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
 
       {/* Main customer navbar */}
       <CustomerNavbar />
+      <EmailVerificationBanner />
 
       {/* Content wrapper with optional left category icon rail */}
       <div className="flex-1 flex w-full">

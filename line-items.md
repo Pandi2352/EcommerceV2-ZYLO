@@ -15,14 +15,14 @@
 - [x] Auto-redirect to previously attempted URL after login
 
 ### Email Verification & Password Recovery
-- [ ] Email verification token generation on registration
-- [ ] Email verification confirmation endpoint (`GET /api/v1/auth/verify-email?token=...`)
-- [ ] Resend email verification link endpoint
-- [ ] Forgot password request (Generates 1-hour expiry hash token)
-- [ ] Password reset token delivery via email
-- [ ] Reset password submission with token validation
-- [ ] Change password for authenticated users (Verifies current old password)
-- [ ] Prevent reusing the immediate old password
+- [x] Email verification token generation on registration
+- [x] Email verification confirmation endpoint (`GET /api/v1/auth/verify-email?token=...`)
+- [x] Resend email verification link endpoint
+- [x] Forgot password request (Generates 1-hour expiry hash token)
+- [x] Password reset token delivery via email
+- [x] Reset password submission with token validation
+- [x] Change password for authenticated users (Verifies current old password)
+- [x] Prevent reusing the immediate old password
 
 ### Security, Session & Token Lifecycle
 - [x] Dual-token scheme: Short-lived access token (15 min) + Long-lived refresh token (7 days)
@@ -31,37 +31,37 @@
 - [x] Axios response interceptor for transparent 401 token refresh and request retry
 - [x] Refresh token rotation (Issues a fresh refresh token on every refresh call)
 - [x] Refresh token reuse detection (Revokes entire token family if stolen token is replayed)
-- [ ] Logout from all active sessions / devices (Revokes all user refresh tokens)
+- [x] Logout from all active sessions / devices (Revokes all user refresh tokens)
 - [x] Brute-force rate limiting on auth endpoints (Max 5 attempts per min per IP via Throttler)
-- [ ] Account temporary lockout / cooldown after 5 consecutive failed login attempts
+- [x] Account temporary lockout / cooldown after 5 consecutive failed login attempts
 - [x] Password hashing with `bcryptjs` / `argon2` (Salt rounds: 12)
 
 ### Social Authentication (OAuth2)
-- [ ] Google OAuth2 registration and login (`passport-google-oauth20`)
-- [ ] Social account linking with existing email account
-- [ ] OAuth2 redirect callback handler and auth cookie issuance
+- [x] Google OAuth2 registration and login (`passport-google-oauth20`)
+- [x] Social account linking with existing email account
+- [x] OAuth2 redirect callback handler and auth cookie issuance
 
 ### Admin Authentication & RBAC
 - [x] Dedicated Admin login endpoint
 - [x] Admin profile view & session check
 - [x] NestJS `JwtAuthGuard` and `RolesGuard` integration
 - [x] `@Roles('ADMIN')` decorator enforcing endpoint permissions
-- [ ] Role hierarchy support (`SUPER_ADMIN`, `ADMIN`, `SUPPORT_AGENT`)
+- [x] Role hierarchy support (`SUPER_ADMIN`, `ADMIN`, `SUPPORT_AGENT`)
 - [x] Admin protected route wrapper (`AdminRoute`)
-- [ ] Admin login audit log (Records timestamp, IP address, and user-agent)
-- [ ] Force password reset on first initial admin login
+- [x] Admin login audit log (Records timestamp, IP address, and user-agent)
+- [x] Force password reset on first initial admin login
 
 ### Multi-Factor Authentication (MFA / 2FA — Advanced / Optional)
-- [ ] TOTP 2FA secret generation & QR code display (Google Authenticator)
-- [ ] 2FA code verification on login
-- [ ] Downloadable 2FA one-time emergency backup recovery codes
+- [x] TOTP 2FA secret generation & QR code display (Google Authenticator)
+- [x] 2FA code verification on login
+- [x] Downloadable 2FA one-time emergency backup recovery codes
 
 ---
 
 ## 2. Customer Account & Address Book
 - [ ] View account profile
 - [ ] Update profile details (Name, phone, avatar)
-- [ ] Change password (Authenticated)
+- [x] Change password (Authenticated)
 - [ ] View saved addresses list
 - [ ] Add new shipping address
 - [ ] Edit existing address
@@ -330,7 +330,7 @@
 ## 19. Transactional Notifications & Emails
 - [ ] Order confirmation email to customer
 - [ ] Order status change notification email (Shipped, Out for Delivery, Delivered)
-- [ ] Password reset token email
+- [x] Password reset token email
 - [ ] Low-stock notification email to store admin
 - [ ] Return request status update email
 

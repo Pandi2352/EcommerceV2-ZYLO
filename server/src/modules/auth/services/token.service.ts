@@ -1,17 +1,20 @@
-import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import { authConfig, AuthConfig } from '../../config/auth.config';
-import { UserDocument } from '../users/schemas/user.schema';
-import { RefreshSession, RefreshSessionDocument } from './schemas/refresh-session.schema';
-import { REFRESH_REUSE_GRACE_MS } from './auth.constants';
+import { authConfig, AuthConfig } from '../../../config/auth.config';
+import { UserDocument } from '../../users/schemas/user.schema';
+import { AuditService } from '../../audit/audit.service';
+import { AuditEvent } from '../../audit/audit-event.enum';
+import { RefreshSession, RefreshSessionDocument } from '../schemas/refresh-session.schema';
+import { REFRESH_REUSE_GRACE_MS } from '../auth.constants';
 
 export interface AccessTokenPayload {
   sub: string;
   email: string;
   role: string;
+  iat?: number;
 }
 
 interface RefreshTokenPayload {
@@ -29,16 +32,15 @@ export interface IssuedTokens {
 
 /**
  * Issues access/refresh token pairs and manages the refresh-session lifecycle:
- * rotation on every refresh, reuse detection, and revocation on logout.
+ * rotation on every refresh, reuse detection, and revocation.
  */
 @Injectable()
 export class TokenService {
-  private readonly logger = new Logger(TokenService.name);
-
   constructor(
     @InjectModel(RefreshSession.name)
     private readonly sessionModel: Model<RefreshSessionDocument>,
     private readonly jwtService: JwtService,
+    private readonly auditService: AuditService,
     @Inject(authConfig.KEY) private readonly config: AuthConfig,
   ) {}
 
@@ -89,27 +91,47 @@ export class TokenService {
 
     const existing = await this.sessionModel.findById(payload.jti).exec();
     if (existing?.revokedAt && Date.now() - existing.revokedAt.getTime() > REFRESH_REUSE_GRACE_MS) {
-      await this.revokeFamily(existing.familyId);
-      this.logger.warn(`Refresh token reuse detected for user ${existing.userId}; session family revoked`);
+      await this.revokeWhere({ familyId: existing.familyId });
+      await this.auditService.log({
+        event: AuditEvent.REFRESH_TOKEN_REUSE,
+        subject: { _id: existing.userId },
+        metadata: { familyId: existing.familyId },
+      });
     }
     throw new UnauthorizedException('Invalid or expired refresh token');
   }
 
-  /** Revoke the session behind a refresh token (logout). Invalid tokens are ignored. */
-  async revoke(refreshToken: string): Promise<void> {
+  /** Session settings behind a refresh token, without consuming it. */
+  async peek(refreshToken: string | undefined): Promise<RefreshSessionDocument | null> {
+    if (!refreshToken) return null;
     try {
-      const payload = await this.verifyRefresh(refreshToken, true);
-      await this.sessionModel
-        .updateOne({ _id: payload.jti, revokedAt: null }, { $set: { revokedAt: new Date() } })
-        .exec();
+      const payload = await this.verifyRefresh(refreshToken, false);
+      return await this.sessionModel.findOne({ _id: payload.jti, revokedAt: null }).exec();
     } catch {
-      // Logout must always succeed; an unusable token has nothing left to revoke.
+      return null;
     }
   }
 
-  private async revokeFamily(familyId: string): Promise<void> {
+  /** Revoke the session behind a refresh token (logout). Returns the owning user id, if any. */
+  async revoke(refreshToken: string): Promise<string | null> {
+    try {
+      const payload = await this.verifyRefresh(refreshToken, true);
+      await this.revokeWhere({ _id: payload.jti });
+      return payload.sub;
+    } catch {
+      // Logout must always succeed; an unusable token has nothing left to revoke.
+      return null;
+    }
+  }
+
+  /** Sign the user out everywhere (logout-all, password change or reset). */
+  async revokeAllForUser(userId: string): Promise<void> {
+    await this.revokeWhere({ userId });
+  }
+
+  private async revokeWhere(filter: Record<string, string>): Promise<void> {
     await this.sessionModel
-      .updateMany({ familyId, revokedAt: null }, { $set: { revokedAt: new Date() } })
+      .updateMany({ ...filter, revokedAt: null }, { $set: { revokedAt: new Date() } })
       .exec();
   }
 

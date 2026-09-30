@@ -49,15 +49,35 @@ Uncaught exceptions and validation failures are formatted by `HttpExceptionFilte
 ## 2. API Endpoints Catalog (Mapped to Swagger Tags)
 
 ### 2.1 `@ApiTags('Auth')` (`/api/v1/auth`)
+See [11-auth-rbac.md](./11-auth-rbac.md) for flows, cookies and error codes.
+
 | Method | Endpoint | Auth | Description | Swagger DTO |
 |---|---|---|---|---|
-| `POST` | `/auth/register` | Public | Register customer account | `RegisterDto` |
-| `POST` | `/auth/login` | Public | Login credentials, sets auth cookies | `LoginDto` |
-| `POST` | `/auth/refresh` | Public | Silently refresh access token via cookie | N/A |
-| `POST` | `/auth/logout` | Authenticated | Clears cookies, invalidates session | N/A |
-| `POST` | `/auth/forgot-password` | Public | Sends password reset token | `ForgotPasswordDto` |
-| `POST` | `/auth/reset-password` | Public | Resets password with token | `ResetPasswordDto` |
-| `GET` | `/auth/me` | Authenticated | Returns current authenticated user | N/A |
+| `POST` | `/auth/register` | Public | Register customer account, send verification email, set session cookies | `RegisterDto` |
+| `POST` | `/auth/login` | Public | Storefront sign-in (customers only). Returns `{ mfaRequired, user? }` | `LoginDto` |
+| `POST` | `/auth/admin/login` | Public | Admin portal sign-in (staff roles only) | `LoginDto` |
+| `POST` | `/auth/mfa/verify` | Public (MFA challenge cookie) | Complete sign-in with authenticator or backup code | `MfaCodeDto` |
+| `POST` | `/auth/refresh` | Public (refresh cookie) | Rotate refresh token, issue new access token | N/A |
+| `POST` | `/auth/logout` | Public | Revoke current session, clear cookies | N/A |
+| `POST` | `/auth/logout-all` | Authenticated | Revoke every session of the user | N/A |
+| `GET` | `/auth/me` | Authenticated | Current user | N/A |
+| `GET` | `/auth/providers` | Public | Enabled social providers `{ google }` | N/A |
+| `POST` | `/auth/password/forgot` | Public | Email a 1-hour reset link (always 200) | `ForgotPasswordDto` |
+| `POST` | `/auth/password/reset` | Public | Reset with emailed token; revokes all sessions | `ResetPasswordDto` |
+| `POST` | `/auth/password/change` | Authenticated | Change password; other sessions revoked, new cookies set | `ChangePasswordDto` |
+| `POST` | `/auth/email/verify` | Public | Confirm email with emailed token | `TokenDto` |
+| `POST` | `/auth/email/resend-verification` | Authenticated | Send a new verification link | N/A |
+| `POST` | `/auth/mfa/setup` | Authenticated | Start TOTP setup: `{ secret, otpauthUrl, qrCodeDataUrl }` | N/A |
+| `POST` | `/auth/mfa/enable` | Authenticated | Confirm setup with a code; returns backup codes once | `MfaCodeDto` |
+| `POST` | `/auth/mfa/disable` | Authenticated | Turn off MFA (password + code) | `DisableMfaDto` |
+| `POST` | `/auth/mfa/backup-codes` | Authenticated | Replace backup codes (authenticator code) | `MfaCodeDto` |
+| `GET` | `/auth/google` | Public | Start Google sign-in (redirect) | query: `redirect`, `remember` |
+| `GET` | `/auth/google/callback` | Public | Google callback; redirects to the storefront | N/A |
+
+### 2.1.1 `@ApiTags('Audit')` (`/api/v1/audit-logs`)
+| Method | Endpoint | Auth | Description | Swagger DTO |
+|---|---|---|---|---|
+| `GET` | `/audit-logs` | `ADMIN`+ | Paginated security events, newest first; filters `event`, `email`, `userId`, `portal` | `AuditLogQueryDto` |
 
 ---
 
@@ -65,7 +85,6 @@ Uncaught exceptions and validation failures are formatted by `HttpExceptionFilte
 | Method | Endpoint | Auth | Description | Swagger DTO |
 |---|---|---|---|---|
 | `PATCH` | `/users/profile` | Authenticated | Update user name, phone, or avatar | `UpdateProfileDto` |
-| `PATCH` | `/users/change-password` | Authenticated | Change current password | `ChangePasswordDto` |
 | `GET` | `/users/addresses` | Authenticated | List all saved addresses | N/A |
 | `POST` | `/users/addresses` | Authenticated | Create a new shipping address | `CreateAddressDto` |
 | `PUT` | `/users/addresses/:id` | Authenticated | Update address (`:id` = UUID) | `UpdateAddressDto` |

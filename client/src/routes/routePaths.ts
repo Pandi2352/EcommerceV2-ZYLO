@@ -26,6 +26,7 @@ export const ROUTES = {
 
     // Customer Authentication (Customer site ONLY has registration)
     LOGIN: '/login',
+    LOGIN_VERIFY: '/login/verify',
     REGISTER: '/register',
 
     // Customer Protected Account
@@ -33,6 +34,7 @@ export const ROUTES = {
     ORDERS: '/account/orders',
     PROFILE: '/account/profile',
     ADDRESSES: '/account/addresses',
+    SECURITY: '/account/security',
     WISHLIST: '/wishlist',
     CART: '/cart',
     CHECKOUT: '/checkout',
@@ -43,6 +45,8 @@ export const ROUTES = {
   // -------------------------------------------------------------
   ADMIN: {
     LOGIN: '/admin/login',
+    LOGIN_VERIFY: '/admin/login/verify',
+    CHANGE_PASSWORD: '/admin/change-password',
     DASHBOARD: '/admin',
     PRODUCTS: '/admin/products',
     CATEGORIES: '/admin/categories',
@@ -50,6 +54,16 @@ export const ROUTES = {
     CUSTOMERS: '/admin/customers',
     ANALYTICS: '/admin/analytics',
     SETTINGS: '/admin/settings',
+    AUDIT_LOGS: '/admin/audit-logs',
+  },
+
+  // -------------------------------------------------------------
+  // SHARED AUTH ROUTES (links arrive by email; used by both portals)
+  // -------------------------------------------------------------
+  AUTH: {
+    FORGOT_PASSWORD: '/forgot-password',
+    RESET_PASSWORD: '/reset-password',
+    VERIFY_EMAIL: '/verify-email',
   },
 
   // -------------------------------------------------------------

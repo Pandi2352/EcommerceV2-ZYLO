@@ -1,21 +1,14 @@
 import { registerAs } from '@nestjs/config';
 import { parseDurationMs } from '../common/utils/duration.util';
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value || value.trim() === '') {
-    throw new Error(`Missing required environment variable: ${name}. Set it in .env (see .env.example).`);
-  }
-  return value;
-}
+import { requireEnv } from '../common/utils/env.util';
 
 /**
  * Authentication settings loaded from environment variables.
  * JWT secrets have no fallback: the server refuses to boot without them.
  */
 export const authConfig = registerAs('auth', () => {
-  const accessSecret = requireEnv('JWT_ACCESS_SECRET');
-  const refreshSecret = requireEnv('JWT_REFRESH_SECRET');
+  const accessSecret = requireEnv('JWT_ACCESS_SECRET', 32);
+  const refreshSecret = requireEnv('JWT_REFRESH_SECRET', 32);
   if (accessSecret === refreshSecret) {
     throw new Error('JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different values.');
   }

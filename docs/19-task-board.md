@@ -63,6 +63,17 @@
   - Dual JWT tokens in HttpOnly cookies.
   - `JwtAuthGuard` and `RolesGuard` registered globally, plus the `@CurrentUser()` decorator.
 
+### TASK-005B: MVP 1 — Complete Authentication (line-items Module 1)
+- **Module**: `server/src/modules/{auth,audit,mail}/`, `client/src/features/auth/`
+- **Status**: `DONE`
+- **Delivered** (details in [11-auth-rbac.md](./11-auth-rbac.md)):
+  - Separate storefront / admin login endpoints; role hierarchy `SUPER_ADMIN ⊇ ADMIN ⊇ SUPPORT_AGENT`.
+  - Email verification, forgot/reset password, change password, reuse prevention, forced first-login change.
+  - Lockout after 5 failures, logout from all devices, security audit log (IP + user agent) with admin UI.
+  - TOTP two-factor with QR setup and one-time backup codes; Google OAuth2 with account linking.
+- **Verification**: 57-check end-to-end API scenario suite passing; client and server build with 0 errors.
+- **Follow-ups**: configure real SMTP and Google credentials per environment; add automated tests to CI (see testing strategy).
+
 ---
 
 ## 3. Sprint 3: Catalog Management (Day 3-5 Focus)

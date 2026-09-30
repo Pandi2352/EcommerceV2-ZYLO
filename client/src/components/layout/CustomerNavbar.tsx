@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../routes/routePaths';
+import AccountMenu from '../../features/auth/components/AccountMenu';
 import {
   Search,
   ChevronDown,
-  User,
   Heart,
   ShoppingCart,
   ArrowLeftRight,
@@ -122,13 +122,7 @@ export const CustomerNavbar: React.FC = () => {
         {/* Right Customer Actions */}
         <div className="flex items-center gap-5 text-slate-700 text-xs font-semibold">
           {/* Account */}
-          <Link
-            to={ROUTES.CUSTOMER.LOGIN}
-            className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors cursor-pointer"
-          >
-            <User className="w-4 h-4 text-slate-600" />
-            <span className="hidden sm:inline">Account</span>
-          </Link>
+          <AccountMenu />
 
           {/* Wishlist */}
           <Link

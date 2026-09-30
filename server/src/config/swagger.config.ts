@@ -36,6 +36,7 @@ export function setupSwagger(app: INestApplication): void {
     .addTag('Cart', 'Shopping cart items, guest carts, and quantity updates')
     .addTag('Orders', 'Order placement, checkout state machine, and customer order history')
     .addTag('Admin', 'Operations control plane, dashboard KPIs, and management tools')
+    .addTag('Audit', 'Security audit trail: sign-ins, lockouts, password and MFA changes')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

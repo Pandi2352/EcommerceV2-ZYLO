@@ -1,94 +1,118 @@
-import axios, { type AxiosError } from 'axios';
+import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import type { ApiEnvelope, ApiErrorBody } from '../types/api';
+
+export const API_BASE_URL = '/api/v1';
 
 export const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (reason?: unknown) => void;
-}> = [];
+/** Unwrap the server's `{ success, data }` envelope. */
+export async function unwrap<T>(request: Promise<AxiosResponse<ApiEnvelope<T>>>): Promise<T> {
+  const response = await request;
+  return response.data.data;
+}
 
-const processQueue = (error: unknown = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve();
-    }
-  });
-  failedQueue = [];
-};
+// ─── Session expiry notifications ─────────────────────────────────────────────
+type SessionExpiredListener = () => void;
+const sessionExpiredListeners = new Set<SessionExpiredListener>();
+
+/** Subscribe to "the refresh token is no longer valid". Returns an unsubscribe function. */
+export function onSessionExpired(listener: SessionExpiredListener): () => void {
+  sessionExpiredListeners.add(listener);
+  return () => sessionExpiredListeners.delete(listener);
+}
+
+// ─── Transparent access-token refresh ─────────────────────────────────────────
+// Endpoints where a 401 means "wrong input", not "access token expired"
+const NO_REFRESH_PATHS = [
+  '/auth/login',
+  '/auth/admin/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/mfa/verify',
+  '/auth/password/forgot',
+  '/auth/password/reset',
+  '/auth/email/verify',
+];
+
+type RetriableRequest = InternalAxiosRequestConfig & { _retry?: boolean };
+
+let refreshPromise: Promise<void> | null = null;
+
+function refreshSession(): Promise<void> {
+  // Concurrent 401s share one refresh call (the server rotates the token on each call)
+  refreshPromise ??= axios
+    .post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+    .then(() => undefined)
+    .finally(() => {
+      refreshPromise = null;
+    });
+  return refreshPromise;
+}
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const original = error.config as RetriableRequest | undefined;
+    const skip = !original || original._retry || NO_REFRESH_PATHS.some((path) => original.url?.includes(path));
 
-    // Ignore 401s from authentication attempt endpoints
-    const isAuthEndpoint =
-      originalRequest?.url?.includes('/auth/login') ||
-      originalRequest?.url?.includes('/auth/register') ||
-      originalRequest?.url?.includes('/auth/refresh');
-
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then(() => api(originalRequest))
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        await axios.post('/api/v1/auth/refresh', {}, { withCredentials: true });
-        processQueue(null);
-        return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError);
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+    if (error.response?.status !== 401 || skip) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
-  }
+    original._retry = true;
+    try {
+      await refreshSession();
+      return api(original);
+    } catch (refreshError) {
+      sessionExpiredListeners.forEach((listener) => listener());
+      return Promise.reject(refreshError);
+    }
+  },
 );
 
-export interface ApiErrorResponse {
-  success: boolean;
-  statusCode: number;
-  message: string | string[];
-  error?: string;
-  path?: string;
-  timestamp?: string;
+// ─── Error helpers ────────────────────────────────────────────────────────────
+export interface ApiError {
+  message: string;
+  code?: string;
+  status?: number;
+  retryAfterSeconds?: number;
+}
+
+export function getApiError(error: unknown): ApiError {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<ApiErrorBody>;
+    const body = axiosError.response?.data;
+    const status = axiosError.response?.status;
+
+    if (body?.message) {
+      return {
+        message: Array.isArray(body.message) ? body.message.join('. ') : body.message,
+        code: body.code,
+        status,
+        retryAfterSeconds: body.retryAfterSeconds,
+      };
+    }
+    if (status === 429) {
+      return { message: 'Too many attempts. Please wait a minute and try again.', status };
+    }
+    if (!axiosError.response) {
+      return { message: 'Unable to reach the server. Check your connection and try again.' };
+    }
+    return { message: axiosError.message, status };
+  }
+  if (error instanceof Error) {
+    return { message: error.message };
+  }
+  return { message: 'An unexpected error occurred. Please try again.' };
 }
 
 export function extractErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<ApiErrorResponse>;
-    const resData = axiosError.response?.data;
-    if (resData?.message) {
-      if (Array.isArray(resData.message)) {
-        return resData.message.join('. ');
-      }
-      return resData.message;
-    }
-    if (axiosError.message) {
-      return axiosError.message;
-    }
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return 'An unexpected error occurred. Please try again.';
+  return getApiError(error).message;
 }

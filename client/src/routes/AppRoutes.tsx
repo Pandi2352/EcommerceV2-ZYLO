@@ -2,6 +2,14 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ROUTES } from './routePaths';
+import {
+  ADMIN_MANAGER_PLANNED,
+  ADMIN_STAFF_PLANNED,
+  CUSTOMER_ACCOUNT_PLANNED,
+  CUSTOMER_PUBLIC_PLANNED,
+  type PlannedRoute,
+} from './plannedRoutes';
+import { STAFF_ROLES, USER_ROLES } from '../constants/roles';
 import PageLoader from '../components/common/PageLoader';
 
 // Route Guards
@@ -16,50 +24,18 @@ import AdminLayout from '../components/layout/admin/AdminLayout';
 import CustomerHomePage from '../pages/customer/HomePage';
 import CustomerRegisterPage from '../pages/customer/RegisterPage';
 import CustomerLoginPage from '../pages/customer/LoginPage';
+import AccountSecurityPage from '../pages/account/AccountSecurityPage';
+import MfaVerifyPage from '../pages/auth/MfaVerifyPage';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
+import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
 import AdminLoginPage from '../pages/admin/AdminLoginPage';
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import AdminChangePasswordPage from '../pages/admin/AdminChangePasswordPage';
+import AdminSecurityPage from '../pages/admin/AdminSecurityPage';
+import AdminAuditLogsPage from '../pages/admin/AdminAuditLogsPage';
 import NotFoundPage from '../pages/common/NotFoundPage';
 import ComingSoonPage from '../pages/common/ComingSoonPage';
-
-interface PlannedRoute {
-  path: string;
-  title: string;
-}
-
-// Planned pages that are linked from the UI but not built yet. Replace an
-// entry with a real <Route> when its page is implemented.
-const customerPublicPlanned: PlannedRoute[] = [
-  { path: ROUTES.CUSTOMER.SHOP, title: 'Shop' },
-  { path: ROUTES.CUSTOMER.PRODUCT_DETAILS, title: 'Product Details' },
-  { path: ROUTES.CUSTOMER.VENDORS, title: 'Vendors' },
-  { path: ROUTES.CUSTOMER.PAGES, title: 'Pages' },
-  { path: ROUTES.CUSTOMER.BLOG, title: 'Blog' },
-  { path: ROUTES.CUSTOMER.CONTACT, title: 'Contact Us' },
-  { path: ROUTES.CUSTOMER.ABOUT, title: 'About Us' },
-  { path: ROUTES.CUSTOMER.CAREERS, title: 'Careers' },
-  { path: ROUTES.CUSTOMER.TERMS, title: 'Terms & Conditions' },
-  { path: ROUTES.CUSTOMER.OPEN_SHOP, title: 'Open a Shop' },
-  { path: ROUTES.CUSTOMER.COMPARE, title: 'Compare Products' },
-  { path: ROUTES.CUSTOMER.CART, title: 'Shopping Cart' },
-];
-
-const customerAccountPlanned: PlannedRoute[] = [
-  { path: ROUTES.CUSTOMER.DASHBOARD, title: 'My Account' },
-  { path: ROUTES.CUSTOMER.ORDERS, title: 'My Orders' },
-  { path: ROUTES.CUSTOMER.PROFILE, title: 'My Profile' },
-  { path: ROUTES.CUSTOMER.ADDRESSES, title: 'My Addresses' },
-  { path: ROUTES.CUSTOMER.WISHLIST, title: 'Wishlist' },
-  { path: ROUTES.CUSTOMER.CHECKOUT, title: 'Checkout' },
-];
-
-const adminPlanned: PlannedRoute[] = [
-  { path: ROUTES.ADMIN.PRODUCTS, title: 'Products' },
-  { path: ROUTES.ADMIN.CATEGORIES, title: 'Categories' },
-  { path: ROUTES.ADMIN.ORDERS, title: 'Orders' },
-  { path: ROUTES.ADMIN.CUSTOMERS, title: 'Customers' },
-  { path: ROUTES.ADMIN.ANALYTICS, title: 'Analytics' },
-  { path: ROUTES.ADMIN.SETTINGS, title: 'Settings' },
-];
 
 const renderPlanned = (routes: PlannedRoute[], backTo: string, backLabel: string) =>
   routes.map(({ path, title }) => (
@@ -75,14 +51,7 @@ export const AppRoutes: React.FC = () => {
 
   // Show ZYLO mascot page loader while initial session check is resolving
   if (isLoading) {
-    return (
-      <PageLoader
-        variant="mascot"
-        size="md"
-        text="Loading ZYLO..."
-        fullScreen={true}
-      />
-    );
+    return <PageLoader variant="mascot" size="md" text="Loading ZYLO..." fullScreen={true} />;
   }
 
   return (
@@ -94,28 +63,45 @@ export const AppRoutes: React.FC = () => {
 
       {/* 2. CUSTOMER INNER PAGES (no category rail) + storefront 404 */}
       <Route element={<CustomerLayout showRail={false} />}>
-        {renderPlanned(customerPublicPlanned, ROUTES.CUSTOMER.HOME, 'Back to Home')}
+        {renderPlanned(CUSTOMER_PUBLIC_PLANNED, ROUTES.CUSTOMER.HOME, 'Back to Home')}
 
-        <Route element={<ProtectedRoute />}>
-          {renderPlanned(customerAccountPlanned, ROUTES.CUSTOMER.HOME, 'Back to Home')}
+        <Route element={<ProtectedRoute role={USER_ROLES.CUSTOMER} />}>
+          <Route path={ROUTES.CUSTOMER.SECURITY} element={<AccountSecurityPage />} />
+          {renderPlanned(CUSTOMER_ACCOUNT_PLANNED, ROUTES.CUSTOMER.HOME, 'Back to Home')}
         </Route>
 
         <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
       </Route>
 
-      {/* 3. CUSTOMER AUTHENTICATION (pages render their own layout) */}
+      {/* 3. SIGN-IN PAGES (signed-in users are sent to their portal home) */}
       <Route element={<PublicOnlyRoute />}>
         <Route path={ROUTES.CUSTOMER.REGISTER} element={<CustomerRegisterPage />} />
         <Route path={ROUTES.CUSTOMER.LOGIN} element={<CustomerLoginPage />} />
+        <Route path={ROUTES.CUSTOMER.LOGIN_VERIFY} element={<MfaVerifyPage portal="customer" />} />
         {/* Admin portal: sign-in only, admin accounts are never self-registered */}
         <Route path={ROUTES.ADMIN.LOGIN} element={<AdminLoginPage />} />
+        <Route path={ROUTES.ADMIN.LOGIN_VERIFY} element={<MfaVerifyPage portal="admin" />} />
       </Route>
 
-      {/* 4. ADMIN CONSOLE (role: ADMIN) — every /admin/* URL stays in AdminLayout */}
-      <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+      {/* 4. EMAILED LINKS (work whether or not the user is signed in) */}
+      <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+      <Route path={ROUTES.AUTH.RESET_PASSWORD} element={<ResetPasswordPage />} />
+      <Route path={ROUTES.AUTH.VERIFY_EMAIL} element={<VerifyEmailPage />} />
+
+      {/* 5. ADMIN CONSOLE (any staff role) — every /admin/* URL stays in AdminLayout */}
+      <Route element={<ProtectedRoute anyRole={STAFF_ROLES} />}>
+        <Route path={ROUTES.ADMIN.CHANGE_PASSWORD} element={<AdminChangePasswordPage />} />
+
         <Route element={<AdminLayout />}>
           <Route path={ROUTES.ADMIN.DASHBOARD} element={<AdminDashboardPage />} />
-          {renderPlanned(adminPlanned, ROUTES.ADMIN.DASHBOARD, 'Back to Dashboard')}
+          <Route path={ROUTES.ADMIN.SETTINGS} element={<AdminSecurityPage />} />
+          {renderPlanned(ADMIN_STAFF_PLANNED, ROUTES.ADMIN.DASHBOARD, 'Back to Dashboard')}
+
+          <Route element={<ProtectedRoute role={USER_ROLES.ADMIN} />}>
+            <Route path={ROUTES.ADMIN.AUDIT_LOGS} element={<AdminAuditLogsPage />} />
+            {renderPlanned(ADMIN_MANAGER_PLANNED, ROUTES.ADMIN.DASHBOARD, 'Back to Dashboard')}
+          </Route>
+
           <Route
             path={`${ROUTES.ADMIN.DASHBOARD}/*`}
             element={<NotFoundPage homeTo={ROUTES.ADMIN.DASHBOARD} homeLabel="Back to Dashboard" />}

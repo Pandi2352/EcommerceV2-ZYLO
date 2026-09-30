@@ -25,12 +25,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const errorResponse =
       exception instanceof HttpException
         ? exception.getResponse()
-        : { message: (exception as Error)?.message || 'Internal server error' };
+        : { message: 'Internal server error' };
 
-    const message =
-      typeof errorResponse === 'object' && 'message' in (errorResponse as any)
-        ? (errorResponse as any).message
-        : errorResponse;
+    // Unexpected errors: log the full stack server-side, never expose internals to clients
+    if (!(exception instanceof HttpException)) {
+      this.logger.error(`[${request.method}] ${request.url}`, (exception as Error)?.stack ?? String(exception));
+    }
+
+    const body = typeof errorResponse === 'object' && errorResponse !== null
+      ? (errorResponse as Record<string, unknown>)
+      : { message: errorResponse };
+    const { message, error: _error, statusCode: _statusCode, ...extra } = body;
 
     this.logger.error(
       `[${request.method}] ${request.url} - Status: ${status} - Error: ${JSON.stringify(message)}`
@@ -40,6 +45,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       success: false,
       statusCode: status,
       message,
+      ...extra,
       timestamp: new Date().toISOString(),
       path: request.url,
     });

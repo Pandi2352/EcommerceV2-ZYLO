@@ -1,275 +1,99 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, User } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { extractErrorMessage } from '../../services/api';
-import CustomerLayout from '../../components/layout/CustomerLayout';
+import { useForm } from '../../hooks/useForm';
+import { email, matchesField, minLength, required, strongPassword } from '../../utils/validators';
+import { useAuthProviders } from '../../features/auth/hooks/useAuthProviders';
+import AuthSplitLayout from '../../features/auth/components/AuthSplitLayout';
+import SocialAuthButtons from '../../features/auth/components/SocialAuthButtons';
 import InputField from '../../components/common/InputField';
 import PasswordField from '../../components/common/PasswordField';
+import Checkbox from '../../components/common/Checkbox';
 import Button from '../../components/common/Button';
-import SocialAuthButtons from '../../components/auth/SocialAuthButtons';
+import Alert from '../../components/feedback/Alert';
 
-/**
- * Customer Registration Page (Customer Storefront Only)
- * Matches reference UI split-layout with zero shadows and rounded-md borders.
- */
+type RegisterValues = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  agreedToTerms: boolean;
+};
+
+const rules = {
+  name: [required<RegisterValues>('Full name is required'), minLength<RegisterValues>(2, 'Full name must be at least 2 characters')],
+  email: [required<RegisterValues>('Email address is required'), email<RegisterValues>()],
+  password: [required<RegisterValues>('Password is required'), strongPassword<RegisterValues>()],
+  confirmPassword: [
+    required<RegisterValues>('Please confirm your password'),
+    matchesField<RegisterValues>('password', 'Passwords do not match'),
+  ],
+  agreedToTerms: [(value: string) => (value === 'true' ? undefined : 'You must agree to the terms and policy to register')],
+};
+
+/** Customer sign-up (the admin portal has no registration). */
 export default function CustomerRegisterPage() {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { google } = useAuthProviders();
 
-  // Form State
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
+  const form = useForm<RegisterValues>({
+    initialValues: { name: '', email: '', password: '', confirmPassword: '', agreedToTerms: false },
+    rules,
+    onSubmit: async (values) => {
+      await register({ name: values.name.trim(), email: values.email.trim(), password: values.password });
+      // The storefront shows a verification reminder until the email link is used
+      navigate(ROUTES.CUSTOMER.HOME, { replace: true });
+    },
   });
 
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (fieldErrors[name]) {
-      setFieldErrors((prev) => {
-        const next = { ...prev };
-        delete next[name];
-        return next;
-      });
-    }
-    if (errorMessage) setErrorMessage(null);
-  };
-
-  const handleClear = (field: keyof typeof formData) => {
-    setFormData((prev) => ({ ...prev, [field]: '' }));
-  };
-
-  const validate = (): boolean => {
-    const errors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      errors.name = 'Full name is required';
-    } else if (formData.name.trim().length < 2) {
-      errors.name = 'Full name must be at least 2 characters';
-    }
-
-    if (!formData.email.trim()) {
-      errors.email = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      errors.email = 'Please enter a valid email address';
-    }
-
-    if (!formData.username.trim()) {
-      errors.username = 'Username is required';
-    } else if (formData.username.trim().length < 3) {
-      errors.username = 'Username must be at least 3 characters';
-    }
-
-    if (!formData.password) {
-      errors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
-    }
-
-    if (!formData.confirmPassword) {
-      errors.confirmPassword = 'Confirmation password is required';
-    } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (!agreedToTerms) {
-      errors.terms = 'You must agree to the terms and policy to register';
-    }
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
-    if (!validate()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      await register({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-      });
-
-      setSuccessMessage('Account created successfully! Welcome to Zylo.');
-      setTimeout(() => {
-        navigate(ROUTES.CUSTOMER.HOME);
-      }, 1500);
-    } catch (err: unknown) {
-      setErrorMessage(extractErrorMessage(err));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const clear = (name: 'name' | 'email') => () => form.setValue(name, '');
 
   return (
-    <CustomerLayout showRail={true}>
-      <div className="max-w-6xl mx-auto px-6 py-10 lg:py-14">
-        {/* Global Feedback Banners */}
-        {successMessage && (
-          <div className="mb-8 p-4 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <div>
-              <p className="font-bold">{successMessage}</p>
-              <p className="text-emerald-700 text-xs mt-0.5">Redirecting you to the storefront...</p>
-            </div>
-          </div>
-        )}
+    <AuthSplitLayout
+      title="Create an account"
+      subtitle="Access to all features. No credit card required."
+      showRail
+      aside={google && <SocialAuthButtons mode="signup" redirect={ROUTES.CUSTOMER.HOME} />}
+    >
+      <form onSubmit={form.handleSubmit} noValidate className="space-y-5">
+        {form.formError && <Alert tone="error">{form.formError.message}</Alert>}
 
-        {errorMessage && (
-          <div className="mb-8 p-4 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-            <div className="flex-1 font-medium leading-relaxed">{errorMessage}</div>
-          </div>
-        )}
+        <InputField label="Full Name" required autoComplete="name" placeholder="Steven Job" leftIcon={<User className="w-4 h-4" />} clearable onClear={clear('name')} {...form.field('name')} />
+        <InputField label="Email" type="email" required autoComplete="email" placeholder="stevenjob@gmail.com" leftIcon={<Mail className="w-4 h-4" />} clearable onClear={clear('email')} {...form.field('email')} />
+        <PasswordField label="Password" required autoComplete="new-password" placeholder="Create a strong password" showStrengthMeter {...form.field('password')} />
+        <PasswordField label="Confirm Password" required autoComplete="new-password" placeholder="Re-enter your password" {...form.field('confirmPassword')} />
 
-        {/* Two-Column Registration Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-          {/* Left Column: Form */}
-          <div className="lg:col-span-7">
-            <div className="mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">
-                Create an account
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1.5 font-normal">
-                Access to all features. No credit card required.
-              </p>
-            </div>
+        <Checkbox
+          name="agreedToTerms"
+          checked={form.values.agreedToTerms}
+          onChange={form.handleChange}
+          error={form.errors.agreedToTerms}
+          label={
+            <>
+              I agree to the{' '}
+              <Link to={ROUTES.CUSTOMER.TERMS} className="text-slate-700 hover:text-slate-900 underline font-medium">
+                terms and policy
+              </Link>
+              .
+            </>
+          }
+        />
 
-            <form onSubmit={handleSubmit} noValidate className="space-y-5">
-              {/* Full Name */}
-              <InputField
-                label="Full Name"
-                required
-                name="name"
-                placeholder="Steven job"
-                value={formData.name}
-                onChange={handleChange}
-                onClear={() => handleClear('name')}
-                clearable
-                error={fieldErrors.name}
-              />
-
-              {/* Email */}
-              <InputField
-                label="Email"
-                type="email"
-                required
-                name="email"
-                placeholder="stevenjob@gmail.com"
-                value={formData.email}
-                onChange={handleChange}
-                onClear={() => handleClear('email')}
-                clearable
-                error={fieldErrors.email}
-              />
-
-              {/* Username */}
-              <InputField
-                label="Username"
-                required
-                name="username"
-                placeholder="stevenjob"
-                value={formData.username}
-                onChange={handleChange}
-                onClear={() => handleClear('username')}
-                clearable
-                error={fieldErrors.username}
-              />
-
-              {/* Password */}
-              <PasswordField
-                label="Password"
-                required
-                name="password"
-                placeholder="******************"
-                value={formData.password}
-                onChange={handleChange}
-                error={fieldErrors.password}
-                showStrengthMeter={true}
-              />
-
-              {/* Re-Password */}
-              <PasswordField
-                label="Re-Password"
-                required
-                name="confirmPassword"
-                placeholder="******************"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                error={fieldErrors.confirmPassword}
-                showStrengthMeter={false}
-              />
-
-              {/* Terms Checkbox */}
-              <div className="pt-1">
-                <label className="flex items-start gap-2.5 text-xs text-slate-600 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={agreedToTerms}
-                    onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="mt-0.5 rounded border-slate-300 text-[#2A3B5C] focus:ring-0 cursor-pointer"
-                  />
-                  <span>
-                    By clicking Register button, you agree our{' '}
-                    <a
-                      href="#terms"
-                      className="text-slate-700 hover:text-slate-900 underline font-medium cursor-pointer"
-                    >
-                      terms and policy
-                    </a>
-                    .
-                  </span>
-                </label>
-                {fieldErrors.terms && (
-                  <p className="mt-1 text-xs text-rose-600">{fieldErrors.terms}</p>
-                )}
-              </div>
-
-              {/* Sign Up Action Button */}
-              <div className="pt-2">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="md"
-                  fullWidth
-                  isLoading={isSubmitting}
-                  className="py-3 text-sm font-semibold rounded-md"
-                >
-                  Sign Up
-                </Button>
-              </div>
-            </form>
-          </div>
-
-          {/* Right Column: Social Sign-up Accounts */}
-          <div className="lg:col-span-5 lg:pt-14 flex items-center justify-center">
-            <SocialAuthButtons />
-          </div>
+        <div className="pt-2">
+          <Button type="submit" variant="primary" fullWidth isLoading={form.isSubmitting} className="py-3">
+            Sign Up
+          </Button>
         </div>
-      </div>
-    </CustomerLayout>
+
+        <p className="text-center text-xs text-slate-500">
+          Already have an account?{' '}
+          <Link to={ROUTES.CUSTOMER.LOGIN} className="font-semibold text-indigo-600 hover:text-indigo-700 underline">
+            Sign in
+          </Link>
+        </p>
+      </form>
+    </AuthSplitLayout>
   );
 }

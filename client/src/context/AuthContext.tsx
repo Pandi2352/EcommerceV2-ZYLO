@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { AuthUser, RegisterPayload, LoginPayload } from '../services/auth.service';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { AuthPortal, AuthUser, LoginPayload, LoginResult, RegisterPayload } from '../types/auth';
 import { authService } from '../services/auth.service';
+import { onSessionExpired } from '../services/api';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -8,8 +9,14 @@ interface AuthContextType {
   /** True only while the initial session check runs on app load */
   isLoading: boolean;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
-  login: (payload: LoginPayload) => Promise<AuthUser>;
+  /** First factor. Resolves with `mfaRequired: true` when a second factor is needed. */
+  login: (payload: LoginPayload, portal: AuthPortal) => Promise<LoginResult>;
+  /** Second factor for a pending sign-in */
+  verifyMfa: (code: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
+  /** Replace the cached user after an action returns fresh data (e.g. password change) */
+  setUser: (user: AuthUser | null) => void;
   refreshUser: () => Promise<void>;
 }
 
@@ -19,60 +26,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Initialize authentication status on application load
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
-      const profile = await authService.getProfile();
-      setUser(profile);
+      setUser(await authService.getProfile());
     } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshUser();
-  }, []);
+    // A failed silent refresh anywhere in the app means the session is over
+    return onSessionExpired(() => setUser(null));
+  }, [refreshUser]);
 
   // Login/register don't touch isLoading: toggling it would make AppRoutes swap
   // the page for a loader, unmounting the form and losing its error state.
-  // Forms track their own submitting state instead.
-  const register = async (payload: RegisterPayload): Promise<AuthUser> => {
+  const register = useCallback(async (payload: RegisterPayload) => {
     const result = await authService.register(payload);
     setUser(result.user);
     return result.user;
-  };
+  }, []);
 
-  const login = async (payload: LoginPayload): Promise<AuthUser> => {
-    const result = await authService.login(payload);
+  const login = useCallback(async (payload: LoginPayload, portal: AuthPortal) => {
+    const result = await authService.login(payload, portal);
+    if (!result.mfaRequired) setUser(result.user);
+    return result;
+  }, []);
+
+  const verifyMfa = useCallback(async (code: string) => {
+    const result = await authService.verifyMfa(code);
     setUser(result.user);
     return result.user;
-  };
+  }, []);
 
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async () => {
     try {
       await authService.logout();
     } finally {
       setUser(null);
     }
-  };
+  }, []);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        register,
-        login,
-        logout,
-        refreshUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const logoutAll = useCallback(async () => {
+    await authService.logoutAll();
+    setUser(null);
+  }, []);
+
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      isAuthenticated: !!user,
+      isLoading,
+      register,
+      login,
+      verifyMfa,
+      logout,
+      logoutAll,
+      setUser,
+      refreshUser,
+    }),
+    [user, isLoading, register, login, verifyMfa, logout, logoutAll, refreshUser],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export function useAuth(): AuthContextType {
