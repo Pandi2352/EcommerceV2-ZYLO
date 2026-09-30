@@ -1,0 +1,382 @@
+# E-Commerce Project — Module-Wise Line Items Checklist
+
+## 1. Authentication & Authorization
+### Customer Authentication
+- [ ] User registration (Email, password, name)
+- [ ] Email format & strong password validation (Min 8 chars, 1 uppercase, 1 number, 1 symbol)
+- [ ] Password strength indicator meter on registration UI
+- [ ] Password visibility toggle (Show / Hide password)
+- [ ] User login with email and password
+- [ ] "Remember me" option on login (Adjusts cookie duration)
+- [ ] User logout (Cookie clearance & server-side token invalidation)
+- [ ] Current authenticated user endpoint (`GET /api/v1/auth/me`)
+- [ ] Client auth state initialization on app load / page refresh
+- [ ] Protected route wrapper for customer accounts (`ProtectedRoute`)
+- [ ] Auto-redirect to previously attempted URL after login
+
+### Email Verification & Password Recovery
+- [ ] Email verification token generation on registration
+- [ ] Email verification confirmation endpoint (`GET /api/v1/auth/verify-email?token=...`)
+- [ ] Resend email verification link endpoint
+- [ ] Forgot password request (Generates 1-hour expiry hash token)
+- [ ] Password reset token delivery via email
+- [ ] Reset password submission with token validation
+- [ ] Change password for authenticated users (Verifies current old password)
+- [ ] Prevent reusing the immediate old password
+
+### Security, Session & Token Lifecycle
+- [ ] Dual-token scheme: Short-lived access token (15 min) + Long-lived refresh token (7 days)
+- [ ] Secure cookie configuration (`httpOnly: true`, `secure: true`, `sameSite: 'lax'`)
+- [ ] Silent token refresh endpoint (`POST /api/v1/auth/refresh`)
+- [ ] Axios response interceptor for transparent 401 token refresh and request retry
+- [ ] Refresh token rotation (Issues a fresh refresh token on every refresh call)
+- [ ] Refresh token reuse detection (Revokes entire token family if stolen token is replayed)
+- [ ] Logout from all active sessions / devices (Revokes all user refresh tokens)
+- [ ] Brute-force rate limiting on auth endpoints (Max 5 attempts per min per IP via Throttler)
+- [ ] Account temporary lockout / cooldown after 5 consecutive failed login attempts
+- [ ] Password hashing with `bcryptjs` / `argon2` (Salt rounds: 12)
+
+### Social Authentication (OAuth2)
+- [ ] Google OAuth2 registration and login (`passport-google-oauth20`)
+- [ ] Social account linking with existing email account
+- [ ] OAuth2 redirect callback handler and auth cookie issuance
+
+### Admin Authentication & RBAC
+- [ ] Dedicated Admin login endpoint
+- [ ] Admin profile view & session check
+- [ ] NestJS `JwtAuthGuard` and `RolesGuard` integration
+- [ ] `@Roles('ADMIN')` decorator enforcing endpoint permissions
+- [ ] Role hierarchy support (`SUPER_ADMIN`, `ADMIN`, `SUPPORT_AGENT`)
+- [ ] Admin protected route wrapper (`AdminRoute`)
+- [ ] Admin login audit log (Records timestamp, IP address, and user-agent)
+- [ ] Force password reset on first initial admin login
+
+### Multi-Factor Authentication (MFA / 2FA — Advanced / Optional)
+- [ ] TOTP 2FA secret generation & QR code display (Google Authenticator)
+- [ ] 2FA code verification on login
+- [ ] Downloadable 2FA one-time emergency backup recovery codes
+
+---
+
+## 2. Customer Account & Address Book
+- [ ] View account profile
+- [ ] Update profile details (Name, phone, avatar)
+- [ ] Change password (Authenticated)
+- [ ] View saved addresses list
+- [ ] Add new shipping address
+- [ ] Edit existing address
+- [ ] Delete address
+- [ ] Set default shipping address
+- [ ] Address validation (City, state, postal code, phone)
+
+---
+
+## 3. Categories & Brands
+### Categories
+- [ ] List all active categories
+- [ ] View single category details
+- [ ] Hierarchical parent-child category tree (Subcategories)
+- [ ] Auto-generate category URL slug
+- [ ] Category banner/icon image upload
+- [ ] Admin: Create category
+- [ ] Admin: Edit category
+- [ ] Admin: Delete category
+- [ ] Admin: Toggle category active/inactive status
+
+### Brands
+- [ ] List all active brands
+- [ ] View brand details
+- [ ] Brand logo upload
+- [ ] Admin: Create brand
+- [ ] Admin: Edit brand
+- [ ] Admin: Delete brand
+- [ ] Admin: Toggle brand active/inactive status
+
+---
+
+## 4. Product Catalog Management (Admin)
+- [ ] Create new product
+- [ ] Edit existing product
+- [ ] Soft-delete / Unpublish product
+- [ ] Product title, description, rich text specs
+- [ ] Auto-generate unique product slug
+- [ ] Assign category and brand
+- [ ] SKU generation and assignment
+- [ ] Base price and discount price setup
+- [ ] Stock quantity tracking
+- [ ] Multiple product image upload
+- [ ] Set primary/thumbnail image
+- [ ] Image reordering and deletion
+- [ ] Product attribute setup (Color, Size, Material)
+- [ ] Variant matrix creation (SKU, title, price, stock per variant)
+- [ ] Featured product flag toggle
+- [ ] Publish / Draft status toggle
+
+---
+
+## 5. Product Discovery, Search & Filtering (Customer)
+- [ ] Keyword search across product name and description
+- [ ] Search suggestions / Typeahead dropdown
+- [ ] Filter by category (single & multi-select)
+- [ ] Filter by brand
+- [ ] Filter by price range (Min/Max slider)
+- [ ] Filter by stock availability ("In Stock" toggle)
+- [ ] Filter by customer rating (e.g. 4★ & above)
+- [ ] Sort by Price: Low to High
+- [ ] Sort by Price: High to Low
+- [ ] Sort by Newest arrivals
+- [ ] Sort by Top rated
+- [ ] Sort by Popularity / Best sellers
+- [ ] Server-side pagination (Page, limit, total count)
+- [ ] Active filter chips with one-click clear
+
+---
+
+## 6. Product Details Page (PDP)
+- [ ] Product image gallery with zoom
+- [ ] Image thumbnail carousel
+- [ ] Product title, brand link, and category breadcrumbs
+- [ ] Star rating and review count summary
+- [ ] Real-time price display (Original vs Discount price)
+- [ ] Percentage savings badge
+- [ ] Variant selection (Size, Color pills)
+- [ ] Dynamic SKU and price update on variant change
+- [ ] Real-time stock status badge ("In Stock", "Only X left", "Out of Stock")
+- [ ] Quantity selector
+- [ ] Add to Cart button
+- [ ] Buy Now button (Instant checkout redirect)
+- [ ] Add to Wishlist toggle button
+- [ ] Product technical specifications table
+- [ ] Related products recommendation carousel
+
+---
+
+## 7. Shopping Cart
+- [ ] Add item to cart (Product ID, Variant ID, Quantity)
+- [ ] Real-time stock limit validation on add
+- [ ] View cart items with thumbnails and variant titles
+- [ ] Increment item quantity
+- [ ] Decrement item quantity
+- [ ] Remove item from cart
+- [ ] Clear entire cart
+- [ ] Persistent cart for authenticated users
+- [ ] Local storage cart for guest shoppers
+- [ ] Merge guest cart items into user cart upon login
+- [ ] Real-time server-side price calculation
+- [ ] Cart subtotal calculation
+- [ ] Free shipping progress indicator / threshold calculation
+- [ ] Estimated shipping fee calculation
+- [ ] Tax calculation
+- [ ] Cart grand total calculation
+- [ ] Apply promotional coupon code
+- [ ] Remove applied coupon code
+- [ ] Cart slide-over drawer UI
+- [ ] Dedicated full cart page UI
+- [ ] Empty cart state with "Shop Now" call to action
+
+---
+
+## 8. Wishlist
+- [ ] Add item to wishlist
+- [ ] Remove item from wishlist
+- [ ] View all wishlist items
+- [ ] Move single item from wishlist to cart
+- [ ] Move all wishlist items to cart
+- [ ] Empty wishlist state
+
+---
+
+## 9. Checkout Workflow
+- [ ] Select saved shipping address
+- [ ] Add new shipping address inline during checkout
+- [ ] Select shipping delivery method (Standard vs Express)
+- [ ] Free shipping eligibility detection
+- [ ] Coupon code entry & discount re-validation
+- [ ] Full itemized order review summary
+- [ ] Select payment method: Cash on Delivery (COD)
+- [ ] Select payment method: Online Payment Gateway
+- [ ] Terms and conditions acceptance checkbox
+- [ ] Place Order action button with loading state
+- [ ] Order confirmation page with summary receipt
+
+---
+
+## 10. Payment Processing
+- [ ] Cash on Delivery (COD) order placement
+- [ ] Online payment intent creation (Stripe / Razorpay)
+- [ ] Payment gateway client modal / redirect
+- [ ] Payment signature verification on backend
+- [ ] Payment success webhook listener
+- [ ] Payment failure handling & retry option
+- [ ] Transaction record creation in database
+- [ ] Payment status tracking: `PENDING`, `PAID`, `FAILED`, `REFUNDED`
+- [ ] Online refund processing integration
+
+---
+
+## 11. Customer Orders & Tracking
+- [ ] Atomic stock reservation on order creation
+- [ ] Automatic inventory decrement upon payment confirmation
+- [ ] Order creation confirmation with unique order number
+- [ ] View customer order history (Paginated)
+- [ ] Filter order history by status
+- [ ] View detailed order breakdown (Items, address, payment, pricing)
+- [ ] Visual order progress timeline:
+  - `PENDING`
+  - `CONFIRMED`
+  - `PROCESSING`
+  - `PACKED`
+  - `SHIPPED`
+  - `OUT_FOR_DELIVERY`
+  - `DELIVERED`
+  - `CANCELLED`
+- [ ] Cancel order action (Allowed if `PENDING` or `CONFIRMED`)
+- [ ] Downloadable PDF invoice generation
+
+---
+
+## 12. Returns & Refunds Management
+- [ ] Customer: Request return / refund on delivered order items
+- [ ] Customer: Select return reason (Damaged, Wrong item, Quality issue)
+- [ ] Customer: Upload proof photos for return request
+- [ ] Admin: View all return/refund requests queue
+- [ ] Admin: Approve / Reject return request
+- [ ] Admin: Trigger online refund via payment gateway
+- [ ] Automatic stock replenishment on returned items
+- [ ] Return status timeline (`REQUESTED`, `APPROVED`, `REJECTED`, `REFUNDED`)
+
+---
+
+## 13. Inventory & Stock Control
+- [ ] Real-time product stock quantity tracking
+- [ ] Variant-level stock quantity tracking
+- [ ] Stock decrement on successful order
+- [ ] Stock increment on cancelled or returned order
+- [ ] Low-stock threshold detection (e.g. stock <= 5)
+- [ ] Out-of-stock automatic status update
+- [ ] Admin: Manual stock adjustment / restock
+- [ ] Admin: Low-stock warning list on dashboard
+- [ ] Pessimistic row locking during checkout to prevent overselling
+
+---
+
+## 14. Promotional Coupons & Discounts
+- [ ] Admin: Create promotional coupon
+- [ ] Coupon code string (e.g. `SAVE20`)
+- [ ] Discount type: `PERCENTAGE` or `FIXED`
+- [ ] Discount value
+- [ ] Minimum order amount threshold
+- [ ] Maximum discount cap (for percentage discounts)
+- [ ] Validity start date and expiration date
+- [ ] Global usage limit count
+- [ ] Per-user usage limit
+- [ ] Admin: List all coupons with usage statistics
+- [ ] Admin: Toggle coupon active/inactive status
+- [ ] Admin: Delete coupon
+- [ ] Server-side coupon verification engine
+
+---
+
+## 15. Customer Reviews & Ratings
+- [ ] Submit star rating (1 to 5 stars)
+- [ ] Write review title and detailed review comment
+- [ ] Verified purchaser validation (Only delivered buyers can review)
+- [ ] Prevent duplicate reviews per user per product
+- [ ] View product reviews list on PDP
+- [ ] Star rating breakdown & average rating calculation
+- [ ] Admin: View all customer reviews
+- [ ] Admin: Approve / Reject customer reviews
+- [ ] Admin: Delete inappropriate reviews
+
+---
+
+## 16. Admin Dashboard & Analytics
+- [ ] Total Gross Revenue (GMV) metric card
+- [ ] Total Orders count metric card
+- [ ] Total Customers count metric card
+- [ ] Total Products count metric card
+- [ ] Pending orders count alert
+- [ ] Low-stock & Out-of-stock products alert
+- [ ] Pending return/refund requests count alert
+- [ ] Recent 10 orders table with quick view
+- [ ] Recent registered customers table
+- [ ] Sales volume / revenue chart (Daily/Weekly)
+
+---
+
+## 17. Admin Order Management
+- [ ] View all customer orders (Paginated)
+- [ ] Search orders by order number or customer name
+- [ ] Filter orders by order status
+- [ ] Filter orders by payment status
+- [ ] Filter orders by date range
+- [ ] View full order details modal / drawer
+- [ ] Update order status (`CONFIRMED` ➔ `PROCESSING` ➔ `PACKED` ➔ `SHIPPED` ➔ `DELIVERED`)
+- [ ] Add courier tracking number, courier company name, and tracking URL
+- [ ] Admin order cancellation with stock replenishment
+
+---
+
+## 18. Admin Customer Oversight
+- [ ] Searchable customer directory
+- [ ] View customer profile details
+- [ ] View customer lifetime spend and total order count
+- [ ] View customer order history
+- [ ] View customer saved addresses
+- [ ] Toggle customer account active / suspended status
+
+---
+
+## 19. Transactional Notifications & Emails
+- [ ] Order confirmation email to customer
+- [ ] Order status change notification email (Shipped, Out for Delivery, Delivered)
+- [ ] Password reset token email
+- [ ] Low-stock notification email to store admin
+- [ ] Return request status update email
+
+---
+
+## 20. File Uploads & Media Management
+- [ ] Multer multipart file upload handling in NestJS
+- [ ] Strict file MIME type validation (JPEG, PNG, WebP)
+- [ ] File size limit enforcement (Max 5MB per image)
+- [ ] Local static storage serving `/uploads/`
+- [ ] Storage service abstraction (Ready for S3 / Cloudinary switch)
+- [ ] Delete orphaned image files on product deletion
+
+---
+
+## 21. Database Schemas, Indexes & Data Seeders
+- [ ] Mongoose Schema & Model definitions with strict typing
+- [ ] MongoDB compound and unique indexing scripts
+- [ ] Seed script: Super Admin user initialization
+- [ ] Seed script: Default sample categories & subcategories
+- [ ] Seed script: Demo products with variants and images
+- [ ] Seed script: Demo customer account with sample orders
+
+---
+
+## 22. Frontend UI/UX Shell & Feedback Elements
+- [ ] Toast notification system (Success, Error, Warning, Info)
+- [ ] Action confirmation modals (Delete address, cancel order, empty cart)
+- [ ] Mobile navigation drawer / responsive hamburger menu
+- [ ] Breadcrumbs navigation component
+- [ ] Skeleton loaders for cards, tables, and product details
+- [ ] Empty state placeholders with call-to-action buttons
+- [ ] Form submission button loading spinners
+
+---
+
+## 23. API, Security & System Foundations
+- [ ] NestJS modular architecture (Modules, Controllers, Services, Schemas/Models)
+- [ ] Interactive Swagger UI documentation at `/api/docs`
+- [ ] Global request DTO validation pipe with `class-validator`
+- [ ] Global HTTP exception filter with uniform error envelopes
+- [ ] Global response transform interceptor (`{ success, data, meta }`)
+- [ ] MongoDB connection pool with `@nestjs/mongoose` and `mongoose` (Compass / Atlas)
+- [ ] Health check endpoint (`GET /api/v1/health`)
+- [ ] Helmet security headers
+- [ ] CORS whitelisting configuration
+- [ ] Rate limiting on auth and sensitive routes via `@nestjs/throttler`
+- [ ] Secure HttpOnly, SameSite, Secure cookie handling
+- [ ] Docker Compose orchestration (MongoDB 7, NestJS, React)

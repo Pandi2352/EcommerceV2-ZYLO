@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="zylo-gradient" x1="6" y1="6" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="45%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#6366F1" />
+    </linearGradient>
+    <linearGradient id="zylo-handle" x1="24" y1="6" x2="40" y2="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#22D3EE" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+  </defs>
+  <!-- Background Badge Plate -->
+  <rect width="64" height="64" rx="14" fill="#0F172A" />
+  <!-- Bag Handle -->
+  <path d="M25 18 V13 C25 9.5 28 7 32 7 C36 7 39 9.5 39 13 V18" stroke="url(#zylo-handle)" stroke-width="3.5" stroke-linecap="round" fill="none" />
+  <!-- Geometric Z Bag Body -->
+  <!-- Top horizontal shelf -->
+  <path d="M17 19 H47 L41 27 H17 L17 19 Z" fill="url(#zylo-gradient)" />
+  <!-- Forward dynamic diagonal slash with arrow fold -->
+  <path d="M17 40 L37 20 H47 L27 48 H17 V40 Z" fill="url(#zylo-gradient)" opacity="0.95" />
+  <!-- Upper arrow wing -->
+  <polygon points="36,19 47,19 47,30 42,26 40,24" fill="#22D3EE" />
+  <!-- Bottom base foundation -->
+  <path d="M23 40 H47 L42 48 H23 V40 Z" fill="url(#zylo-gradient)" />
+</svg>

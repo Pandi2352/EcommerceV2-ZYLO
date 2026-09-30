@@ -1,0 +1,68 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: zylo-mongodb
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - zylo-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  server:
+    build:
+      context: .
+      dockerfile: docker/server.Dockerfile
+    container_name: zylo-server
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      API_PREFIX: /api/v1
+      MONGO_URI: ${MONGO_URI:-mongodb://mongodb:27017/zylo}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-zylo_super_secret_access_jwt_key_2026}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-zylo_super_secret_refresh_jwt_key_2026}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:5174}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - zylo-network
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:' + (process.env.PORT || 5000) + '/api/v1/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  client:
+    build:
+      context: .
+      dockerfile: docker/client.Dockerfile
+    container_name: zylo-client
+    restart: unless-stopped
+    ports:
+      - '5173:80'
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - zylo-network
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  zylo-network:
+    driver: bridge

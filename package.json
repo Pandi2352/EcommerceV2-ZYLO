@@ -1,0 +1,23 @@
+{
+  "name": "zylo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ZYLO — Modern E-Commerce Platform Monorepo",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "sync:versions": "node -e \"require('./server/node_modules/ts-node').register(); require('./version-control.ts').runVersionControl();\"",
+    "sync:check": "node -e \"require('./server/node_modules/ts-node').register(); require('./version-control.ts').runVersionControl({ skipInstall: true });\"",
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm run start:dev --prefix server",
+    "build:client": "npm run build --prefix client",
+    "build:server": "npm run build --prefix server"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "typescript": "^5.9.3"
+  }
+}

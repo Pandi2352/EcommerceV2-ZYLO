@@ -1,0 +1,73 @@
+# ==========================================
+# ZYLO - Monorepo .dockerignore
+# ==========================================
+
+# Version Control
+.git/
+.gitignore
+.gitattributes
+
+# Node dependencies & local installs (installed fresh inside container)
+node_modules/
+client/node_modules/
+server/node_modules/
+.npm/
+.yarn/
+.pnpm-store/
+
+# Local Build Outputs & Transpiled Code
+dist/
+build/
+client/dist/
+server/dist/
+*.tsbuildinfo
+server/tsconfig.build.tsbuildinfo
+
+# Environment & Secrets (NEVER bake sensitive credentials into images)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+
+# Runtime Data & Persistent Storage
+pgdata/
+mongo-data/
+uploads/*
+!uploads/.gitkeep
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Logs & Debug Dumps
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Documentation & Tooling Scripts (not needed in container runtime)
+docs/
+line-items.md
+README.md
+version-control.ts
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+.vitest/
+
+# IDE & Editor Configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
