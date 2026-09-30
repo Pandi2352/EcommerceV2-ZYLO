@@ -1,6 +1,6 @@
-import { api, unwrap } from './api';
-import type { Paginated } from '../types/api';
-import type { AuthPortal } from '../types/auth';
+import { api, unwrap } from '@shared/api/client';
+import type { Paginated } from '@shared/types/api';
+import type { AuthPortal } from '@shared/types/auth';
 
 export interface AuditLogEntry {
   id: string;

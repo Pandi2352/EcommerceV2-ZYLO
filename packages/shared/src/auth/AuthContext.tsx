@@ -1,7 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { AuthPortal, AuthUser, LoginPayload, LoginResult, RegisterPayload } from '../types/auth';
-import { authService } from '../services/auth.service';
-import { onSessionExpired } from '../services/api';
+import type { AuthUser, LoginPayload, LoginResult, RegisterPayload } from '../types/auth';
+import { usePortal } from './PortalContext';
+import { authService } from '../api/auth.service';
+import { onSessionExpired } from '../api/client';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -10,7 +11,7 @@ interface AuthContextType {
   isLoading: boolean;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
   /** First factor. Resolves with `mfaRequired: true` when a second factor is needed. */
-  login: (payload: LoginPayload, portal: AuthPortal) => Promise<LoginResult>;
+  login: (payload: LoginPayload) => Promise<LoginResult>;
   /** Second factor for a pending sign-in */
   verifyMfa: (code: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
@@ -22,19 +23,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/** Must be rendered inside a PortalProvider: sign-in is scoped to that portal. */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { portal, roles } = usePortal();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const refreshUser = useCallback(async () => {
     try {
-      setUser(await authService.getProfile());
+      const profile = await authService.getProfile();
+      // A session belonging to the other app (e.g. a customer cookie in the admin
+      // app during local development) counts as signed out here.
+      setUser(roles.includes(profile.role) ? profile : null);
     } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [roles]);
 
   useEffect(() => {
     refreshUser();
@@ -50,11 +56,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return result.user;
   }, []);
 
-  const login = useCallback(async (payload: LoginPayload, portal: AuthPortal) => {
+  const login = useCallback(async (payload: LoginPayload) => {
     const result = await authService.login(payload, portal);
     if (!result.mfaRequired) setUser(result.user);
     return result;
-  }, []);
+  }, [portal]);
 
   const verifyMfa = useCallback(async (code: string) => {
     const result = await authService.verifyMfa(code);

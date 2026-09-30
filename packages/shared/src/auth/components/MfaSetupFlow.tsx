@@ -1,12 +1,12 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { useApiQuery } from '../../../hooks/useApiQuery';
-import { useForm } from '../../../hooks/useForm';
-import { pattern, required } from '../../../utils/validators';
-import { authService } from '../../../services/auth.service';
-import InputField from '../../../components/common/InputField';
-import Button from '../../../components/common/Button';
-import Alert from '../../../components/feedback/Alert';
+import { useApiQuery } from '../../hooks/useApiQuery';
+import { useForm } from '../../hooks/useForm';
+import { pattern, required } from '../../utils/validators';
+import { authService } from '../../api/auth.service';
+import InputField from '../../ui/InputField';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 
 type CodeValues = { code: string };
 

@@ -5,27 +5,27 @@
 ```
 ecommerce-platform/
 │
-├── client/                     # Frontend Application (React + TS + Tailwind + Vite)
-│   ├── public/                 # Static assets, favicon, logos
-│   ├── src/                    # React source code
-│   ├── index.html              # Vite entry point
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── tailwind.config.js
-│   └── vite.config.ts
+├── apps/
+│   ├── storefront/             # Customer site (React 19 + Vite + Tailwind v4 + React Router 7)
+│   │   ├── src/                #   dev http://localhost:5176, prod e.g. zylo.com
+│   │   ├── index.html
+│   │   ├── package.json        #   @zylo/storefront
+│   │   ├── tsconfig*.json      #   `@shared/*` path alias
+│   │   └── vite.config.ts      #   resolve.alias @shared, publicDir -> packages/shared/public
+│   └── admin/                  # Staff console (same stack)
+│       └── ...                 #   dev http://127.0.0.1:5175, prod e.g. admin.zylo.com
 │
-├── server/                     # Backend Application (NestJS + TypeScript)
+├── packages/
+│   └── shared/                 # @zylo/shared — consumed as TypeScript source, no build step
+│       ├── public/             # Brand assets (favicon, logo, loader) served by both apps
+│       ├── src/
+│       └── package.json
+│
+├── server/                     # Backend Application (NestJS + TypeScript); NOT a workspace —
+│   │                           #   install with `npm install --workspaces=false` inside server/
 │   ├── src/                    # NestJS source code
 │   ├── test/                   # E2E test suites
 │   ├── nest-cli.json           # NestJS CLI configuration
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── shared/                     # Shared Contracts (DTOs, Enums, Interfaces)
-│   ├── src/
-│   │   ├── types/
-│   │   ├── enums/
-│   │   └── constants/
 │   ├── package.json
 │   └── tsconfig.json
 │
@@ -35,11 +35,13 @@ ecommerce-platform/
 │   └── 21-ai-agent-rules.md
 │
 ├── docker/                     # Container configurations
-│   ├── client.Dockerfile
 │   ├── server.Dockerfile
-│   └── nginx.conf
+│   ├── web.Dockerfile          # Builds either web app: --build-arg APP=storefront|admin
+│   └── nginx.conf              # SPA fallback + /api proxy (both web apps)
 │
-├── docker-compose.yml          # Orchestrates MongoDB, NestJS, and React
+├── package.json                # npm workspaces ["apps/*", "packages/*"] + root scripts
+├── package-lock.json           # Single lockfile for the workspaces (one hoisted React copy)
+├── docker-compose.yml          # Orchestrates mongodb, server, storefront, admin
 ├── .env.example
 ├── .gitignore
 └── README.md
@@ -101,50 +103,78 @@ products/
 
 ---
 
-## 3. Client Architecture Details (`client/src/` — React + TS)
+## 3. Frontend Architecture (`apps/` + `packages/shared/`)
+
+The customer storefront and the admin console are two separate Vite apps. Code used by both lives in `packages/shared` and is imported through the `@shared/*` alias (Vite `resolve.alias` + tsconfig `paths`), e.g. `import { Button } from '@shared/ui'`. There is no build step for the shared package; each app compiles it as part of its own source.
+
+### 3.1 Shared Package (`packages/shared/src/`)
 
 ```
-client/src/
-├── assets/                     # SVGs, brand logos, placeholder images
-│
-├── components/                 # Reusable UI components
-│   ├── common/                 # Button, Input, Modal, Badge, Spinner
-│   ├── layout/                 # Navbar, Footer, AdminSidebar, Container
-│   ├── feedback/               # Toast, Skeleton, EmptyState, ErrorBoundary
-│   └── product/                # ProductCard, PriceTag, RatingStars, VariantSelector
-│
-├── features/                   # Domain features & custom React hooks
-│   ├── auth/                   # LoginForm, RegisterForm, useAuth hook
-│   ├── catalog/                # FilterSidebar, SearchBar, useProductSearch
-│   ├── cart/                   # CartDrawer, CartItemRow, useCart hook
-│   ├── checkout/               # AddressSelector, PaymentPicker, OrderSummary
-│   ├── orders/                 # OrderTimeline, InvoiceView, OrderList
-│   └── admin/                  # ProductTable, OrderStatusModal, StatCard
-│
-├── pages/                      # Page-level route views (React Router DOM)
-│   ├── public/                 # HomePage, ShopPage, ProductDetailPage
-│   ├── auth/                   # LoginPage, RegisterPage, ForgotPasswordPage
-│   ├── customer/               # AccountPage, OrdersPage, CheckoutPage, WishlistPage
-│   └── admin/                  # DashboardPage, AdminProductsPage, AdminOrdersPage
-│
-├── services/                   # HTTP client layer (Axios)
-│   ├── api.ts                  # Axios instance configured with baseURL and auth cookies
-│   ├── auth.service.ts
-│   ├── product.service.ts
-│   ├── cart.service.ts
-│   └── order.service.ts
-│
-├── routes/                     # React Router route trees & route guards
-│   ├── AppRoutes.tsx           # BrowserRouter and Route declarations
-│   ├── ProtectedRoute.tsx      # Customer authentication guard
-│   └── AdminRoute.tsx          # Admin role guard
-│
-├── store/                      # Client state management (Zustand or Context)
-│   ├── useAuthStore.ts
-│   └── useCartStore.ts
-│
-├── types/                      # Frontend UI types (re-exports shared DTOs)
-├── utils/                      # Currency formatting, date helpers, slug utilities
-├── App.tsx                     # Top-level providers and layout wrappers
-└── main.tsx                    # Vite entry point mounting the React root DOM
+packages/shared/src/
+├── ui/                         # Button, InputField, PasswordField, Checkbox, SelectField, Badge,
+│                               #   SectionCard, DataTable, Pagination, Alert, PageLoader,
+│                               #   ZyloLogo, CornerDots
+├── hooks/                      # useForm, useAsyncAction, useApiQuery
+├── api/
+│   ├── client.ts               # Axios instance, unwrap, getApiError, onSessionExpired
+│   └── auth.service.ts
+├── auth/
+│   ├── PortalContext.tsx       # Each app provides its portal, routes and allowed roles
+│   ├── AuthContext.tsx         # Session state; a role outside the portal counts as signed out
+│   ├── ProtectedRoute.tsx
+│   ├── PublicOnlyRoute.tsx
+│   ├── components/             # AuthCard, LoginForm, MfaChallengeForm, ChangePasswordForm,
+│   │                           #   TwoFactorSettings, AccountSecuritySections, ...
+│   └── pages/                  # MfaVerifyPage, ForgotPasswordPage, ResetPasswordPage
+├── pages/                      # NotFoundPage, ComingSoonPage
+├── types/
+├── constants/                  # roles, errorCodes, storageKeys
+└── utils/                      # validators, passwordPolicy, redirect, format
 ```
+
+### 3.2 Storefront (`apps/storefront/src/`)
+
+```
+apps/storefront/src/
+├── assets/
+├── components/layout/          # CustomerLayout, Navbar, TopBar, CategoryRail
+├── config/portal.ts            # PortalProvider config (admits CUSTOMER)
+├── features/auth/              # AccountMenu, EmailVerificationBanner, AuthSplitLayout,
+│                               #   SocialAuthButtons (Google), hooks
+├── pages/
+│   ├── auth/                   # VerifyEmailPage
+│   ├── account/                # AccountSecurityPage (/account/security)
+│   └── customer/               # HomePage, LoginPage, RegisterPage
+├── routes/                     # AppRoutes
+├── App.tsx                     # <PortalProvider config={...}><AuthProvider> ... routes
+└── main.tsx
+```
+
+### 3.3 Admin Console (`apps/admin/src/`)
+
+Admin routes have no `/admin` prefix: `/`, `/login`, `/login/verify`, `/change-password`, `/settings`, `/audit-logs`, `/products`, ...
+
+```
+apps/admin/src/
+├── components/layout/          # AdminLayout, AdminSidebar, AdminHeader
+├── config/portal.ts            # PortalProvider config (admits SUPPORT_AGENT, ADMIN, SUPER_ADMIN)
+├── features/audit/             # Audit log table columns and filters
+├── pages/                      # AdminLoginPage, AdminDashboardPage, AdminChangePasswordPage,
+│                               #   AdminSecurityPage (/settings), AdminAuditLogsPage
+├── routes/                     # AppRoutes, routePaths, plannedRoutes
+├── services/audit.service.ts
+├── App.tsx                     # <PortalProvider config={...}><AuthProvider> ... routes
+└── main.tsx
+```
+
+"View storefront" links in the admin use `VITE_STOREFRONT_URL`.
+
+### 3.4 Where Does New Code Go?
+
+| Used by | Location |
+| --- | --- |
+| Storefront only | `apps/storefront/` |
+| Admin only | `apps/admin/` |
+| Both apps | `packages/shared/` |
+
+`packages/shared` must never import from an app. If shared code needs app-specific behaviour, pass it in (props or `PortalContext`) instead of importing it.

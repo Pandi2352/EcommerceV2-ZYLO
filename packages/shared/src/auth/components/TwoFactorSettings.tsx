@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
-import { authService } from '../../../services/auth.service';
-import SectionCard from '../../../components/common/SectionCard';
-import Badge from '../../../components/common/Badge';
-import Button from '../../../components/common/Button';
-import Alert from '../../../components/feedback/Alert';
+import { useAuth } from '../AuthContext';
+import { authService } from '../../api/auth.service';
+import SectionCard from '../../ui/SectionCard';
+import Badge from '../../ui/Badge';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 import MfaSetupFlow from './MfaSetupFlow';
 import MfaConfirmForm from './MfaConfirmForm';
 import BackupCodesList from './BackupCodesList';

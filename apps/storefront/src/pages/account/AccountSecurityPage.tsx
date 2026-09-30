@@ -1,4 +1,4 @@
-import AccountSecuritySections from '../../features/auth/components/AccountSecuritySections';
+import AccountSecuritySections from '@shared/auth/components/AccountSecuritySections';
 
 /** Storefront: /account/security (rendered inside CustomerLayout by the router). */
 export default function AccountSecurityPage() {
@@ -8,7 +8,7 @@ export default function AccountSecurityPage() {
         <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Account security</h1>
         <p className="mt-1 text-sm text-slate-500">Manage your password, two-factor authentication and signed-in devices.</p>
       </div>
-      <AccountSecuritySections portal="customer" />
+      <AccountSecuritySections />
     </div>
   );
 }

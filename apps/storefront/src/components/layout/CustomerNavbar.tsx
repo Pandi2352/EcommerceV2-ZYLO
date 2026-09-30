@@ -11,7 +11,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
-import ZyloLogo from '../common/ZyloLogo';
+import ZyloLogo from '@shared/ui/ZyloLogo';
 
 export const CustomerNavbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

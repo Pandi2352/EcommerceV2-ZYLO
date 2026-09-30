@@ -1,12 +1,12 @@
 import { useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
-import { useAuth } from '../../context/AuthContext';
-import { useApiQuery } from '../../hooks/useApiQuery';
-import { authService } from '../../services/auth.service';
-import AuthCard from '../../features/auth/components/AuthCard';
-import ResendVerificationButton from '../../features/auth/components/ResendVerificationButton';
-import Alert from '../../components/feedback/Alert';
+import { useAuth } from '@shared/auth/AuthContext';
+import { useApiQuery } from '@shared/hooks/useApiQuery';
+import { authService } from '@shared/api/auth.service';
+import AuthCard from '@shared/auth/components/AuthCard';
+import ResendVerificationButton from '@shared/auth/components/ResendVerificationButton';
+import Alert from '@shared/ui/Alert';
 
 // Tokens are single-use: share one request per token so a remount (React
 // StrictMode runs effects twice in development) does not consume it twice.

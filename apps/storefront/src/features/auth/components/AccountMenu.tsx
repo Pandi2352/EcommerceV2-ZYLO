@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut, ShieldCheck, User } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@shared/auth/AuthContext';
 import { ROUTES } from '../../../routes/routePaths';
 
 /** Navbar account entry: "Sign in" when signed out, a small menu when signed in. */

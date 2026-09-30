@@ -55,7 +55,7 @@ When collaborating with **Codex**, **Claude**, and **Antigravity**, each agent m
 
 Before reporting a task as completed to the user, the agent MUST verify:
 
-- [ ] `npm run build --prefix server` and `npm run build --prefix client` compile with 0 errors.
+- [ ] `npm run build:server` and `npm run build:web` compile with 0 errors.
 - [ ] Endpoints are registered in Swagger and visible at `/api/docs`.
 - [ ] All inputs are strictly validated via DTOs with `class-validator`.
 - [ ] Database mutations use MongoDB transactions (Mongoose sessions) / conditional atomic updates where financial or inventory consistency is required.

@@ -12,7 +12,7 @@
 ## 2. Axios Client Setup & NestJS Integration
 
 ```typescript
-// client/src/services/api.ts
+// packages/shared/src/api/client.ts (used by both apps via @shared/api/client)
 import axios, { AxiosError } from 'axios';
 
 export const apiClient = axios.create({
@@ -52,7 +52,7 @@ apiClient.interceptors.response.use(
 ## 3. React Router DOM v7 Navigation Patterns
 
 ```tsx
-// client/src/routes/AppRoutes.tsx
+// apps/storefront/src/routes/AppRoutes.tsx (admin routes live in apps/admin/src/routes/, without the /admin prefix)
 import { Routes, Route } from 'react-router-dom';
 import { MainLayout } from '../components/layout/MainLayout';
 import { AdminLayout } from '../components/layout/AdminLayout';

@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MonitorSmartphone } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
-import { useAsyncAction } from '../../../hooks/useAsyncAction';
-import SectionCard from '../../../components/common/SectionCard';
-import Button from '../../../components/common/Button';
-import Alert from '../../../components/feedback/Alert';
-
-export interface SessionSettingsProps {
-  /** Where to go after signing out everywhere */
-  signedOutTo: string;
-}
+import { useAuth } from '../AuthContext';
+import { usePortal } from '../PortalContext';
+import { useAsyncAction } from '../../hooks/useAsyncAction';
+import SectionCard from '../../ui/SectionCard';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 
 /** Sign out of every device (revokes all refresh sessions). */
-export const SessionSettings: React.FC<SessionSettingsProps> = ({ signedOutTo }) => {
+export const SessionSettings: React.FC = () => {
   const { logoutAll } = useAuth();
+  const { routes } = usePortal();
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const action = useAsyncAction(async () => {
@@ -23,7 +20,7 @@ export const SessionSettings: React.FC<SessionSettingsProps> = ({ signedOutTo })
   });
 
   const signOutEverywhere = async () => {
-    if (await action.run()) navigate(signedOutTo, { replace: true });
+    if (await action.run()) navigate(routes.login, { replace: true });
   };
 
   return (

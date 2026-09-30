@@ -1,9 +1,8 @@
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { ROUTES } from './routePaths';
-import { PORTAL_ROUTES, portalForRole } from './portalRoutes';
+import { useAuth } from './AuthContext';
+import { usePortal } from './PortalContext';
 import { roleSatisfies, type UserRole } from '../constants/roles';
-import PageLoader from '../components/common/PageLoader';
+import PageLoader from '../ui/PageLoader';
 
 export interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -15,6 +14,7 @@ export interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, role, anyRole }) => {
   const { user, isLoading } = useAuth();
+  const { routes } = usePortal();
   const location = useLocation();
 
   if (isLoading) {
@@ -22,21 +22,17 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, role, 
   }
 
   if (!user) {
-    const isAdminRoute = location.pathname.startsWith('/admin');
-    const redirectPath = isAdminRoute ? ROUTES.ADMIN.LOGIN : ROUTES.CUSTOMER.LOGIN;
-    return <Navigate to={redirectPath} state={{ from: location }} replace />;
+    return <Navigate to={routes.login} state={{ from: location }} replace />;
   }
 
-  const portal = PORTAL_ROUTES[portalForRole(user.role)];
-
   // Forced password change (e.g. first admin sign-in) takes precedence over everything
-  if (user.mustChangePassword && location.pathname !== portal.changePassword) {
-    return <Navigate to={portal.changePassword} replace />;
+  if (user.mustChangePassword && location.pathname !== routes.changePassword) {
+    return <Navigate to={routes.changePassword} replace />;
   }
 
   const required = role ? [role] : anyRole ?? [];
   if (required.length > 0 && !required.some((r) => roleSatisfies(user.role, r))) {
-    return <Navigate to={portal.home} replace />;
+    return <Navigate to={routes.home} replace />;
   }
 
   return <>{children || <Outlet />}</>;

@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ROUTES } from '../../routes/routePaths';
-import { STORAGE_KEYS } from '../../constants/storageKeys';
-import { ERROR_CODES, OAUTH_ERROR_MESSAGES } from '../../constants/errorCodes';
-import { resolvePostLoginRedirect } from '../../utils/redirect';
+import { STORAGE_KEYS } from '@shared/constants/storageKeys';
+import { ERROR_CODES, OAUTH_ERROR_MESSAGES } from '@shared/constants/errorCodes';
+import { resolvePostLoginRedirect } from '@shared/utils/redirect';
 import { useAuthProviders } from '../../features/auth/hooks/useAuthProviders';
 import AuthSplitLayout from '../../features/auth/components/AuthSplitLayout';
-import LoginForm from '../../features/auth/components/LoginForm';
+import LoginForm from '@shared/auth/components/LoginForm';
 import SocialAuthButtons from '../../features/auth/components/SocialAuthButtons';
-import Alert from '../../components/feedback/Alert';
+import Alert from '@shared/ui/Alert';
 
 export default function CustomerLoginPage() {
   const navigate = useNavigate();
@@ -32,7 +32,6 @@ export default function CustomerLoginPage() {
       aside={google && <SocialAuthButtons mode="signin" redirect={redirect} remember={remember} />}
     >
       <LoginForm
-        portal="customer"
         rememberStorageKey={STORAGE_KEYS.REMEMBERED_CUSTOMER_EMAIL}
         emailPlaceholder="stevenjob@gmail.com"
         onRememberChange={setRemember}

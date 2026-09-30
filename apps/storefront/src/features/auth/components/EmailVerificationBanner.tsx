@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MailWarning, X } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
-import ResendVerificationButton from './ResendVerificationButton';
+import { useAuth } from '@shared/auth/AuthContext';
+import ResendVerificationButton from '@shared/auth/components/ResendVerificationButton';
 
 /** Storefront reminder for signed-in customers who have not verified their email. */
 export const EmailVerificationBanner: React.FC = () => {

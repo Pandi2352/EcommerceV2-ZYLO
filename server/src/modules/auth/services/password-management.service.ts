@@ -49,9 +49,9 @@ export class PasswordManagementService {
       },
     });
 
-    // Staff are sent back to the admin portal after resetting
-    const portal = isStaffRole(user.role) ? '&portal=admin' : '';
-    const url = `${this.app.clientUrl}/reset-password?token=${encodeURIComponent(token)}${portal}`;
+    // Staff reset their password in the admin console, customers on the storefront
+    const origin = isStaffRole(user.role) ? this.app.adminUrl : this.app.clientUrl;
+    const url = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
     this.mailService.sendInBackground({ to: user.email, ...passwordResetTemplate(this.app.name, user.name, url) });
   }
 

@@ -1,0 +1,72 @@
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { useAuth } from '@shared/auth/AuthContext';
+import ProtectedRoute from '@shared/auth/ProtectedRoute';
+import PublicOnlyRoute from '@shared/auth/PublicOnlyRoute';
+import MfaVerifyPage from '@shared/auth/pages/MfaVerifyPage';
+import ForgotPasswordPage from '@shared/auth/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@shared/auth/pages/ResetPasswordPage';
+import NotFoundPage from '@shared/pages/NotFoundPage';
+import ComingSoonPage from '@shared/pages/ComingSoonPage';
+import PageLoader from '@shared/ui/PageLoader';
+import { USER_ROLES } from '@shared/constants/roles';
+import { ROUTES } from './routePaths';
+import { MANAGER_PLANNED, STAFF_PLANNED, type PlannedRoute } from './plannedRoutes';
+
+import AdminLayout from '../components/layout/AdminLayout';
+import AdminLoginPage from '../pages/AdminLoginPage';
+import AdminDashboardPage from '../pages/AdminDashboardPage';
+import AdminChangePasswordPage from '../pages/AdminChangePasswordPage';
+import AdminSecurityPage from '../pages/AdminSecurityPage';
+import AdminAuditLogsPage from '../pages/AdminAuditLogsPage';
+
+const renderPlanned = (routes: PlannedRoute[]) =>
+  routes.map(({ path, title }) => (
+    <Route
+      key={path}
+      path={path}
+      element={<ComingSoonPage title={title} backTo={ROUTES.DASHBOARD} backLabel="Back to Dashboard" />}
+    />
+  ));
+
+export const AppRoutes: React.FC = () => {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return <PageLoader variant="mascot" size="md" text="Loading console..." fullScreen={true} />;
+  }
+
+  return (
+    <Routes>
+      {/* 1. SIGN-IN (no registration: staff accounts are provisioned internally) */}
+      <Route element={<PublicOnlyRoute />}>
+        <Route path={ROUTES.LOGIN} element={<AdminLoginPage />} />
+        <Route path={ROUTES.LOGIN_VERIFY} element={<MfaVerifyPage />} />
+      </Route>
+
+      {/* 2. EMAILED LINKS */}
+      <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+      <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+
+      {/* 3. CONSOLE (any staff role; the AuthProvider only admits staff sessions) */}
+      <Route element={<ProtectedRoute />}>
+        <Route path={ROUTES.CHANGE_PASSWORD} element={<AdminChangePasswordPage />} />
+
+        <Route element={<AdminLayout />}>
+          <Route path={ROUTES.DASHBOARD} element={<AdminDashboardPage />} />
+          <Route path={ROUTES.SETTINGS} element={<AdminSecurityPage />} />
+          {renderPlanned(STAFF_PLANNED)}
+
+          <Route element={<ProtectedRoute role={USER_ROLES.ADMIN} />}>
+            <Route path={ROUTES.AUDIT_LOGS} element={<AdminAuditLogsPage />} />
+            {renderPlanned(MANAGER_PLANNED)}
+          </Route>
+
+          <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage homeLabel="Back to Dashboard" />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
+};
+
+export default AppRoutes;

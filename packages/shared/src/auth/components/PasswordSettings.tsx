@@ -1,16 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { KeyRound } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
-import { ROUTES } from '../../../routes/routePaths';
-import { formatDateTime } from '../../../utils/format';
-import SectionCard from '../../../components/common/SectionCard';
-import Alert from '../../../components/feedback/Alert';
+import { useAuth } from '../AuthContext';
+import { usePortal } from '../PortalContext';
+import { formatDateTime } from '../../utils/format';
+import SectionCard from '../../ui/SectionCard';
+import Alert from '../../ui/Alert';
 import ChangePasswordForm from './ChangePasswordForm';
 
 /** Change password, or (for social-login accounts) explain how to set one. */
 export const PasswordSettings: React.FC = () => {
   const { user } = useAuth();
+  const { routes } = usePortal();
   if (!user) return null;
 
   return (
@@ -28,7 +29,7 @@ export const PasswordSettings: React.FC = () => {
       ) : (
         <Alert tone="info">
           To add a password, use{' '}
-          <Link to={ROUTES.AUTH.FORGOT_PASSWORD} className="font-semibold underline">
+          <Link to={routes.forgotPassword} className="font-semibold underline">
             Forgot password
           </Link>{' '}
           and we will email you a link to set one.

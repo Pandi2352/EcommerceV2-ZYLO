@@ -23,7 +23,9 @@ server/src/modules/mail/    MailService (SMTP, or logs emails when SMTP_HOST is 
 server/src/common/          Guards, decorators, AppException + ErrorCode, shared utils and validators
 ```
 
-Client side: `client/src/features/auth/` (components and hooks), `client/src/pages/auth/` (email-link and MFA pages), `client/src/context/AuthContext.tsx`, `client/src/services/auth.service.ts`.
+Client side (shared by both web apps): `packages/shared/src/auth/` (`PortalContext`, `AuthContext`, `ProtectedRoute`, `PublicOnlyRoute`, `components/` and the MFA / forgot / reset password `pages/`) and `packages/shared/src/api/auth.service.ts`. Storefront-only auth UI (Google button, email verification, `/account/security`) lives in `apps/storefront/src/features/auth/` and `apps/storefront/src/pages/`; the admin sign-in, change-password and `/settings` pages live in `apps/admin/src/pages/`.
+
+Each app wraps its routes in `<PortalProvider config={...}><AuthProvider>`. The portal config names the portal, its routes and the roles it admits; `AuthProvider` treats a session whose role does not belong to the app as signed out. The storefront admits `CUSTOMER`; the admin admits `SUPPORT_AGENT`, `ADMIN` and `SUPER_ADMIN`.
 
 ---
 
@@ -46,7 +48,7 @@ Client side: `client/src/features/auth/` (components and hooks), `client/src/pag
 ## 3. Sign-in Flows
 
 ### 3.1 Portals
-The storefront and the admin console sign in through different endpoints:
+The storefront (`apps/storefront`) and the admin console (`apps/admin`, its own origin) sign in through different endpoints:
 
 | Endpoint | Accepts | Rejects with `WRONG_PORTAL` |
 |---|---|---|
@@ -58,7 +60,7 @@ The portal check runs only after the password is verified, so it does not reveal
 ### 3.2 Password → (optional) second factor
 1. `POST /auth/login` or `/auth/admin/login` with `{ email, password, rememberMe }`.
 2. Without MFA: the response is `{ mfaRequired: false, user }` and session cookies are set.
-3. With MFA: the response is `{ mfaRequired: true }` and only the `mfa_challenge` cookie is set. The client shows `/login/verify` (or `/admin/login/verify`).
+3. With MFA: the response is `{ mfaRequired: true }` and only the `mfa_challenge` cookie is set. Each app shows its own `/login/verify` page (admin routes have no `/admin` prefix).
 4. `POST /auth/mfa/verify { code }` accepts a 6-digit TOTP code or a one-time backup code, then sets session cookies.
 
 ### 3.3 Google sign-in (customers only)
@@ -78,7 +80,7 @@ The portal check runs only after the password is verified, so it does not reveal
 | Rate limiting | Credential endpoints: 5/min per IP; email-sending endpoints: 3/min per IP; everything else 100/min (`common/constants/throttle.constants.ts`) |
 | Lockout | 5 consecutive failed passwords or MFA codes lock the account for 15 minutes (`423 ACCOUNT_LOCKED` with `retryAfterSeconds`). A successful password reset unlocks it |
 | Enumeration | Unknown emails take the same bcrypt time as known ones; forgot-password always returns 200 |
-| Password policy | 8+ chars with upper, lower, digit and symbol (`common/validators/is-strong-password.decorator.ts`, mirrored in `client/src/utils/passwordPolicy.ts`) |
+| Password policy | 8+ chars with upper, lower, digit and symbol (`common/validators/is-strong-password.decorator.ts`, mirrored in `packages/shared/src/utils/passwordPolicy.ts`) |
 | Password reuse | A new password must differ from the current and the immediately previous password |
 | Forced change | Users with `mustChangePassword` (seeded staff accounts) get `403 PASSWORD_CHANGE_REQUIRED` on every route except `/auth/me`, `/auth/password/change` and `/auth/logout-all` |
 | MFA secrets | TOTP secrets are encrypted at rest with AES-256-GCM using `ENCRYPTION_KEY`; backup codes are stored as SHA-256 hashes; each TOTP time step is accepted once |
@@ -88,7 +90,7 @@ The portal check runs only after the password is verified, so it does not reveal
 
 ## 5. Roles and Authorization
 
-Roles live in `server/src/common/enums/user-role.enum.ts` (mirrored in `client/src/constants/roles.ts`).
+Roles live in `server/src/common/enums/user-role.enum.ts` (mirrored in `packages/shared/src/constants/roles.ts`).
 
 | Role | Portal | Inherits |
 |---|---|---|
@@ -128,7 +130,7 @@ Behind a reverse proxy, set `TRUST_PROXY=1` so the recorded IP is the client's, 
 
 ## 7. Error Codes
 
-Errors carry a machine-readable `code` (see `common/constants/error-codes.ts` and `client/src/constants/errorCodes.ts`), for example `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED`, `WRONG_PORTAL`, `PASSWORD_REUSED`, `MFA_INVALID_CODE`, `MFA_CHALLENGE_INVALID`, `INVALID_TOKEN`. Clients should branch on `code`, never on `message`.
+Errors carry a machine-readable `code` (see `common/constants/error-codes.ts` and `packages/shared/src/constants/errorCodes.ts`), for example `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED`, `WRONG_PORTAL`, `PASSWORD_REUSED`, `MFA_INVALID_CODE`, `MFA_CHALLENGE_INVALID`, `INVALID_TOKEN`. Clients should branch on `code`, never on `message`.
 
 ---
 
@@ -138,4 +140,4 @@ Errors carry a machine-readable `code` (see `common/constants/error-codes.ts` an
 - **Seed accounts** (`npm run seed -- --users`):
   - `admin@zylo.internal` (SUPER_ADMIN) and `support@zylo.internal` (SUPPORT_AGENT). Both must change their password on first sign-in.
   - `customer@zylo.internal` (CUSTOMER).
-- **Google sign-in:** set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. Add `GOOGLE_CALLBACK_URL` (default `http://localhost:5173/api/v1/auth/google/callback`) as an authorized redirect URI in Google Cloud Console.
+- **Google sign-in:** set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. Add `GOOGLE_CALLBACK_URL` (default `http://localhost:5176/api/v1/auth/google/callback`) as an authorized redirect URI in Google Cloud Console.

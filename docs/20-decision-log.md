@@ -63,3 +63,16 @@ Each Architecture Decision Record (ADR) outlines the Context, Decision, Rational
 - **Consequences**:
   - Consistent layout routing and route guards (`ProtectedRoute`, `AdminRoute`).
   - Seamless handling of expired tokens without disruptive user logouts.
+
+---
+
+## ADR-007: Separate Storefront and Admin Apps in One Monorepo
+- **Status**: Accepted
+- **Context**: The single `client/` app shipped the customer storefront and the staff console in one bundle. Every customer downloaded admin code, both portals shared one origin and session cookie jar, and the admin could not be hardened or deployed on its own.
+- **Decision**: Split the frontend into `apps/storefront` (customer site) and `apps/admin` (staff console), with code used by both in `packages/shared` (`@zylo/shared`, consumed as TypeScript source via the `@shared/*` alias, no build step). The repo root uses npm workspaces (`apps/*`, `packages/*`); the NestJS `server/` stays a standalone install. Each app wraps `<PortalProvider config={...}><AuthProvider>`, and a session whose role does not belong to the app is treated as signed out (storefront admits `CUSTOMER`; admin admits `SUPPORT_AGENT`, `ADMIN`, `SUPER_ADMIN`). Admin routes drop the `/admin` prefix. Both apps are built by `docker/web.Dockerfile` (`--build-arg APP=storefront|admin`).
+- **Consequences**:
+  - Customers no longer download admin code: the storefront bundle contains no admin strings and shrank from 427 KB to 404 KB.
+  - The admin can live on its own domain (e.g. `admin.zylo.com`) with its own session and stricter hardening (IP allowlist/VPN, CSP). In development it runs on `127.0.0.1:5175` so its cookies stay separate from the storefront on `localhost:5176`.
+  - The two apps deploy independently, and the storefront is free to adopt SSR later without affecting the admin.
+  - The server needs two origins: `CLIENT_URL` (storefront; customer email links, Google OAuth) and `ADMIN_URL` (admin; staff password-reset links).
+  - `packages/shared` must never import from an app; code is placed by who uses it (storefront only, admin only, or both).

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Mail } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
-import SectionCard from '../../../components/common/SectionCard';
-import Badge from '../../../components/common/Badge';
+import { useAuth } from '../AuthContext';
+import SectionCard from '../../ui/SectionCard';
+import Badge from '../../ui/Badge';
 import ResendVerificationButton from './ResendVerificationButton';
 
 /** Email address, verification status and linked sign-in methods. */

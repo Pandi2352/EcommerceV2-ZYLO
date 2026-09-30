@@ -43,4 +43,4 @@ Any feature that does not directly support this loop is categorized as post-MVP.
 - [ ] Customer can checkout with COD or test gateway; inventory is decremented atomically.
 - [ ] Customer sees order in their order history with live status.
 - [ ] Admin sees new order in Admin Dashboard, changes status to `PROCESSING` ➔ `SHIPPED` ➔ `DELIVERED`.
-- [ ] Zero TypeScript errors across both `client/` and `server/`.
+- [ ] Zero TypeScript errors across `apps/storefront/`, `apps/admin/`, `packages/shared/` and `server/`.

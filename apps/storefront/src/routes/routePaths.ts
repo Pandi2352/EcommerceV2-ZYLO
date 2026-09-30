@@ -1,15 +1,10 @@
 /**
- * Centralized Route Paths for the ZYLO E-Commerce Platform
- * 
- * STRICT ARCHITECTURAL RULE:
- * - Registration is EXCLUSIVELY available on the Customer storefront (/register).
- * - Admin portal (/admin/login) has NO public registration; admin accounts are
- *   provisioned internally or seeded via system administration.
+ * Route paths of the customer storefront.
+ *
+ * The admin console is a separate app (apps/admin) with its own routes; staff
+ * accounts cannot sign in here and customers cannot register there.
  */
 export const ROUTES = {
-  // -------------------------------------------------------------
-  // CUSTOMER / STOREFRONT ROUTES
-  // -------------------------------------------------------------
   CUSTOMER: {
     HOME: '/',
     SHOP: '/shop',
@@ -24,12 +19,12 @@ export const ROUTES = {
     OPEN_SHOP: '/open-shop',
     COMPARE: '/compare',
 
-    // Customer Authentication (Customer site ONLY has registration)
+    // Authentication (registration exists only on the storefront)
     LOGIN: '/login',
     LOGIN_VERIFY: '/login/verify',
     REGISTER: '/register',
 
-    // Customer Protected Account
+    // Signed-in account area
     DASHBOARD: '/account',
     ORDERS: '/account/orders',
     PROFILE: '/account/profile',
@@ -40,35 +35,13 @@ export const ROUTES = {
     CHECKOUT: '/checkout',
   },
 
-  // -------------------------------------------------------------
-  // ADMIN PORTAL ROUTES (NO REGISTRATION)
-  // -------------------------------------------------------------
-  ADMIN: {
-    LOGIN: '/admin/login',
-    LOGIN_VERIFY: '/admin/login/verify',
-    CHANGE_PASSWORD: '/admin/change-password',
-    DASHBOARD: '/admin',
-    PRODUCTS: '/admin/products',
-    CATEGORIES: '/admin/categories',
-    ORDERS: '/admin/orders',
-    CUSTOMERS: '/admin/customers',
-    ANALYTICS: '/admin/analytics',
-    SETTINGS: '/admin/settings',
-    AUDIT_LOGS: '/admin/audit-logs',
-  },
-
-  // -------------------------------------------------------------
-  // SHARED AUTH ROUTES (links arrive by email; used by both portals)
-  // -------------------------------------------------------------
+  // Targets of emailed links
   AUTH: {
     FORGOT_PASSWORD: '/forgot-password',
     RESET_PASSWORD: '/reset-password',
     VERIFY_EMAIL: '/verify-email',
   },
 
-  // -------------------------------------------------------------
-  // COMMON / SYSTEM ROUTES
-  // -------------------------------------------------------------
   NOT_FOUND: '*',
 } as const;
 

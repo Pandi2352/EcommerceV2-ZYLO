@@ -18,7 +18,7 @@ graph TD
 ---
 
 ## Phase 0: Project Setup & Baseline Foundation
-- Monorepo folder setup (`client/`, `server/`, `shared/`, `docs/`, `docker/`).
+- Monorepo folder setup (`apps/storefront/`, `apps/admin/`, `packages/shared/`, `server/`, `docs/`, `docker/`).
 - Express.js TypeScript scaffolding with strict tsconfig, ESLint, Prettier.
 - Centralized environment variable loader (`dotenv` + Zod schema validation).
 - MongoDB Mongoose connection with resilient retry logic and graceful shutdown handlers.
@@ -115,5 +115,5 @@ graph TD
   - Backend Unit & Integration tests (Vitest + Supertest).
   - Frontend Component & Flow tests (React Testing Library).
   - End-to-End browser smoke testing (Playwright).
-- Docker multi-stage containerization (`client.Dockerfile`, `server.Dockerfile`, `docker-compose.yml`).
+- Docker multi-stage containerization (`web.Dockerfile`, `server.Dockerfile`, `docker-compose.yml`).
 - CI/CD workflow automation (Lint, Typecheck, Test, Build).

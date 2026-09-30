@@ -1,6 +1,6 @@
 import React from 'react';
 import { Inbox, Loader2 } from 'lucide-react';
-import Alert from '../feedback/Alert';
+import Alert from './Alert';
 import Button from './Button';
 
 export interface DataTableColumn<T> {

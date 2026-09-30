@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { getApiError, type ApiError } from '../services/api';
+import { getApiError, type ApiError } from '../api/client';
 
 /**
  * Wrap an async action (typically an API call) with loading and error state.

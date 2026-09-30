@@ -1,7 +1,7 @@
-import type { DataTableColumn } from '../../../components/common/DataTable';
+import type { DataTableColumn } from '@shared/ui/DataTable';
 import type { AuditLogEntry } from '../../../services/audit.service';
-import Badge, { type BadgeTone } from '../../../components/common/Badge';
-import { formatDateTime, humanizeConstant } from '../../../utils/format';
+import Badge, { type BadgeTone } from '@shared/ui/Badge';
+import { formatDateTime, humanizeConstant } from '@shared/utils/format';
 
 const DANGER_EVENTS = new Set(['LOGIN_FAILED', 'LOGIN_BLOCKED_LOCKED', 'ACCOUNT_LOCKED', 'MFA_CHALLENGE_FAILED', 'REFRESH_TOKEN_REUSE']);
 const WARNING_EVENTS = new Set(['MFA_DISABLED', 'PASSWORD_RESET_REQUESTED', 'MFA_BACKUP_CODE_USED']);

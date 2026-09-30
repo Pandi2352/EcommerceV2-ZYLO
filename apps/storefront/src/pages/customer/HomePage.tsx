@@ -10,7 +10,7 @@ import {
   Terminal,
   User,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@shared/auth/AuthContext';
 
 export default function CustomerHomePage() {
   const { user, isAuthenticated } = useAuth();

@@ -1,0 +1,17 @@
+{
+  "name": "@zylo/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "UI kit, hooks, API client and auth building blocks shared by the ZYLO storefront and admin apps. Consumed as TypeScript source via the @shared alias; no build step.",
+  "type": "module",
+  "peerDependencies": {
+    "axios": "^1.20.0",
+    "lucide-react": "^1.49.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "scripts": {
+    "lint": "oxlint src"
+  }
+}

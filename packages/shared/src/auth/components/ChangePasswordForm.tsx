@@ -1,12 +1,12 @@
 import React from 'react';
-import { useAuth } from '../../../context/AuthContext';
-import { useForm } from '../../../hooks/useForm';
-import { differsFromField, matchesField, required, strongPassword } from '../../../utils/validators';
-import { authService } from '../../../services/auth.service';
-import type { AuthUser } from '../../../types/auth';
-import PasswordField from '../../../components/common/PasswordField';
-import Button from '../../../components/common/Button';
-import Alert from '../../../components/feedback/Alert';
+import { useAuth } from '../AuthContext';
+import { useForm } from '../../hooks/useForm';
+import { differsFromField, matchesField, required, strongPassword } from '../../utils/validators';
+import { authService } from '../../api/auth.service';
+import type { AuthUser } from '../../types/auth';
+import PasswordField from '../../ui/PasswordField';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 
 type PasswordValues = { currentPassword: string; newPassword: string; confirmPassword: string };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { authService } from '../../../services/auth.service';
+import { authService } from '@shared/api/auth.service';
 
 export interface SocialAuthButtonsProps {
   mode: 'signin' | 'signup';

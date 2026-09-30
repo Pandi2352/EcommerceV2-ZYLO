@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Check, Copy, Download } from 'lucide-react';
-import Button from '../../../components/common/Button';
-import Alert from '../../../components/feedback/Alert';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 
 export interface BackupCodesListProps {
   codes: string[];

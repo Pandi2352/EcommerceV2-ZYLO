@@ -32,7 +32,7 @@
 ---
 
 ### TASK-003: React + Vite + Tailwind + React Router DOM + Axios
-- **Module**: `client/`
+- **Module**: `apps/storefront/`, `apps/admin/`, `packages/shared/` (originally `client/`, split in TASK-005C)
 - **Status**: `DONE`
 - **Priority**: High (Blocker)
 - **Requirements**:
@@ -41,7 +41,7 @@
   - React Router DOM v7 router hierarchy with layout shells.
   - Axios HTTP client configured with base URL and cookie support.
 - **Acceptance Criteria**:
-  - Frontend launches via `npm run dev --prefix client`.
+  - Frontends launch via `npm run dev:storefront` and `npm run dev:admin`.
   - Frontend successfully queries `GET /api/v1/health` and renders the connection status.
 
 ---
@@ -64,7 +64,7 @@
   - `JwtAuthGuard` and `RolesGuard` registered globally, plus the `@CurrentUser()` decorator.
 
 ### TASK-005B: MVP 1 — Complete Authentication (line-items Module 1)
-- **Module**: `server/src/modules/{auth,audit,mail}/`, `client/src/features/auth/`
+- **Module**: `server/src/modules/{auth,audit,mail}/`, `packages/shared/src/auth/`
 - **Status**: `DONE`
 - **Delivered** (details in [11-auth-rbac.md](./11-auth-rbac.md)):
   - Separate storefront / admin login endpoints; role hierarchy `SUPER_ADMIN ⊇ ADMIN ⊇ SUPPORT_AGENT`.
@@ -73,6 +73,17 @@
   - TOTP two-factor with QR setup and one-time backup codes; Google OAuth2 with account linking.
 - **Verification**: 57-check end-to-end API scenario suite passing; client and server build with 0 errors.
 - **Follow-ups**: configure real SMTP and Google credentials per environment; add automated tests to CI (see testing strategy).
+
+### TASK-005C: Split storefront and admin into separate apps
+- **Module**: `apps/storefront/`, `apps/admin/`, `packages/shared/`, `docker/web.Dockerfile`
+- **Status**: `DONE`
+- **Delivered** (rationale in [ADR-007](./20-decision-log.md)):
+  - `client/` split into `apps/storefront` (dev `localhost:5176`) and `apps/admin` (dev `127.0.0.1:5175`, routes without the `/admin` prefix).
+  - Shared UI kit, hooks, API client and auth building blocks moved to `packages/shared` (`@zylo/shared`, imported via `@shared/*`).
+  - Root npm workspaces (`apps/*`, `packages/*`) with `dev:*` / `build:*` scripts; server stays a standalone install.
+  - Each app admits only its own roles via `PortalProvider` + `AuthProvider`; server `ADMIN_URL` points staff email links at the admin origin.
+  - `docker/web.Dockerfile` (`APP=storefront|admin`) replaces `docker/client.Dockerfile`; compose runs `storefront` and `admin` services.
+- **Verification**: storefront bundle contains no admin code (427 KB → 404 KB).
 
 ---
 
@@ -115,7 +126,7 @@
 ## 5. Sprint 5: Admin Control Plane (Day 9-10 Focus)
 
 ### TASK-010: Admin Dashboard & Order Management
-- **Module**: `client/src/pages/admin/`
+- **Module**: `apps/admin/src/pages/`
 - **Status**: `TODO`
 - **Requirements**:
   - Admin KPIs (Revenue, Orders, Low Stock SKUs).

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import { AUDIT_EVENTS, type AuditLogQuery } from '../../../services/audit.service';
-import { humanizeConstant } from '../../../utils/format';
-import SelectField from '../../../components/common/SelectField';
-import InputField from '../../../components/common/InputField';
-import Button from '../../../components/common/Button';
+import { humanizeConstant } from '@shared/utils/format';
+import SelectField from '@shared/ui/SelectField';
+import InputField from '@shared/ui/InputField';
+import Button from '@shared/ui/Button';
 
 export type AuditFilters = Pick<AuditLogQuery, 'event' | 'email' | 'portal'>;
 

@@ -1,4 +1,4 @@
-import { api, unwrap, API_BASE_URL } from './api';
+import { api, unwrap, API_BASE_URL } from './client';
 import type { MessageResponse } from '../types/api';
 import type {
   AuthPortal,

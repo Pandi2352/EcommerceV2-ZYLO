@@ -1,22 +1,21 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
-import { useForm } from '../../../hooks/useForm';
-import { email, required } from '../../../utils/validators';
-import { ERROR_CODES } from '../../../constants/errorCodes';
-import { ROUTES } from '../../../routes/routePaths';
-import type { AuthPortal, AuthUser } from '../../../types/auth';
-import InputField from '../../../components/common/InputField';
-import PasswordField from '../../../components/common/PasswordField';
-import Checkbox from '../../../components/common/Checkbox';
-import Button from '../../../components/common/Button';
-import Alert from '../../../components/feedback/Alert';
+import { useAuth } from '../AuthContext';
+import { useForm } from '../../hooks/useForm';
+import { email, required } from '../../utils/validators';
+import { ERROR_CODES } from '../../constants/errorCodes';
+import { usePortal } from '../PortalContext';
+import type { AuthUser } from '../../types/auth';
+import InputField from '../../ui/InputField';
+import PasswordField from '../../ui/PasswordField';
+import Checkbox from '../../ui/Checkbox';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 
 type LoginValues = { email: string; password: string; rememberMe: boolean };
 
 export interface LoginFormProps {
-  portal: AuthPortal;
   /** localStorage key used to prefill the email when "Remember me" was ticked */
   rememberStorageKey: string;
   onAuthenticated: (user: AuthUser) => void;
@@ -44,9 +43,8 @@ const rules = {
   password: [required<LoginValues>('Password is required')],
 };
 
-/** Email + password sign-in shared by the storefront and the admin portal. */
+/** Email + password sign-in, scoped to the current portal (storefront or admin). */
 export const LoginForm: React.FC<LoginFormProps> = ({
-  portal,
   rememberStorageKey,
   onAuthenticated,
   onMfaRequired,
@@ -59,6 +57,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   footer,
 }) => {
   const { login } = useAuth();
+  const { routes } = usePortal();
   const [initialValues] = useState<LoginValues>(() => {
     const stored = readStoredEmail(rememberStorageKey);
     return { email: stored, password: '', rememberMe: Boolean(stored) };
@@ -68,10 +67,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     initialValues,
     rules,
     onSubmit: async (values) => {
-      const result = await login(
-        { email: values.email.trim(), password: values.password, rememberMe: values.rememberMe },
-        portal,
-      );
+      const result = await login({ email: values.email.trim(), password: values.password, rememberMe: values.rememberMe });
       try {
         if (values.rememberMe) localStorage.setItem(rememberStorageKey, values.email.trim());
         else localStorage.removeItem(rememberStorageKey);
@@ -83,7 +79,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     },
   });
 
-  const forgotPasswordTo = `${ROUTES.AUTH.FORGOT_PASSWORD}${portal === 'admin' ? '?portal=admin' : ''}`;
   const locked = form.formError?.code === ERROR_CODES.ACCOUNT_LOCKED;
 
   return (
@@ -124,7 +119,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             onRememberChange?.(event.target.checked);
           }}
         />
-        <Link to={forgotPasswordTo} className="text-xs text-cyan-600 hover:text-cyan-700 font-medium cursor-pointer">
+        <Link to={routes.forgotPassword} className="text-xs text-cyan-600 hover:text-cyan-700 font-medium cursor-pointer">
           Forgot password?
         </Link>
       </div>

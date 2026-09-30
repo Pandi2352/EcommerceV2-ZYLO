@@ -9,7 +9,8 @@
 
 # Node dependencies & local installs (installed fresh inside container)
 node_modules/
-client/node_modules/
+apps/*/node_modules/
+packages/*/node_modules/
 server/node_modules/
 .npm/
 .yarn/
@@ -18,7 +19,7 @@ server/node_modules/
 # Local Build Outputs & Transpiled Code
 dist/
 build/
-client/dist/
+apps/*/dist/
 server/dist/
 *.tsbuildinfo
 server/tsconfig.build.tsbuildinfo

@@ -122,15 +122,16 @@ async function fetchBatchVersions(packages: string[]): Promise<Record<string, st
 /**
  * Update target package.json with latest fetched versions
  */
+/** Frontend apps sharing the `frontend` package list (npm workspaces under the repo root) */
+export const FRONTEND_APPS = ['apps/storefront', 'apps/admin'];
+
 function updatePackageJson(
   target: 'frontend' | 'backend',
-  latestDepMap: Record<string, string>
+  latestDepMap: Record<string, string>,
+  appDir: string = target === 'frontend' ? FRONTEND_APPS[0] : 'server'
 ): PackageUpdateReport[] {
   const root = process.cwd();
-  const filePath =
-    target === 'frontend'
-      ? path.join(root, 'client', 'package.json')
-      : path.join(root, 'server', 'package.json');
+  const filePath = path.join(root, appDir, 'package.json');
 
   if (!fs.existsSync(filePath)) {
     console.error(`[Error] File not found: ${filePath}`);
@@ -190,10 +191,10 @@ function updatePackageJson(
 /**
  * Run npm install in target folder with peer-dependency safety
  */
-function runNpmInstall(targetDir: string, label: string): void {
+function runNpmInstall(targetDir: string, label: string, extraArgs = ''): void {
   console.log(`\n⏳ Running "npm install" for ${label}...`);
   try {
-    execSync(`npm install --prefix "${targetDir}" --legacy-peer-deps`, {
+    execSync(`npm install --prefix "${targetDir}" --legacy-peer-deps ${extraArgs}`.trim(), {
       cwd: process.cwd(),
       stdio: 'inherit',
     });
@@ -226,10 +227,10 @@ export async function runVersionControl(options: { skipInstall?: boolean } = {})
   const latestMap = await fetchBatchVersions(allPackages);
   console.log(`✨ Retrieved latest releases for ${Object.keys(latestMap).length} packages.\n`);
 
-  // Update client and server package.json
-  console.log(`📝 Updating client/package.json and server/package.json...`);
-  const frontendReports = updatePackageJson('frontend', latestMap);
-  const backendReports = updatePackageJson('backend', latestMap);
+  // Update every frontend app and the server package.json
+  console.log(`📝 Updating ${FRONTEND_APPS.join(', ')} and server package.json...`);
+  const frontendReports = FRONTEND_APPS.flatMap((appDir) => updatePackageJson('frontend', latestMap, appDir));
+  const backendReports = updatePackageJson('backend', latestMap, 'server');
 
   const allReports = [...frontendReports, ...backendReports];
 
@@ -247,11 +248,12 @@ export async function runVersionControl(options: { skipInstall?: boolean } = {})
 
   // Run npm install if not skipped
   if (!options.skipInstall) {
-    const clientPath = path.join(root, 'client');
     const serverPath = path.join(root, 'server');
 
-    runNpmInstall(clientPath, 'Frontend (client/)');
-    runNpmInstall(serverPath, 'Backend (server/)');
+    // Frontend apps are npm workspaces: one install at the repo root covers them all.
+    // The server is installed on its own (it is not part of the workspaces).
+    runNpmInstall(root, 'Frontend workspaces (apps/*, packages/*)');
+    runNpmInstall(serverPath, 'Backend (server/)', '--workspaces=false');
 
     console.log(`========================================================================`);
     console.log(`🎉 Both Frontend & Backend are fully updated to their latest packages!`);

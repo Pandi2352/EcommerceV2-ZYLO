@@ -2,7 +2,7 @@
 
 ## 1. Local Development Containerization
 
-The project uses Docker Compose to orchestrate **MongoDB 7**, the **NestJS Backend API**, and the **React Client**.
+The project uses Docker Compose to orchestrate **MongoDB 7**, the **NestJS Backend API**, and the two React web apps: the **storefront** and the **admin console**. Both web apps are built from the same `docker/web.Dockerfile`.
 
 ### 1.1 `docker-compose.yml`
 ```yaml
@@ -39,22 +39,44 @@ services:
       MONGO_URI: ${MONGO_URI:-mongodb://mongodb:27017/zylo}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-zylo_super_secret_access_jwt_key_2026}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-zylo_super_secret_refresh_jwt_key_2026}
-      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
-      ADMIN_URL: ${ADMIN_URL:-http://localhost:5174}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5176}
+      ADMIN_URL: ${ADMIN_URL:-http://127.0.0.1:5175}
     depends_on:
       mongodb:
         condition: service_healthy
     networks:
       - zylo-network
 
-  client:
+  # Customer storefront (e.g. zylo.com)
+  storefront:
     build:
       context: .
-      dockerfile: docker/client.Dockerfile
-    container_name: zylo-client
+      dockerfile: docker/web.Dockerfile
+      args:
+        APP: storefront
+    container_name: zylo-storefront
     restart: unless-stopped
     ports:
-      - '5173:80'
+      - '5176:80'
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - zylo-network
+
+  # Admin console (e.g. admin.zylo.com). Open it at http://127.0.0.1:5175 locally so
+  # its cookies stay separate from the storefront's (cookies ignore ports).
+  admin:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        APP: admin
+        VITE_STOREFRONT_URL: ${CLIENT_URL:-http://localhost:5176}
+    container_name: zylo-admin
+    restart: unless-stopped
+    ports:
+      - '5175:80'
     depends_on:
       server:
         condition: service_healthy
@@ -95,22 +117,36 @@ EXPOSE 5000
 CMD ["node", "dist/main.js"]
 ```
 
-### 2.2 Frontend Dockerfile (`docker/client.Dockerfile`)
+### 2.2 Web Dockerfile (`docker/web.Dockerfile`)
+One Dockerfile builds either web app, selected with `--build-arg APP=storefront|admin`. It copies the root `package.json` + `package-lock.json`, `packages/shared` and `apps/$APP`, installs only that workspace, builds it, and serves `dist` with NGINX. `docker/nginx.conf` (shared by both apps) handles the SPA fallback and proxies `/api` to the `server` container.
+
 ```dockerfile
 # Stage 1: Build
 FROM node:20-alpine AS builder
-WORKDIR /app
-COPY client/package*.json ./
-RUN npm ci
-COPY client/ ./
-RUN npm run build
+ARG APP=storefront
+ARG VITE_STOREFRONT_URL
+ENV VITE_STOREFRONT_URL=${VITE_STOREFRONT_URL}
+WORKDIR /repo
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json packages/shared/
+COPY apps/${APP}/package.json apps/${APP}/
+RUN npm ci --workspace @zylo/${APP} --include-workspace-root --legacy-peer-deps
+COPY packages/shared/ packages/shared/
+COPY apps/${APP}/ apps/${APP}/
+RUN npm run build --workspace @zylo/${APP}
 
 # Stage 2: NGINX Static Server
 FROM nginx:alpine AS runner
-COPY --from=builder /app/dist /usr/share/nginx/html
+ARG APP=storefront
+COPY --from=builder /repo/apps/${APP}/dist /usr/share/nginx/html
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
+```
+
+Build an image by hand:
+```bash
+docker build -f docker/web.Dockerfile --build-arg APP=admin -t zylo-admin .
 ```
 
 ---
@@ -132,9 +168,11 @@ JWT_REFRESH_SECRET=your_super_secret_jwt_refresh_key
 JWT_ACCESS_EXPIRY=15m
 JWT_REFRESH_EXPIRY=7d
 
-# CORS Whitelist
-CLIENT_URL=http://localhost:5173
-ADMIN_URL=http://localhost:5174
+# App origins (CORS + email links)
+# CLIENT_URL = storefront (customer email links, Google OAuth)
+# ADMIN_URL  = admin console (staff password-reset links); 127.0.0.1 in dev for a separate cookie jar
+CLIENT_URL=http://localhost:5176
+ADMIN_URL=http://127.0.0.1:5175
 
 # Payment Gateway (Test Mode)
 STRIPE_SECRET_KEY=sk_test_xxx

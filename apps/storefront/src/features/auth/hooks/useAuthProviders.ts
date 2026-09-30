@@ -1,5 +1,5 @@
-import { useApiQuery } from '../../../hooks/useApiQuery';
-import { authService } from '../../../services/auth.service';
+import { useApiQuery } from '@shared/hooks/useApiQuery';
+import { authService } from '@shared/api/auth.service';
 
 /** Which social sign-in providers the server has enabled. */
 export function useAuthProviders() {

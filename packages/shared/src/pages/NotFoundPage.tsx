@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Home, ArrowLeft } from 'lucide-react';
-import { ROUTES } from '../../routes/routePaths';
 
 export interface NotFoundPageProps {
   homeTo?: string;
@@ -9,11 +8,11 @@ export interface NotFoundPageProps {
 }
 
 /**
- * Layout-agnostic 404 content. Each portal mounts it inside its own layout
+ * Layout-agnostic 404 content. Each app mounts it inside its own layout
  * (customer storefront or admin console) via a scoped catch-all route.
  */
 export const NotFoundPage: React.FC<NotFoundPageProps> = ({
-  homeTo = ROUTES.CUSTOMER.HOME,
+  homeTo = '/',
   homeLabel = 'Back to Home',
 }) => {
   return (

@@ -6,7 +6,7 @@ import {
   ShieldCheck,
   ArrowUpRight,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@shared/auth/AuthContext';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
@@ -76,7 +76,7 @@ export default function AdminDashboardPage() {
             Private Admin Gateway Active
           </p>
           <p>
-            Admin routes are strictly guarded by role-based authorization (<code className="bg-slate-100 px-1 py-0.5 rounded text-indigo-700 font-mono text-[11px]">ADMIN</code>). Self-registration is restricted exclusively to the customer storefront.
+            The console is a separate app, guarded by role-based authorization (<code className="bg-slate-100 px-1 py-0.5 rounded text-indigo-700 font-mono text-[11px]">ADMIN</code>). Self-registration is restricted exclusively to the customer storefront.
           </p>
         </div>
       </div>

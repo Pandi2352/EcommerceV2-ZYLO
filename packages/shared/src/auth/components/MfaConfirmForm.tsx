@@ -1,10 +1,10 @@
 import React from 'react';
-import { useForm } from '../../../hooks/useForm';
-import { required } from '../../../utils/validators';
-import InputField from '../../../components/common/InputField';
-import PasswordField from '../../../components/common/PasswordField';
-import Button from '../../../components/common/Button';
-import Alert from '../../../components/feedback/Alert';
+import { useForm } from '../../hooks/useForm';
+import { required } from '../../utils/validators';
+import InputField from '../../ui/InputField';
+import PasswordField from '../../ui/PasswordField';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 
 type ConfirmValues = { code: string; password: string };
 

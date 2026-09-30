@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useApiQuery } from '../../hooks/useApiQuery';
-import { auditService } from '../../services/audit.service';
-import AuditLogFilters, { type AuditFilters } from '../../features/audit/components/AuditLogFilters';
-import { auditLogColumns } from '../../features/audit/components/auditLogColumns';
-import DataTable from '../../components/common/DataTable';
-import Pagination from '../../components/common/Pagination';
+import { useApiQuery } from '@shared/hooks/useApiQuery';
+import { auditService } from '../services/audit.service';
+import AuditLogFilters, { type AuditFilters } from '../features/audit/components/AuditLogFilters';
+import { auditLogColumns } from '../features/audit/components/auditLogColumns';
+import DataTable from '@shared/ui/DataTable';
+import Pagination from '@shared/ui/Pagination';
 
 const PAGE_SIZE = 20;
 

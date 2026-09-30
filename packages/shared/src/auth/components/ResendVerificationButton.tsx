@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useAsyncAction } from '../../../hooks/useAsyncAction';
-import { authService } from '../../../services/auth.service';
-import Button from '../../../components/common/Button';
+import { useAsyncAction } from '../../hooks/useAsyncAction';
+import { authService } from '../../api/auth.service';
+import Button from '../../ui/Button';
 
 /** Sends a fresh verification link and reports the outcome inline. */
 export const ResendVerificationButton: React.FC<{ className?: string }> = ({ className = '' }) => {

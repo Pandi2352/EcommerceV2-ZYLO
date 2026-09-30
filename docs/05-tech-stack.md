@@ -38,7 +38,7 @@
 ---
 
 ## 2. Centralized Version Control (`version-control.ts`)
-- All dependency versions across frontend (`client/package.json`) and backend (`server/package.json`) are centrally governed by `version-control.ts` at the project root.
+- All dependency versions across frontend (`apps/storefront/package.json`, `apps/admin/package.json`) and backend (`server/package.json`) are centrally governed by `version-control.ts` at the project root.
 - Running `npm run sync:versions` automatically validates and synchronizes package versions to ensure zero dependency drift.
 
 ---

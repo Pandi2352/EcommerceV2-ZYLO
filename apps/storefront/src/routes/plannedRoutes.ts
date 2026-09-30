@@ -31,16 +31,3 @@ export const CUSTOMER_ACCOUNT_PLANNED: PlannedRoute[] = [
   { path: ROUTES.CUSTOMER.WISHLIST, title: 'Wishlist' },
   { path: ROUTES.CUSTOMER.CHECKOUT, title: 'Checkout' },
 ];
-
-/** Admin sections open to every staff role */
-export const ADMIN_STAFF_PLANNED: PlannedRoute[] = [
-  { path: ROUTES.ADMIN.ORDERS, title: 'Orders' },
-  { path: ROUTES.ADMIN.CUSTOMERS, title: 'Customers' },
-];
-
-/** Admin sections requiring ADMIN or above */
-export const ADMIN_MANAGER_PLANNED: PlannedRoute[] = [
-  { path: ROUTES.ADMIN.PRODUCTS, title: 'Products' },
-  { path: ROUTES.ADMIN.CATEGORIES, title: 'Categories' },
-  { path: ROUTES.ADMIN.ANALYTICS, title: 'Analytics' },
-];

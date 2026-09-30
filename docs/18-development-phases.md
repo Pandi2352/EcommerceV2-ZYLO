@@ -16,7 +16,7 @@ NestJS Scaffolding ──► MongoDB + Mongoose ──► Swagger Setup ──�
    - Setup `config/database.config.ts` connecting to local MongoDB.
    - Configure `main.ts` with global `ValidationPipe`, cookie parser, and Swagger OpenAPI mounted at `/api/docs`.
    - Create a clean `HealthModule` with `GET /api/v1/health` checking DB ping.
-2. **Initialize Frontend Scaffolding (`client/` — React + TS)**:
+2. **Initialize Frontend Scaffolding (`apps/storefront/`, `apps/admin/`, `packages/shared/` — React + TS)**:
    - React + TypeScript + Vite project initialized.
    - Install and configure `tailwindcss`, `postcss`, `autoprefixer`.
    - Install `react-router-dom`, `axios`, `lucide-react`.
@@ -26,7 +26,7 @@ NestJS Scaffolding ──► MongoDB + Mongoose ──► Swagger Setup ──�
    - Start MongoDB instance (local or via Docker: `docker compose up -d mongodb`).
    - Start NestJS backend (`npm run start:dev --prefix server`).
    - Open `http://localhost:5000/api/docs` and execute health check via Swagger UI.
-   - Start React frontend (`npm run dev --prefix client`) and verify health status is rendered.
+   - Start React frontend (`npm run dev:storefront` / `npm run dev:admin`) and verify health status is rendered.
 
 ---
 

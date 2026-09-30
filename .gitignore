@@ -4,7 +4,8 @@
 
 # 1. Dependencies & Package Managers
 node_modules/
-client/node_modules/
+apps/*/node_modules/
+packages/*/node_modules/
 server/node_modules/
 .pnp
 .pnp.js
@@ -18,7 +19,7 @@ server/node_modules/
 dist/
 dist-ssr/
 build/
-client/dist/
+apps/*/dist/
 server/dist/
 *.tsbuildinfo
 server/tsconfig.build.tsbuildinfo
@@ -95,4 +96,4 @@ $RECYCLE.BIN/
 .turbo/
 .parcel-cache/
 .vite/
-client/.vite/
+apps/*/.vite/

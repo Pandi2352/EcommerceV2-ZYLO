@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { getApiError, type ApiError } from '../services/api';
+import { getApiError, type ApiError } from '../api/client';
 
 /**
  * Load data on mount and whenever `deps` change. Stale responses from earlier

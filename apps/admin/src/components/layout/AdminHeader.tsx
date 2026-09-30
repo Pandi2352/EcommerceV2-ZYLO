@@ -1,8 +1,7 @@
 import React from 'react';
 import { Menu, ExternalLink, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { ROUTES } from '../../../routes/routePaths';
-import { useAuth } from '../../../context/AuthContext';
+import { STOREFRONT_URL } from '../../config/portal';
+import { useAuth } from '@shared/auth/AuthContext';
 
 export interface AdminHeaderProps {
   onOpenMobileMenu?: () => void;
@@ -42,14 +41,15 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onOpenMobileMenu }) =>
         </div>
 
         {/* View Customer Storefront */}
-        <Link
-          to={ROUTES.CUSTOMER.HOME}
+        <a
+          href={STOREFRONT_URL}
           target="_blank"
+          rel="noopener noreferrer"
           className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 text-xs font-semibold transition-colors cursor-pointer"
         >
           <span>Storefront</span>
           <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-        </Link>
+        </a>
 
         {/* Current User Badge */}
         <div className="flex items-center gap-2 pl-2 border-l border-slate-200">

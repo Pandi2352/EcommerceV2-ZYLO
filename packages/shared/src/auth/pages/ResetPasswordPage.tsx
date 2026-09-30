@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ROUTES } from '../../routes/routePaths';
-import { PORTAL_ROUTES, portalFromParam } from '../../routes/portalRoutes';
+import { usePortal } from '../PortalContext';
 import { useForm } from '../../hooks/useForm';
 import { matchesField, required, strongPassword } from '../../utils/validators';
 import { ERROR_CODES } from '../../constants/errorCodes';
-import { authService } from '../../services/auth.service';
-import AuthCard from '../../features/auth/components/AuthCard';
-import PasswordField from '../../components/common/PasswordField';
-import Button from '../../components/common/Button';
-import Alert from '../../components/feedback/Alert';
+import { authService } from '../../api/auth.service';
+import AuthCard from '../components/AuthCard';
+import PasswordField from '../../ui/PasswordField';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 
 type ResetValues = { password: string; confirmPassword: string };
 
@@ -21,13 +20,12 @@ const rules = {
   ],
 };
 
-/** Target of the emailed reset link: /reset-password?token=…[&portal=admin] */
+/** Target of the emailed reset link: /reset-password?token=… (in whichever app sent it) */
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  const portalParam = searchParams.get('portal');
-  const routes = PORTAL_ROUTES[portalFromParam(portalParam)];
-  const forgotTo = `${ROUTES.AUTH.FORGOT_PASSWORD}${portalParam === 'admin' ? '?portal=admin' : ''}`;
+  const { routes } = usePortal();
+  const forgotTo = routes.forgotPassword;
   const [done, setDone] = useState(false);
 
   const form = useForm<ResetValues>({

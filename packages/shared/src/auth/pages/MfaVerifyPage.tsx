@@ -1,15 +1,14 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import type { AuthPortal } from '../../types/auth';
-import { PORTAL_ROUTES } from '../../routes/portalRoutes';
+import { usePortal } from '../PortalContext';
 import { safeRedirectPath } from '../../utils/redirect';
-import AuthCard from '../../features/auth/components/AuthCard';
-import MfaChallengeForm from '../../features/auth/components/MfaChallengeForm';
+import AuthCard from '../components/AuthCard';
+import MfaChallengeForm from '../components/MfaChallengeForm';
 
-/** Second sign-in step for either portal (after password or Google sign-in). */
-export default function MfaVerifyPage({ portal }: { portal: AuthPortal }) {
+/** Second sign-in step (after password or Google sign-in). */
+export default function MfaVerifyPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const routes = PORTAL_ROUTES[portal];
+  const { routes } = usePortal();
   const redirect = safeRedirectPath(searchParams.get('redirect'), routes.home);
 
   return (

@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { Mail } from 'lucide-react';
-import { PORTAL_ROUTES, portalFromParam } from '../../routes/portalRoutes';
+import { usePortal } from '../PortalContext';
 import { useForm } from '../../hooks/useForm';
 import { email, required } from '../../utils/validators';
-import { authService } from '../../services/auth.service';
-import AuthCard from '../../features/auth/components/AuthCard';
-import InputField from '../../components/common/InputField';
-import Button from '../../components/common/Button';
-import Alert from '../../components/feedback/Alert';
+import { authService } from '../../api/auth.service';
+import AuthCard from '../components/AuthCard';
+import InputField from '../../ui/InputField';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 
 type ForgotValues = { email: string };
 
@@ -17,8 +16,7 @@ const rules = {
 };
 
 export default function ForgotPasswordPage() {
-  const [searchParams] = useSearchParams();
-  const routes = PORTAL_ROUTES[portalFromParam(searchParams.get('portal'))];
+  const { routes } = usePortal();
   const [sentTo, setSentTo] = useState<string | null>(null);
 
   const form = useForm<ForgotValues>({

@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
-import { ROUTES } from '../../routes/routePaths';
-import { useAuth } from '../../context/AuthContext';
-import AuthCard from '../../features/auth/components/AuthCard';
-import ChangePasswordForm from '../../features/auth/components/ChangePasswordForm';
-import Alert from '../../components/feedback/Alert';
+import { ROUTES } from '../routes/routePaths';
+import { useAuth } from '@shared/auth/AuthContext';
+import AuthCard from '@shared/auth/components/AuthCard';
+import ChangePasswordForm from '@shared/auth/components/ChangePasswordForm';
+import Alert from '@shared/ui/Alert';
 
 /** Forced password change for staff accounts flagged `mustChangePassword` (e.g. first sign-in). */
 export default function AdminChangePasswordPage() {
@@ -13,7 +13,7 @@ export default function AdminChangePasswordPage() {
 
   const signOut = async () => {
     await logout();
-    navigate(ROUTES.ADMIN.LOGIN, { replace: true });
+    navigate(ROUTES.LOGIN, { replace: true });
   };
 
   return (
@@ -37,7 +37,7 @@ export default function AdminChangePasswordPage() {
       )}
       <ChangePasswordForm
         submitLabel="Save and continue"
-        onChanged={() => navigate(ROUTES.ADMIN.DASHBOARD, { replace: true })}
+        onChanged={() => navigate(ROUTES.DASHBOARD, { replace: true })}
       />
     </AuthCard>
   );

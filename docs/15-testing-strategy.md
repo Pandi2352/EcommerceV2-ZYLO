@@ -117,8 +117,8 @@ npm run test --prefix server
 # Run backend integration / e2e tests
 npm run test:e2e --prefix server
 
-# Run frontend tests
-npm run test --prefix client
+# Run frontend tests (per workspace, once a test script is added)
+npm run test -w @zylo/storefront -w @zylo/admin
 
 # Run Playwright E2E browser tests
 npx playwright test

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
-import { getApiError, type ApiError } from '../services/api';
+import { getApiError, type ApiError } from '../api/client';
 import type { Validator } from '../utils/validators';
 
 type FormValues = Record<string, string | boolean>;

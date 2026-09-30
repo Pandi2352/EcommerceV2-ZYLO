@@ -1,6 +1,6 @@
 import React, { useState, useId, forwardRef } from 'react';
 import { Eye, EyeOff, Lock, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
-import { evaluatePassword, type PasswordStrength } from '../../utils/passwordPolicy';
+import { evaluatePassword, type PasswordStrength } from '../utils/passwordPolicy';
 
 const STRENGTH_META: Record<PasswordStrength, { label: string; color: string; text: string; width: string }> = {
   empty: { label: 'Empty', color: 'bg-slate-200', text: 'text-slate-400', width: '0%' },

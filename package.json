@@ -4,21 +4,24 @@
   "private": true,
   "description": "ZYLO \u2014 Modern E-Commerce Platform Monorepo",
   "workspaces": [
-    "client",
-    "server",
-    "shared"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
-    "sync:versions": "node -e \"require('./server/node_modules/ts-node').register(); require('./version-control.ts').runVersionControl();\"",
-    "sync:check": "node -e \"require('./server/node_modules/ts-node').register(); require('./version-control.ts').runVersionControl({ skipInstall: true });\"",
-    "dev:client": "npm run dev --prefix client",
+    "dev:storefront": "npm run dev -w @zylo/storefront",
+    "dev:admin": "npm run dev -w @zylo/admin",
     "dev:server": "npm run start:dev --prefix server",
-    "build:client": "npm run build --prefix client",
+    "build:storefront": "npm run build -w @zylo/storefront",
+    "build:admin": "npm run build -w @zylo/admin",
+    "build:web": "npm run build -w @zylo/storefront -w @zylo/admin",
     "build:server": "npm run build --prefix server",
-    "seed": "node seeds/index.js"
+    "lint:web": "npm run lint -w @zylo/shared -w @zylo/storefront -w @zylo/admin",
+    "seed": "node seeds/index.js",
+    "sync:versions": "node -e \"require('./server/node_modules/ts-node').register(); require('./version-control.ts').runVersionControl();\"",
+    "sync:check": "node -e \"require('./server/node_modules/ts-node').register(); require('./version-control.ts').runVersionControl({ skipInstall: true });\""
   },
   "devDependencies": {
     "@types/node": "^22.20.4",
-    "typescript": "^5.9.3"
+    "typescript": "~6.0.2"
   }
 }

@@ -34,9 +34,9 @@ JWT_REFRESH_SECRET=zylo_super_secret_refresh_jwt_key_2026_dev
 JWT_ACCESS_EXPIRY=15m
 JWT_REFRESH_EXPIRY=7d
 
-# CORS Allowed Origins
-CLIENT_URL=http://localhost:5173
-ADMIN_URL=http://localhost:5174
+# App origins (CORS + email links): CLIENT_URL = storefront, ADMIN_URL = admin console
+CLIENT_URL=http://localhost:5176
+ADMIN_URL=http://127.0.0.1:5175
 
 # Uploads
 UPLOAD_DIR=./uploads
@@ -65,14 +65,25 @@ docker ps
 
 ---
 
-## 4. Backend Launch (NestJS)
+## 4. Install Dependencies
 
 ```bash
-# Navigate to backend directory
-cd server
+# From the repo root: installs apps/storefront, apps/admin and packages/shared (npm workspaces)
+npm install
 
-# Start development server manually
-npm run start:dev
+# The server is installed on its own (it is not a workspace)
+cd server
+npm install --workspaces=false
+cd ..
+```
+
+---
+
+## 5. Backend Launch (NestJS)
+
+```bash
+# From the repo root
+npm run dev:server
 ```
 
 ### Verification Checks:
@@ -81,21 +92,24 @@ npm run start:dev
 
 ---
 
-## 5. Frontend Launch (React + Vite)
+## 6. Frontend Launch (React + Vite)
+
+Run each app in its own terminal from the repo root:
 
 ```bash
-# Open a new terminal tab and navigate to client directory
-cd client
-
-# Start Vite development server manually
-npm run dev
+npm run dev:storefront   # customer site  -> http://localhost:5176
+npm run dev:admin        # staff console  -> http://127.0.0.1:5175
 ```
 
+The admin runs on `127.0.0.1` instead of `localhost` on purpose: cookies ignore ports, so `localhost:5176` and `127.0.0.1:5175` would share session cookies. The different host gives the admin its own cookie jar, the same isolation separate domains give in production.
+
 ### Verification Checks:
-1. Open [http://localhost:5173](http://localhost:5173) in your browser.
-2. Confirm the storefront navigation bar, hero layout, and connection status indicator are visible.
+1. Open [http://localhost:5176](http://localhost:5176) and confirm the storefront navigation bar and hero layout are visible.
+2. Open [http://127.0.0.1:5175](http://127.0.0.1:5175) and confirm the admin sign-in page renders.
+
+Other root scripts: `npm run build:web` (both apps), `build:storefront`, `build:admin`, `build:server`, `lint:web`, `seed`.
 
 ---
 
-## 6. Daily Task Execution Reference
+## 7. Daily Task Execution Reference
 Follow the active task backlog in [line-items.md](../line-items.md) and [19-task-board.md](./19-task-board.md).

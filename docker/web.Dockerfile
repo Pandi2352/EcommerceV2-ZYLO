@@ -1,39 +1,41 @@
 # ==========================================
-# Multi-Stage Dockerfile for React + Vite Frontend
+# Multi-Stage Dockerfile for the React + Vite web apps
+# Build either app with:  --build-arg APP=storefront | admin
 # ==========================================
 
 # Stage 1: Build & Compile
 FROM node:20-alpine AS builder
 
-WORKDIR /app
+ARG APP=storefront
+ARG VITE_STOREFRONT_URL
 
-# Build arguments for frontend environment variables
-ARG VITE_API_BASE_URL
-ARG VITE_APP_NAME="ZYLO"
+ENV VITE_STOREFRONT_URL=${VITE_STOREFRONT_URL}
 
-ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-ENV VITE_APP_NAME=${VITE_APP_NAME}
+WORKDIR /repo
 
-# Copy dependency manifests and install
-COPY client/package*.json ./
-RUN npm ci --legacy-peer-deps
+# Install workspace dependencies (root lockfile covers apps/* and packages/*)
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json packages/shared/
+COPY apps/${APP}/package.json apps/${APP}/
+RUN npm ci --workspace @zylo/${APP} --include-workspace-root --legacy-peer-deps
 
-# Copy client source code & configurations
-COPY client/ ./
-
-# Compile production static bundle into /app/dist
-RUN npm run build
+# Copy the shared package and the selected app, then build it
+COPY packages/shared/ packages/shared/
+COPY apps/${APP}/ apps/${APP}/
+RUN npm run build --workspace @zylo/${APP}
 
 # Stage 2: Production NGINX Web Server
 FROM nginx:alpine AS runner
+
+ARG APP=storefront
 
 # Remove default NGINX welcome page
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy production static build artifacts
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /repo/apps/${APP}/dist /usr/share/nginx/html
 
-# Copy custom NGINX configuration for React SPA routing & API reverse proxy
+# SPA routing + /api reverse proxy (same config for both apps)
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Healthcheck for NGINX web server

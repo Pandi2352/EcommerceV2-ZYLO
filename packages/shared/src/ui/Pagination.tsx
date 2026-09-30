@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { PaginationMeta } from '../../types/api';
+import type { PaginationMeta } from '../types/api';
 import Button from './Button';
 
 export interface PaginationProps {

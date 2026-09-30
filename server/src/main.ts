@@ -7,6 +7,8 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { setupSwagger } from './config/swagger.config';
+import { buildCorsOptions } from './config/cors.config';
+import { AppConfig } from './config/app.config';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
@@ -26,16 +28,9 @@ async function bootstrap() {
   app.use(helmet());
   app.use(cookieParser());
 
-  // CORS Configuration: credentialed requests require an explicit origin allowlist
-  const allowedOrigins = [config.get<string>('CLIENT_URL'), config.get<string>('ADMIN_URL')]
-    .flatMap((value) => (value ? value.split(',') : []))
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-  app.enableCors({
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  });
+  // CORS: only the storefront and admin origins (CLIENT_URL / ADMIN_URL) may send cookies
+  const { corsOrigins } = config.getOrThrow<AppConfig>('app');
+  app.enableCors(buildCorsOptions(corsOrigins));
 
   // Global API Prefix
   const apiPrefix = config.get<string>('API_PREFIX', '/api/v1');
@@ -66,6 +61,7 @@ async function bootstrap() {
   logger.log(`=======================================================`);
   logger.log(`🚀 ZYLO API is running on: http://localhost:${port}/${apiPrefix.replace(/^\//, '')}`);
   logger.log(`📚 Swagger OpenAPI Docs:        http://localhost:${port}/api/docs`);
+  logger.log(`🌐 CORS origins:                ${corsOrigins.join(', ')}`);
   logger.log(`🩺 Health Check:                http://localhost:${port}/${apiPrefix.replace(/^\//, '')}/health`);
   logger.log(`=======================================================`);
 }

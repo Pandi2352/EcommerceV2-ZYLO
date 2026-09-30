@@ -1,17 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, User } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
-import { useAuth } from '../../context/AuthContext';
-import { useForm } from '../../hooks/useForm';
-import { email, matchesField, minLength, required, strongPassword } from '../../utils/validators';
+import { useAuth } from '@shared/auth/AuthContext';
+import { useForm } from '@shared/hooks/useForm';
+import { email, matchesField, minLength, required, strongPassword } from '@shared/utils/validators';
 import { useAuthProviders } from '../../features/auth/hooks/useAuthProviders';
 import AuthSplitLayout from '../../features/auth/components/AuthSplitLayout';
 import SocialAuthButtons from '../../features/auth/components/SocialAuthButtons';
-import InputField from '../../components/common/InputField';
-import PasswordField from '../../components/common/PasswordField';
-import Checkbox from '../../components/common/Checkbox';
-import Button from '../../components/common/Button';
-import Alert from '../../components/feedback/Alert';
+import InputField from '@shared/ui/InputField';
+import PasswordField from '@shared/ui/PasswordField';
+import Checkbox from '@shared/ui/Checkbox';
+import Button from '@shared/ui/Button';
+import Alert from '@shared/ui/Alert';
 
 type RegisterValues = {
   name: string;

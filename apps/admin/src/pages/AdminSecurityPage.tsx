@@ -1,4 +1,4 @@
-import AccountSecuritySections from '../../features/auth/components/AccountSecuritySections';
+import AccountSecuritySections from '@shared/auth/components/AccountSecuritySections';
 
 /** Admin: /admin/settings, the signed-in staff member's own security settings. */
 export default function AdminSecurityPage() {
@@ -10,7 +10,7 @@ export default function AdminSecurityPage() {
           Staff accounts should keep two-factor authentication turned on.
         </p>
       </div>
-      <AccountSecuritySections portal="admin" />
+      <AccountSecuritySections />
     </div>
   );
 }

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { KeyRound, ShieldCheck } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
-import { useForm } from '../../../hooks/useForm';
-import { pattern, required } from '../../../utils/validators';
-import { ERROR_CODES } from '../../../constants/errorCodes';
-import type { AuthUser } from '../../../types/auth';
-import InputField from '../../../components/common/InputField';
-import Button from '../../../components/common/Button';
-import Alert from '../../../components/feedback/Alert';
+import { useAuth } from '../AuthContext';
+import { useForm } from '../../hooks/useForm';
+import { pattern, required } from '../../utils/validators';
+import { ERROR_CODES } from '../../constants/errorCodes';
+import type { AuthUser } from '../../types/auth';
+import InputField from '../../ui/InputField';
+import Button from '../../ui/Button';
+import Alert from '../../ui/Alert';
 
 type CodeValues = { code: string };
 
