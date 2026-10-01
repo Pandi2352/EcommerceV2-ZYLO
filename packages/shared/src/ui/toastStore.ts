@@ -6,9 +6,13 @@ export interface ToastAction {
 }
 
 export interface ToastOptions {
+  /** Bold first line. When set, `message` becomes the secondary line. */
   title?: string;
   duration?: number; // Duration in ms. Default 4000ms. Set to 0 to prevent auto-dismiss.
+  /** Single inline action (kept for compatibility); prefer `actions` */
   action?: ToastAction;
+  /** Inline actions such as "Undo" or "View profile" (max 2 shown) */
+  actions?: ToastAction[];
 }
 
 export interface ToastItem {
@@ -17,7 +21,7 @@ export interface ToastItem {
   message: string;
   title?: string;
   duration: number;
-  action?: ToastAction;
+  actions: ToastAction[];
   createdAt: number;
 }
 
@@ -60,7 +64,7 @@ export const toastStore = {
       message,
       title: options?.title,
       duration,
-      action: options?.action,
+      actions: [...(options?.actions ?? []), ...(options?.action ? [options.action] : [])].slice(0, 2),
       createdAt: Date.now(),
     };
 

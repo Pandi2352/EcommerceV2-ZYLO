@@ -20,6 +20,8 @@ import { AuditLog, AuditLogDocument } from '../audit/schemas/audit-log.schema';
 import { UpdateStaffUserDto } from './dto/update-staff-user.dto';
 import { StaffUserQueryDto } from './dto/staff-user-query.dto';
 
+const SORTABLE_FIELDS = new Set(['name', 'email', 'userCode', 'designation', 'status', 'createdAt', 'lastLoginAt']);
+
 @Injectable()
 export class StaffUsersService {
   constructor(
@@ -76,10 +78,12 @@ export class StaffUsersService {
       if (query.createdTo) filter.createdAt.$lte = new Date(query.createdTo);
     }
 
-    const sortOption: Record<string, any> = {};
-    if (query.sort) {
-      const desc = query.sort.startsWith('-');
-      const field = desc ? query.sort.slice(1) : query.sort;
+    // Only allow sorting by public fields: sorting by a secret (e.g. passwordHash)
+    // would leak it through the result order.
+    const sortOption: Record<string, 1 | -1> = {};
+    const desc = query.sort?.startsWith('-') ?? false;
+    const field = query.sort ? (desc ? query.sort.slice(1) : query.sort) : '';
+    if (SORTABLE_FIELDS.has(field)) {
       sortOption[field] = desc ? -1 : 1;
     } else {
       sortOption.createdAt = -1;

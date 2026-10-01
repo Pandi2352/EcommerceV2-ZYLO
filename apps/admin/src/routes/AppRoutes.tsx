@@ -21,6 +21,7 @@ import AdminSecurityPage from '../pages/AdminSecurityPage';
 import AdminAuditLogsPage from '../pages/AdminAuditLogsPage';
 import AcceptInvitePage from '../pages/AcceptInvitePage';
 import UsersPage from '../pages/UsersPage';
+import UserManagementOverviewPage from '../pages/UserManagementOverviewPage';
 import UserDetailsPage from '../pages/UserDetailsPage';
 import RolesPage from '../pages/RolesPage';
 import RoleDetailsPage from '../pages/RoleDetailsPage';
@@ -73,6 +74,7 @@ export const AppRoutes: React.FC = () => {
 
           {/* User Management & RBAC with Granular Permission Guards */}
           <Route element={<ProtectedRoute permission="users.view" />}>
+            <Route path={ROUTES.USER_MANAGEMENT_OVERVIEW} element={<UserManagementOverviewPage />} />
             <Route path={ROUTES.USERS} element={<UsersPage />} />
             <Route path={ROUTES.USER_DETAILS} element={<UserDetailsPage />} />
             <Route path={ROUTES.STAFF} element={<UsersPage />} />

@@ -1,6 +1,17 @@
 @import "tailwindcss";
+@import "../../../packages/shared/src/styles/ui.css";
 /* Generate classes used by shared components too */
 @source "../../../packages/shared/src";
+
+/* Admin typography: Inter with system fallbacks */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  font-feature-settings: "cv11", "ss01"; /* Inter: open digits, single-storey a */
+  -webkit-font-smoothing: antialiased;
+}
 
 /* Universal Placeholder Styling */
 input::placeholder,

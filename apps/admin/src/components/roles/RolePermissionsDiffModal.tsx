@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { ShieldCheck, Plus, Minus, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { AlertTriangle, Minus, Plus, X } from 'lucide-react';
 import Button from '@shared/ui/Button';
+import InputField from '@shared/ui/InputField';
 
 export interface RolePermissionsDiffModalProps {
   isOpen: boolean;
@@ -8,134 +10,136 @@ export interface RolePermissionsDiffModalProps {
   onConfirm: (reason: string) => Promise<void>;
   addedPermissions: string[];
   removedPermissions: string[];
+  /** Changed keys that are marked sensitive in the catalog; listed separately */
+  sensitivePermissions?: string[];
   roleName: string;
+  /** Users who get the new permissions immediately */
+  userCount?: number;
   isLoading: boolean;
 }
 
+const KeyList: React.FC<{ keys: string[]; sign: 'add' | 'remove'; sensitive: Set<string> }> = ({ keys, sign, sensitive }) => (
+  <ul className="divide-y divide-zinc-100 rounded-md border border-zinc-200">
+    {keys.map((key) => (
+      <li key={key} className="flex items-center gap-2 px-2.5 py-1.5">
+        {sign === 'add' ? <Plus className="h-3 w-3 shrink-0 text-emerald-600" /> : <Minus className="h-3 w-3 shrink-0 text-rose-600" />}
+        <span className="truncate font-mono text-xs text-zinc-800">{key}</span>
+        {sensitive.has(key) && (
+          <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-xs text-amber-700">
+            <AlertTriangle className="h-3 w-3" />
+            Sensitive
+          </span>
+        )}
+      </li>
+    ))}
+  </ul>
+);
+
+/** Confirms a permission change: lists what is added / removed and records a reason for the audit log. */
 export const RolePermissionsDiffModal: React.FC<RolePermissionsDiffModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
   addedPermissions,
   removedPermissions,
+  sensitivePermissions = [],
   roleName,
+  userCount,
   isLoading,
 }) => {
   const [reason, setReason] = useState('');
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => e.key === 'Escape' && !isLoading && onClose();
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, isLoading, onClose]);
+
   if (!isOpen) return null;
 
-  const totalChanges = addedPermissions.length + removedPermissions.length;
+  const sensitive = new Set(sensitivePermissions);
+  const summary = [
+    addedPermissions.length > 0 && `adding ${addedPermissions.length}`,
+    removedPermissions.length > 0 && `removing ${removedPermissions.length}`,
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onConfirm(reason);
+    void onConfirm(reason);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200"
-          onClick={() => !isLoading && onClose()}
-        />
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="perm-diff-title">
+      <div className="fixed inset-0 animate-fade-in bg-zinc-900/40" onClick={() => !isLoading && onClose()} />
 
-        <div className="relative transform overflow-hidden rounded-md bg-white text-left border border-slate-200 transition-all sm:my-8 sm:w-full sm:max-w-xl">
-          <form onSubmit={handleSubmit}>
-            <div className="bg-white px-6 pt-6 pb-5">
-              <div className="flex items-start justify-between pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">Review Permission Changes</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Updating access rules for <strong>{roleName}</strong> ({totalChanges} modifications)
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={isLoading}
-                  className="text-slate-400 hover:text-slate-500 p-1 -mr-1"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="mt-4 space-y-4 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
-                {/* Added Permissions */}
-                {addedPermissions.length > 0 && (
-                  <div>
-                    <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      Granting Permissions (+{addedPermissions.length})
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 p-3 rounded-md bg-emerald-50/60 border border-emerald-100">
-                      {addedPermissions.map((perm) => (
-                        <span
-                          key={perm}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100/80 text-emerald-800 font-mono text-[11px] font-semibold"
-                        >
-                          <Plus className="w-3 h-3 text-emerald-600" />
-                          {perm}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Removed Permissions */}
-                {removedPermissions.length > 0 && (
-                  <div>
-                    <div className="text-xs font-bold text-rose-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-rose-500" />
-                      Revoking Permissions (-{removedPermissions.length})
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 p-3 rounded-md bg-rose-50/60 border border-rose-100">
-                      {removedPermissions.map((perm) => (
-                        <span
-                          key={perm}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100/80 text-rose-800 font-mono text-[11px] font-semibold"
-                        >
-                          <Minus className="w-3 h-3 text-rose-600" />
-                          {perm}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Change Reason for Audit Log */}
-                <div className="pt-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Reason for Change (Recorded in Audit Trail)
-                  </label>
-                  <input
-                    type="text"
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    placeholder="e.g. Added customer refund authorization per management policy"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 px-6 py-3.5 flex items-center justify-end gap-3 border-t border-slate-100">
-              <Button variant="outline" onClick={onClose} disabled={isLoading}>
-                Cancel
-              </Button>
-              <Button variant="primary" type="submit" isLoading={isLoading}>
-                Confirm & Apply Permissions
-              </Button>
-            </div>
-          </form>
+      <form
+        onSubmit={handleSubmit}
+        className="relative flex max-h-[85vh] w-full max-w-lg animate-pop-in flex-col rounded-xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-900/15"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-zinc-100 px-5 py-4">
+          <div className="min-w-0">
+            <h3 id="perm-diff-title" className="text-[15px] font-semibold text-zinc-900">
+              Save permission changes?
+            </h3>
+            <p className="mt-0.5 text-[13px] text-zinc-500">
+              <span className="font-medium text-zinc-700">{roleName}</span>: {summary || 'no changes'}.
+              {userCount !== undefined && ` Takes effect immediately for ${userCount} user${userCount === 1 ? '' : 's'}.`}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isLoading}
+            aria-label="Close"
+            className="-mr-1 rounded-md p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      </div>
-    </div>
+
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 custom-scrollbar">
+          {sensitive.size > 0 && (
+            <p className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              This change includes {sensitive.size} sensitive permission{sensitive.size === 1 ? '' : 's'}. Double-check before saving.
+            </p>
+          )}
+          {addedPermissions.length > 0 && (
+            <div>
+              <h4 className="mb-1.5 text-[13px] font-medium text-zinc-800">Granting ({addedPermissions.length})</h4>
+              <KeyList keys={addedPermissions} sign="add" sensitive={sensitive} />
+            </div>
+          )}
+          {removedPermissions.length > 0 && (
+            <div>
+              <h4 className="mb-1.5 text-[13px] font-medium text-zinc-800">Revoking ({removedPermissions.length})</h4>
+              <KeyList keys={removedPermissions} sign="remove" sensitive={sensitive} />
+            </div>
+          )}
+          <InputField
+            fieldSize="sm"
+            label="Reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="e.g. Added refund approval per finance policy"
+            helperText="Optional. Recorded in the audit log."
+          />
+        </div>
+
+        <div className="flex justify-end gap-2 border-t border-zinc-100 px-5 py-3">
+          <Button size="sm" variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button size="sm" variant="primary" type="submit" isLoading={isLoading}>
+            Save permissions
+          </Button>
+        </div>
+      </form>
+    </div>,
+    document.body,
   );
 };
 

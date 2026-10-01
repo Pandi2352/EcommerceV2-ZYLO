@@ -1,52 +1,66 @@
-import { useState } from 'react';
-import { useApiQuery } from '@shared/hooks/useApiQuery';
-import { auditService } from '../services/audit.service';
-import AuditLogFilters, { type AuditFilters } from '../features/audit/components/AuditLogFilters';
-import { auditLogColumns } from '../features/audit/components/auditLogColumns';
+import { ShieldCheck } from 'lucide-react';
+import PageHeader from '@shared/ui/PageHeader';
 import DataTable from '@shared/ui/DataTable';
 import Pagination from '@shared/ui/Pagination';
-
-const PAGE_SIZE = 20;
+import EmptyState from '@shared/ui/EmptyState';
+import Button from '@shared/ui/Button';
+import AuditLogFilters from '../features/audit/components/AuditLogFilters';
+import { auditLogColumns } from '../features/audit/components/auditLogColumns';
+import { AUDIT_PAGE_SIZES, useAuditLogs } from '../features/audit/hooks/useAuditLogs';
 
 /** Security audit trail: sign-ins, lockouts, password and two-factor changes (ADMIN+). */
 export default function AdminAuditLogsPage() {
-  const [filters, setFilters] = useState<AuditFilters>({});
-  const [page, setPage] = useState(1);
+  const state = useAuditLogs();
 
-  const logs = useApiQuery(
-    () => auditService.list({ ...filters, page, limit: PAGE_SIZE }),
-    [filters.event, filters.email, filters.portal, page],
+  const emptyState = state.hasFilters ? (
+    <EmptyState
+      icon={<ShieldCheck />}
+      title="No events match these filters"
+      description="Try another event or portal, or clear the filters to see the full log."
+      action={<Button size="sm" variant="outline" onClick={state.clearFilters}>Clear filters</Button>}
+    />
+  ) : (
+    <EmptyState
+      icon={<ShieldCheck />}
+      title="No security events yet"
+      description="Sign-ins and account security changes are recorded here as they happen."
+    />
   );
 
-  const applyFilters = (next: AuditFilters) => {
-    setFilters(next);
-    setPage(1);
-  };
-
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Security logs</h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Sign-in attempts and account security changes, with IP address and device. Kept for 180 days.
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        title="Security logs"
+        count={state.meta?.total}
+        description="Sign-in attempts and account security changes, with IP address and device. Kept for 180 days."
+      />
 
-      <AuditLogFilters value={filters} onChange={applyFilters} />
+      <AuditLogFilters state={state} />
 
       <DataTable
         columns={auditLogColumns}
-        rows={logs.data?.items ?? null}
+        rows={state.items}
         rowKey={(row) => row.id}
-        isLoading={logs.isLoading}
-        error={logs.error?.message}
-        onRetry={logs.reload}
-        emptyMessage="No events match these filters."
+        isLoading={state.isLoading}
+        error={state.error?.message}
+        onRetry={state.reload}
+        emptyState={emptyState}
+        skeletonRows={10}
+        footer={
+          state.meta && (
+            <Pagination
+              page={state.page}
+              pageSize={state.pageSize}
+              total={state.meta.total}
+              onPageChange={state.setPage}
+              onPageSizeChange={state.setPageSize}
+              pageSizeOptions={AUDIT_PAGE_SIZES}
+              disabled={state.isLoading}
+              itemLabel="events"
+            />
+          )
+        }
       />
-
-      {logs.data && logs.data.meta.total > 0 && (
-        <Pagination meta={logs.data.meta} onPageChange={setPage} disabled={logs.isLoading} />
-      )}
     </div>
   );
 }

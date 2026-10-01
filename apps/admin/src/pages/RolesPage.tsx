@@ -1,305 +1,100 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Plus,
-  Users,
-  Key,
-  Trash2,
-  ExternalLink,
-  RefreshCw,
-  Lock,
-} from 'lucide-react';
-import {
-  FcKey,
-  FcLock,
-  FcDepartment,
-  FcConferenceCall,
-} from 'react-icons/fc';
-import Button from '@shared/ui/Button';
-import ApiLoader from '@shared/ui/Spinner';
-import ConfirmDialog from '@shared/ui/ConfirmDialog';
-import { toast } from '@shared/ui/Toast';
+import React, { useMemo, useState } from 'react';
+import { Plus, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@shared/auth/AuthContext';
-import { rolesService, type Role } from '../services/roles.service';
-import { extractErrorMessage } from '@shared/api/client';
+import PageHeader from '@shared/ui/PageHeader';
+import DataTable from '@shared/ui/DataTable';
+import Pagination from '@shared/ui/Pagination';
+import EmptyState from '@shared/ui/EmptyState';
+import Button from '@shared/ui/Button';
+import type { Role } from '../services/roles.service';
+import { useRolesList } from '../features/roles/hooks/useRolesList';
+import { useRoleActions } from '../features/roles/hooks/useRoleActions';
+import { rolesColumns } from '../features/roles/components/rolesColumns';
+import RolesToolbar from '../features/roles/components/RolesToolbar';
+import EditRoleDrawer from '../features/roles/components/EditRoleDrawer';
 import CreateRoleDrawer from '../components/roles/CreateRoleDrawer';
 
 export const RolesPage: React.FC = () => {
+  const navigate = useNavigate();
   const { can } = useAuth();
+  const state = useRolesList();
+  const actions = useRoleActions({ onChanged: state.reload, onDeleted: state.reload });
 
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [deleteRoleItem, setDeleteRoleItem] = useState<Role | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editing, setEditing] = useState<Role | null>(null);
 
-  const fetchRoles = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const res: any = await rolesService.listRoles();
-      const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
-      setRoles(list);
-    } catch (err) {
-      toast.error(extractErrorMessage(err));
-      setRoles([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const columns = useMemo(
+    () => rolesColumns({ onEdit: setEditing, onToggleStatus: actions.askToggleStatus, onDelete: actions.askDelete }),
+    [actions.askToggleStatus, actions.askDelete],
+  );
 
-  useEffect(() => {
-    fetchRoles();
-  }, [fetchRoles]);
-
-  const handleDeleteRole = async () => {
-    if (!deleteRoleItem) return;
-    try {
-      setIsDeleting(true);
-      await rolesService.deleteRole(deleteRoleItem.id);
-      toast.success(`Role "${deleteRoleItem.name}" deleted successfully.`);
-      setDeleteRoleItem(null);
-      fetchRoles();
-    } catch (err) {
-      toast.error(extractErrorMessage(err));
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  const emptyState = state.hasFilters ? (
+    <EmptyState
+      icon={<Shield />}
+      title="No roles match these filters"
+      description="Try a different search, or clear the filters to see every role."
+      action={<Button size="sm" variant="outline" onClick={state.clearFilters}>Clear filters</Button>}
+    />
+  ) : (
+    <EmptyState
+      icon={<Shield />}
+      title="No roles yet"
+      description="Roles group the permissions a team member gets in the console."
+      action={can('roles.create') && <Button size="sm" variant="primary" leftIcon={<Plus />} onClick={() => setCreateOpen(true)}>Create role</Button>}
+    />
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Roles & Permissions</h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-              {roles.length} Roles
-            </span>
-          </div>
-          <p className="text-sm text-slate-500 mt-1">
-            Configure system roles, create custom departmental authority profiles, and manage granular permissions.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchRoles}
-            leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />}
-          >
-            Refresh
-          </Button>
-
-          {can('roles.create') && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setIsCreateOpen(true)}
-              leftIcon={<Plus className="w-4 h-4" />}
-            >
-              Create Role
+    <div>
+      <PageHeader
+        title="Roles"
+        count={state.total}
+        description="Roles decide what each team member can see and change in the console."
+        actions={
+          can('roles.create') && (
+            <Button size="sm" variant="primary" leftIcon={<Plus />} onClick={() => setCreateOpen(true)}>
+              Create role
             </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-md bg-indigo-50/70 border border-indigo-100 flex items-center justify-center shrink-0">
-            <FcKey className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Total Roles
-            </div>
-            <div className="text-xl font-bold text-slate-900 mt-0.5">{roles.length}</div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-md bg-purple-50/70 border border-purple-100 flex items-center justify-center shrink-0">
-            <FcLock className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              System Roles
-            </div>
-            <div className="text-xl font-bold text-slate-900 mt-0.5">
-              {roles.filter((r) => r.isSystem).length}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-md bg-emerald-50/70 border border-emerald-100 flex items-center justify-center shrink-0">
-            <FcDepartment className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Custom Roles
-            </div>
-            <div className="text-xl font-bold text-slate-900 mt-0.5">
-              {roles.filter((r) => !r.isSystem).length}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-md bg-sky-50/70 border border-sky-100 flex items-center justify-center shrink-0">
-            <FcConferenceCall className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Staff Assigned
-            </div>
-            <div className="text-xl font-bold text-slate-900 mt-0.5">
-              {roles.reduce((acc, r) => acc + (r.userCount || 0), 0)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Roles Grid */}
-      {isLoading ? (
-        <div className="p-8 text-center bg-white rounded-md border border-slate-200">
-          <ApiLoader text="Loading roles and permissions..." />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {(roles || []).map((role) => {
-            const isSuperAdmin = role.key === 'super_admin';
-            const hasWildcard = role.permissions.includes('*') || isSuperAdmin;
-            const canDelete = !role.isSystem && (role.userCount ?? 0) === 0 && can('roles.delete');
-
-            return (
-              <div
-                key={role.id}
-                className="bg-white rounded-md border border-slate-200 hover:border-slate-300 transition-all flex flex-col justify-between overflow-hidden"
-              >
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className={`w-10 h-10 rounded-md flex items-center justify-center shrink-0 ${
-                          isSuperAdmin
-                            ? 'bg-purple-100 text-purple-700'
-                            : role.isSystem
-                            ? 'bg-indigo-50 text-indigo-700'
-                            : 'bg-emerald-50 text-emerald-700'
-                        }`}
-                      >
-                        {isSuperAdmin ? (
-                          <ShieldAlert className="w-5 h-5" />
-                        ) : role.isSystem ? (
-                          <ShieldCheck className="w-5 h-5" />
-                        ) : (
-                          <Shield className="w-5 h-5" />
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-base font-bold text-slate-900 leading-tight">
-                          {role.name}
-                        </h3>
-                        <div className="font-mono text-[11px] text-slate-400 mt-0.5">
-                          {role.key}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {role.isSystem ? (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
-                          <Lock className="w-2.5 h-2.5" />
-                          System
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Custom
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-slate-500 leading-relaxed min-h-[36px] line-clamp-2 mb-4">
-                    {role.description || 'Pre-configured access controls and system authorization rules.'}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2 p-2.5 rounded-md bg-slate-50 border border-slate-100 text-xs">
-                    <div className="flex items-center gap-1.5 text-slate-600">
-                      <Users className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="font-bold text-slate-800">{role.userCount ?? 0}</span>
-                      <span>members</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 text-slate-600">
-                      <Key className="w-3.5 h-3.5 text-slate-400" />
-                      {hasWildcard ? (
-                        <span className="font-bold text-purple-700">Root (*)</span>
-                      ) : (
-                        <>
-                          <span className="font-bold text-slate-800">{role.permissions.length}</span>
-                          <span>perms</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="px-5 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
-                  <Link
-                    to={`/roles/${role.id}`}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                  >
-                    <span>Configure Permissions</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </Link>
-
-                  {canDelete && (
-                    <button
-                      type="button"
-                      onClick={() => setDeleteRoleItem(role)}
-                      className="p-1 text-slate-400 hover:text-rose-600 rounded-md transition-colors"
-                      title="Delete Custom Role"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Create Role Drawer */}
-      <CreateRoleDrawer
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        onSuccess={fetchRoles}
-        existingRoles={roles}
-      />
-
-      {/* Delete Role Confirm Dialog */}
-      <ConfirmDialog
-        isOpen={!!deleteRoleItem}
-        onClose={() => setDeleteRoleItem(null)}
-        onConfirm={handleDeleteRole}
-        isLoading={isDeleting}
-        title="Delete Custom Role"
-        description={
-          <span>
-            Are you sure you want to delete role <strong>"{deleteRoleItem?.name}"</strong>? This action cannot be undone.
-          </span>
+          )
         }
-        tone="danger"
-        confirmText="Delete Role"
       />
+
+      <RolesToolbar state={state} />
+
+      <DataTable
+        columns={columns}
+        rows={state.rows}
+        rowKey={(r) => r.id}
+        isLoading={state.isLoading}
+        error={state.error?.message}
+        onRetry={state.reload}
+        emptyState={emptyState}
+        onRowClick={(r) => navigate(`/roles/${r.id}`)}
+        skeletonRows={6}
+        footer={
+          // Shown once there is more than the smallest page size, so the size can always be changed back
+          state.filteredTotal > 10 && (
+            <Pagination
+              page={state.page}
+              pageSize={state.pageSize}
+              total={state.filteredTotal}
+              onPageChange={state.setPage}
+              onPageSizeChange={state.setPageSize}
+              itemLabel="roles"
+            />
+          )
+        }
+      />
+
+      <CreateRoleDrawer
+        isOpen={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={state.reload}
+        existingRoles={state.all}
+      />
+      <EditRoleDrawer role={editing} onClose={() => setEditing(null)} onSaved={state.reload} />
+      {actions.dialog}
     </div>
   );
 };

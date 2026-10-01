@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import Drawer from '@shared/ui/Drawer';
-import InputField from '@shared/ui/InputField';
-import Button from '@shared/ui/Button';
-import { toast } from '@shared/ui/Toast';
-import { rolesService, type Role } from '../../services/roles.service';
-import { extractErrorMessage } from '@shared/api/client';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Drawer from '@shared/ui/Drawer';
+import InputField from '@shared/ui/InputField';
+import Dropdown from '@shared/ui/Dropdown';
+import Button from '@shared/ui/Button';
+import { toast } from '@shared/ui/Toast';
+import { extractErrorMessage } from '@shared/api/client';
+import { rolesService, type Role } from '../../services/roles.service';
+import TextAreaField from '../../features/roles/components/TextAreaField';
+import { hasAllPermissions, pluralize } from '../../features/roles/lib/roleRules';
 
 export interface CreateRoleDrawerProps {
   isOpen: boolean;
@@ -15,44 +18,47 @@ export interface CreateRoleDrawerProps {
   existingRoles: Role[];
 }
 
-export const CreateRoleDrawer: React.FC<CreateRoleDrawerProps> = ({
-  isOpen,
-  onClose,
-  onSuccess,
-  existingRoles,
-}) => {
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+export const CreateRoleDrawer: React.FC<CreateRoleDrawerProps> = ({ isOpen, onClose, onSuccess, existingRoles }) => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [key, setKey] = useState('');
+  const [keyEdited, setKeyEdited] = useState(false);
   const [description, setDescription] = useState('');
   const [cloneRoleId, setCloneRoleId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auto-slugify role key on name change if key hasn't been manually diverged
-  const handleNameChange = (val: string) => {
-    setName(val);
-    const slug = val
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
-    setKey(slug);
+  // The key follows the name until the user types their own
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (!keyEdited) setKey(slugify(value));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const reset = () => {
+    setName('');
+    setKey('');
+    setKeyEdited(false);
+    setDescription('');
+    setCloneRoleId('');
+  };
 
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!name.trim()) {
       toast.error('Role name is required');
       return;
     }
-
     if (!key.trim()) {
       toast.error('Role key identifier is required');
       return;
     }
 
     const cloned = existingRoles.find((r) => r.id === cloneRoleId);
-    const initialPermissions = cloned ? cloned.permissions : [];
 
     try {
       setIsSubmitting(true);
@@ -60,10 +66,12 @@ export const CreateRoleDrawer: React.FC<CreateRoleDrawerProps> = ({
         name: name.trim(),
         key: key.trim().toLowerCase(),
         description: description.trim() || undefined,
-        permissions: initialPermissions,
+        permissions: cloned ? cloned.permissions : [],
       });
-
-      toast.success(`Role "${created.name}" created successfully`);
+      toast.success(cloned ? `Permissions were copied from "${cloned.name}".` : 'Choose its permissions next.', {
+        title: `"${created.name}" created`,
+      });
+      reset();
       onSuccess();
       onClose();
       navigate(`/roles/${created.id}`);
@@ -74,84 +82,72 @@ export const CreateRoleDrawer: React.FC<CreateRoleDrawerProps> = ({
     }
   };
 
+  const cloneOptions = existingRoles.map((r) => ({
+    value: r.id,
+    label: r.name,
+    description: hasAllPermissions(r) ? 'All permissions' : pluralize(r.permissions.length, 'permission'),
+  }));
+
   return (
     <Drawer
       isOpen={isOpen}
       onClose={onClose}
-      title="Create Custom Role"
-      description="Define a new administrative role with tailored access controls and operational permissions."
+      title="Create role"
+      description="A custom role groups the permissions a team needs."
       size="md"
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button size="sm" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button
-            variant="primary"
-            onClick={handleSubmit}
-            isLoading={isSubmitting}
-            leftIcon={<Plus className="w-4 h-4" />}
-          >
-            Create & Configure
+          <Button size="sm" variant="primary" onClick={() => handleSubmit()} isLoading={isSubmitting} leftIcon={<Plus />}>
+            Create and configure
           </Button>
         </>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <InputField
-          label="Role Name"
+          fieldSize="sm"
+          label="Role name"
           name="name"
           value={name}
           onChange={(e) => handleNameChange(e.target.value)}
           placeholder="e.g. Warehouse Lead"
-          helperText="Human-readable title displayed throughout console"
+          helperText="Shown throughout the console."
           required
           autoFocus
         />
-
         <InputField
-          label="Role Key Identifier"
+          fieldSize="sm"
+          label="Key"
           name="key"
           value={key}
-          onChange={(e) => setKey(e.target.value.toLowerCase())}
+          onChange={(e) => {
+            setKeyEdited(true);
+            setKey(e.target.value.toLowerCase());
+          }}
           placeholder="e.g. warehouse_lead"
-          helperText="Immutable, snake_case system identifier used in code and logs"
+          helperText="snake_case identifier used in code and audit logs. It can't be changed later."
+          className="font-mono"
           required
         />
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Role Description
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            placeholder="Oversees warehouse receiving, stock adjustments, and fulfillment dispatches..."
-            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors resize-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Clone Permissions From (Optional)
-          </label>
-          <select
-            value={cloneRoleId}
-            onChange={(e) => setCloneRoleId(e.target.value)}
-            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
-          >
-            <option value="">Start with blank permissions</option>
-            {existingRoles.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name} ({r.permissions.length} permissions)
-              </option>
-            ))}
-          </select>
-          <p className="text-[11px] text-slate-400 mt-1">
-            You will be redirected to the Permissions Matrix to fine-tune individual module toggles after creation.
-          </p>
-        </div>
+        <TextAreaField
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Oversees warehouse receiving, stock adjustments and dispatch."
+        />
+        <Dropdown
+          label="Copy permissions from"
+          value={cloneRoleId}
+          onChange={setCloneRoleId}
+          options={cloneOptions}
+          placeholder="Start with no permissions"
+          searchable={cloneOptions.length > 7}
+          clearable
+          helperText="You can fine-tune individual permissions after the role is created."
+        />
       </form>
     </Drawer>
   );

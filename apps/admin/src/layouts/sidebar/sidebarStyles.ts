@@ -163,6 +163,7 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         icon: UserCheck,
         badge: { text: 'RBAC', color: 'bg-indigo-500/20 text-indigo-400' },
         pages: [
+          { label: 'Overview', to: ROUTES.USER_MANAGEMENT_OVERVIEW },
           { label: 'Users', to: ROUTES.USERS },
           { label: 'Roles', to: ROUTES.ROLES },
           { label: 'Invitations', to: ROUTES.INVITATIONS },

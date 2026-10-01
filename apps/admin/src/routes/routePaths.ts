@@ -37,6 +37,7 @@ export const ROUTES = {
   PROMOTIONS: '/promotions',
 
   // User Management (Multi-Admin RBAC)
+  USER_MANAGEMENT_OVERVIEW: '/user-management',
   USERS: '/users',
   USER_DETAILS: '/users/:id',
   ROLES: '/roles',

@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
-import { AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import { cn } from '../utils/cn';
 import Button from './Button';
 
 export interface ConfirmDialogProps {
@@ -14,6 +16,13 @@ export interface ConfirmDialogProps {
   isLoading?: boolean;
 }
 
+const TONES = {
+  danger: { icon: AlertTriangle, iconClass: 'bg-rose-50 text-rose-600', button: 'danger' as const },
+  warning: { icon: AlertCircle, iconClass: 'bg-amber-50 text-amber-600', button: 'primary' as const },
+  primary: { icon: Info, iconClass: 'bg-zinc-100 text-zinc-700', button: 'primary' as const },
+};
+
+/** Confirmation for consequential actions. Escape / backdrop cancel unless the action is running. */
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isOpen,
   onClose,
@@ -26,100 +35,48 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isLoading = false,
 }) => {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isLoading) {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    }
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => e.key === 'Escape' && !isLoading && onClose();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
     };
   }, [isOpen, isLoading, onClose]);
 
   if (!isOpen) return null;
 
-  const toneConfig = {
-    danger: {
-      icon: AlertTriangle,
-      iconBg: 'bg-rose-100 text-rose-600',
-      btnVariant: 'danger' as const,
-    },
-    warning: {
-      icon: AlertCircle,
-      iconBg: 'bg-amber-100 text-amber-600',
-      btnVariant: 'primary' as const,
-    },
-    primary: {
-      icon: Info,
-      iconBg: 'bg-indigo-100 text-indigo-600',
-      btnVariant: 'primary' as const,
-    },
-  }[tone];
+  const { icon: Icon, iconClass, button } = TONES[tone];
 
-  const IconComponent = toneConfig.icon;
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+      <div className="fixed inset-0 animate-fade-in bg-zinc-900/40" onClick={() => !isLoading && onClose()} />
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200"
-          onClick={() => !isLoading && onClose()}
-        />
-
-        <div className="relative transform overflow-hidden rounded-md bg-white text-left border border-slate-200 transition-all sm:my-8 sm:w-full sm:max-w-lg">
-          <div className="bg-white px-6 pt-6 pb-4">
-            <div className="sm:flex sm:items-start gap-4">
-              <div
-                className={`mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-md sm:mx-0 sm:h-10 sm:w-10 ${toneConfig.iconBg}`}
-              >
-                <IconComponent className="h-5 w-5" />
-              </div>
-              <div className="mt-3 text-center sm:mt-0 sm:text-left flex-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-bold leading-6 text-slate-900">{title}</h3>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    disabled={isLoading}
-                    className="text-slate-400 hover:text-slate-500 p-1 -mr-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-                {description && (
-                  <div className="mt-2">
-                    <div className="text-sm text-slate-600 leading-relaxed">{description}</div>
-                  </div>
-                )}
-              </div>
-            </div>
+      <div className="relative w-full max-w-md animate-pop-in rounded-xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-900/15">
+        <div className="flex gap-3 p-5">
+          <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', iconClass)}>
+            <Icon className="h-4 w-4" />
           </div>
-          <div className="bg-slate-50/80 px-6 py-3.5 sm:flex sm:flex-row-reverse sm:gap-3 border-t border-slate-100">
-            <Button
-              variant={toneConfig.btnVariant}
-              onClick={onConfirm}
-              isLoading={isLoading}
-              className="w-full sm:w-auto"
-            >
-              {confirmText}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
-              className="mt-3 sm:mt-0 w-full sm:w-auto"
-            >
-              {cancelText}
-            </Button>
+          <div className="min-w-0 flex-1">
+            <h3 id="confirm-title" className="text-[15px] font-semibold text-zinc-900">
+              {title}
+            </h3>
+            {description && <div className="mt-1 text-[13px] leading-relaxed text-zinc-600">{description}</div>}
           </div>
         </div>
+        <div className="flex justify-end gap-2 border-t border-zinc-100 px-5 py-3">
+          <Button size="sm" variant="outline" onClick={onClose} disabled={isLoading}>
+            {cancelText}
+          </Button>
+          <Button size="sm" variant={button} onClick={onConfirm} isLoading={isLoading} autoFocus>
+            {confirmText}
+          </Button>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

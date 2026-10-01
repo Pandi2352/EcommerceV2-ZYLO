@@ -12,6 +12,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { StaffUsersModule } from './modules/staff-users/staff-users.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
+import { UserOverviewModule } from './modules/user-overview/user-overview.module';
 import { mongooseAsyncConfig } from './config/database.config';
 import { appConfig } from './config/app.config';
 import { authConfig } from './config/auth.config';
@@ -42,6 +43,7 @@ import { PermissionsGuard } from './common/authorization/permissions.guard';
     RolesModule,
     StaffUsersModule,
     InvitationsModule,
+    UserOverviewModule,
   ],
   providers: [
     // Guards run in registration order: rate limit → authenticate → forced password change → account type → permissions → roles.

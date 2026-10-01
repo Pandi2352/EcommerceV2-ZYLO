@@ -49,8 +49,9 @@ export interface RoleUserItem {
 }
 
 export const rolesService = {
+  /** All roles in one request (the API caps a page at 100; role counts stay far below that). */
   listRoles: () => {
-    return unwrap<RoleListResponse>(api.get('/admin/roles'));
+    return unwrap<RoleListResponse>(api.get('/admin/roles', { params: { limit: 100 } }));
   },
 
   getRoleById: (id: string) => {

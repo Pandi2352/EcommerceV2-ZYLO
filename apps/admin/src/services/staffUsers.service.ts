@@ -1,5 +1,6 @@
 import { api, unwrap } from '@shared/api/client';
 import type { PermissionKey } from '@shared/constants/permissionKeys';
+import type { PaginationMeta } from '@shared/types/api';
 
 export interface StaffUserItem {
   id: string;
@@ -30,10 +31,7 @@ export interface StaffUserStats {
 
 export interface StaffUsersResponse {
   items: StaffUserItem[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  meta: PaginationMeta;
   stats: StaffUserStats;
 }
 
@@ -44,8 +42,10 @@ export interface StaffUsersQuery {
   roleId?: string;
   designation?: string;
   q?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  /** Field name, prefixed with "-" for descending (e.g. "-lastLoginAt") */
+  sort?: string;
+  createdFrom?: string;
+  createdTo?: string;
 }
 
 export interface StaffUserDetail extends StaffUserItem {

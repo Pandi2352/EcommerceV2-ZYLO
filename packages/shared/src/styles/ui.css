@@ -1,0 +1,68 @@
+/*
+ * Shared UI motion for @zylo/shared components. Imported by each app's index.css.
+ * Motion is limited to entrances of floating layers so users can see where they came from.
+ */
+
+@keyframes zy-pop-in {
+  from { opacity: 0; transform: translateY(-2px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes zy-toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes zy-slide-in-right {
+  from { transform: translateX(16px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes zy-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes zy-shimmer {
+  from { background-position: -200px 0; }
+  to { background-position: calc(200px + 100%) 0; }
+}
+
+@utility animate-pop-in { animation: zy-pop-in 120ms ease-out; }
+@utility animate-toast-in { animation: zy-toast-in 180ms ease-out; }
+@utility animate-slide-in-right { animation: zy-slide-in-right 200ms ease-out; }
+@utility animate-fade-in { animation: zy-fade-in 150ms ease-out; }
+
+/* Loading placeholder for table rows and cards */
+@utility skeleton {
+  border-radius: 4px;
+  background-color: #f4f4f5;
+  background-image: linear-gradient(90deg, #f4f4f5 0, #e4e4e7 50%, #f4f4f5 100%);
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: zy-shimmer 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop-in,
+  .animate-toast-in,
+  .animate-slide-in-right,
+  .animate-fade-in,
+  .skeleton {
+    animation: none;
+  }
+}
+
+/*
+ * Chart tokens. Categorical slots in fixed order (validated: CVD-safe on adjacent pairs);
+ * slots 3–4 are below 3:1 on white, so charts using them always show values as text.
+ */
+:root {
+  --viz-1: #2a78d6; /* blue */
+  --viz-2: #eb6834; /* orange */
+  --viz-3: #1baf7a; /* aqua */
+  --viz-4: #eda100; /* yellow */
+  --viz-track: #cde2fb; /* blue ramp step 100: meter / bar track */
+  --viz-grid: #f0f0f1;
+  --viz-axis: #a1a1aa;
+}

@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Shield, AlertTriangle, Check, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { AlertTriangle, Shield, X } from 'lucide-react';
 import Button from '@shared/ui/Button';
+import Dropdown from '@shared/ui/Dropdown';
 import { toast } from '@shared/ui/Toast';
-import { staffUsersService, type StaffUserItem, type StaffUserDetail } from '../../services/staffUsers.service';
-import { rolesService, type Role } from '../../services/roles.service';
 import { extractErrorMessage } from '@shared/api/client';
+import { staffUsersService, type StaffUserItem, type StaffUserDetail } from '../../services/staffUsers.service';
+import { useRoleOptions } from '../../features/roles/hooks/useRoleOptions';
 
 export interface ChangeRoleDialogProps {
   isOpen: boolean;
@@ -13,52 +16,50 @@ export interface ChangeRoleDialogProps {
   onSuccess: () => void;
 }
 
-export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({
-  isOpen,
-  onClose,
-  user,
-  onSuccess,
-}) => {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
-  const [isLoadingRoles, setIsLoadingRoles] = useState(false);
+/** Compact modal to move a staff user to another (active) role. */
+export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({ isOpen, onClose, user, onSuccess }) => {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { roles, options, isLoading, error } = useRoleOptions({ activeOnly: true });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const currentId = user?.roleIds?.[0] ?? '';
+
+  // The picked role resets to the user's current role every time the dialog opens
+  const session = isOpen && user ? user.id : null;
+  const [picked, setPicked] = useState<{ session: string | null; roleId: string }>({ session: null, roleId: '' });
+  if (picked.session !== session) setPicked({ session, roleId: currentId });
+  const roleId = picked.session === session ? picked.roleId : currentId;
+  const setRoleId = (next: string) => setPicked({ session, roleId: next });
 
   useEffect(() => {
-    if (isOpen && user) {
-      setIsLoadingRoles(true);
-      rolesService
-        .listRoles()
-        .then((res: any) => {
-          const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
-          const activeRoles = list.filter((r: Role) => r.status === 'ACTIVE');
-          setRoles(activeRoles);
-          const currentId = user.roleIds?.[0] || '';
-          setSelectedRoleId(currentId);
-        })
-        .catch((err) => {
-          toast.error(extractErrorMessage(err));
-          setRoles([]);
-        })
-        .finally(() => {
-          setIsLoadingRoles(false);
-        });
-    }
-  }, [isOpen, user]);
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => e.key === 'Escape' && !isSubmitting && onClose();
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, isSubmitting, onClose]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedRoleId) return;
+  const roleOptions = useMemo(
+    () => options.map((o) => (o.value === currentId ? { ...o, description: 'Current role' } : o)),
+    [options, currentId],
+  );
 
-    if (user.roleIds?.[0] === selectedRoleId) {
-      onClose();
-      return;
-    }
+  if (!isOpen || !user) return null;
 
+  const target = roles.find((r) => r.id === roleId);
+  const currentName = roles.find((r) => r.id === currentId)?.name ?? user.roleName;
+  const unchanged = !roleId || roleId === currentId;
+  const profilePath = `/users/${user.id}`;
+
+  const submit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (unchanged || !target) return;
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      await staffUsersService.assignRoles(user.id, [selectedRoleId]);
-      toast.success(`Role updated successfully for ${user.email}`);
+      await staffUsersService.assignRoles(user.id, [roleId]);
+      toast.success(`${user.name}'s access now follows the ${target.name} role.`, {
+        title: `Role changed to ${target.name}`,
+        actions: pathname === profilePath ? undefined : [{ label: 'View profile', onClick: () => navigate(profilePath) }],
+      });
       onSuccess();
       onClose();
     } catch (err) {
@@ -68,129 +69,80 @@ export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({
     }
   };
 
-  if (!isOpen || !user) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="change-role-title">
+      <div className="fixed inset-0 animate-fade-in bg-zinc-900/40" onClick={() => !isSubmitting && onClose()} />
 
-  const targetRole = roles.find((r) => r.id === selectedRoleId);
-  const isSuperAdminTarget = targetRole?.key === 'super_admin';
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200"
-          onClick={() => !isSubmitting && onClose()}
-        />
-
-        <div className="relative transform overflow-hidden rounded-md bg-white text-left border border-slate-200 transition-all sm:my-8 sm:w-full sm:max-w-lg">
-          <form onSubmit={handleSubmit}>
-            <div className="bg-white px-6 pt-6 pb-5">
-              <div className="flex items-start justify-between pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                    <Shield className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">Change Role Assignment</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {user.name} ({user.userCode})
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={isSubmitting}
-                  className="text-slate-400 hover:text-slate-500 p-1 -mr-1"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="mt-4 space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                    Select New Role
-                  </label>
-                  {isLoadingRoles ? (
-                    <div className="h-10 bg-slate-100 animate-pulse rounded-md" />
-                  ) : (
-                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                      {roles.map((r) => {
-                        const isSelected = r.id === selectedRoleId;
-                        const isCurrent = user.roleIds?.includes(r.id);
-
-                        return (
-                          <div
-                            key={r.id}
-                            onClick={() => setSelectedRoleId(r.id)}
-                            className={`p-3 rounded-md border transition-all cursor-pointer flex items-center justify-between ${
-                              isSelected
-                                ? 'border-indigo-600 bg-indigo-50/50'
-                                : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
-                            }`}
-                          >
-                            <div className="flex-1 pr-3">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-slate-900">{r.name}</span>
-                                {r.isSystem && (
-                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-slate-200 text-slate-700">
-                                    System
-                                  </span>
-                                )}
-                                {isCurrent && (
-                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
-                                    Current
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
-                                {r.description || `${r.permissions.length} granular permissions`}
-                              </p>
-                            </div>
-                            <div
-                              className={`w-5 h-5 rounded-md border flex items-center justify-center ${
-                                isSelected
-                                  ? 'border-indigo-600 bg-indigo-600 text-white'
-                                  : 'border-slate-300 bg-white'
-                              }`}
-                            >
-                              {isSelected && <Check className="w-3.5 h-3.5" />}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {isSuperAdminTarget && (
-                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-md flex items-start gap-2.5 text-xs text-rose-800">
-                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold">Privilege Escalation Warning:</span> Assigning the Super Administrator role grants unrestricted root authority across all modules, sensitive settings, and financial records.
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-slate-50 px-6 py-3.5 flex items-center justify-end gap-3 border-t border-slate-100">
-              <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                isLoading={isSubmitting}
-                disabled={!selectedRoleId || selectedRoleId === user.roleIds?.[0]}
-              >
-                Apply Role Change
-              </Button>
-            </div>
-          </form>
+      <form
+        onSubmit={submit}
+        className="relative w-full max-w-md animate-pop-in rounded-xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-900/15"
+      >
+        <div className="flex items-start gap-3 px-5 pt-5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700">
+            <Shield className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 id="change-role-title" className="text-[15px] font-semibold text-zinc-900">
+              Change role
+            </h3>
+            <p className="mt-0.5 truncate text-[13px] text-zinc-500">
+              {user.name} · {user.email}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            aria-label="Close"
+            className="-mr-1 rounded-md p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      </div>
-    </div>
+
+        <div className="space-y-3 px-5 py-4">
+          <Dropdown
+            label="Role"
+            value={roleId}
+            onChange={setRoleId}
+            options={roleOptions}
+            placeholder={isLoading ? 'Loading roles…' : 'Select a role'}
+            disabled={isLoading || isSubmitting}
+            searchable={roleOptions.length > 7}
+            error={error ? `Couldn't load roles: ${error.message}` : null}
+            emptyText="No active roles"
+          />
+
+          {!unchanged && target && (
+            <p className="text-[13px] leading-relaxed text-zinc-600">
+              <span className="font-medium text-zinc-900">{currentName || 'No role'}</span> →{' '}
+              <span className="font-medium text-zinc-900">{target.name}</span>. Their permissions are replaced with the{' '}
+              {target.key === 'super_admin' || target.permissions.includes('*')
+                ? 'full access this role grants'
+                : `${target.permissions.length} permission${target.permissions.length === 1 ? '' : 's'} this role grants`}
+              .
+            </p>
+          )}
+
+          {target?.key === 'super_admin' && !unchanged && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0 text-amber-600" />
+              Super Admin has unrestricted access to every module, setting and financial record.
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2 border-t border-zinc-100 px-5 py-3">
+          <Button size="sm" variant="outline" type="button" onClick={onClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button size="sm" variant="primary" type="submit" isLoading={isSubmitting} disabled={unchanged || !target}>
+            Change role
+          </Button>
+        </div>
+      </form>
+    </div>,
+    document.body,
   );
 };
 

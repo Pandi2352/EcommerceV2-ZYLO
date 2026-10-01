@@ -62,7 +62,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
           onOpenMobileMenu={() => setMobileSidebarOpen(true)}
         />
-        <main className="flex-1 p-4 sm:p-6 lg:p-7 overflow-y-auto custom-scrollbar">
+        <main className="flex-1 overflow-y-auto bg-white px-4 py-4 sm:px-6 sm:py-5 custom-scrollbar">
           <OutletErrorBoundary>
             {children || <Outlet />}
           </OutletErrorBoundary>

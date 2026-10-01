@@ -1,13 +1,16 @@
 import React from 'react';
+import { cn } from '../utils/cn';
 
-export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
+export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'highlight';
 
 const TONES: Record<BadgeTone, string> = {
-  neutral: 'bg-slate-100 text-slate-700 border-slate-200',
-  success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  warning: 'bg-amber-50 text-amber-700 border-amber-200',
-  danger: 'bg-rose-50 text-rose-700 border-rose-200',
-  info: 'bg-sky-50 text-sky-700 border-sky-200',
+  neutral: 'bg-zinc-100 text-zinc-700',
+  success: 'bg-emerald-50 text-emerald-700',
+  warning: 'bg-amber-50 text-amber-700',
+  danger: 'bg-rose-50 text-rose-700',
+  info: 'bg-sky-50 text-sky-700',
+  // Strong marker for a positive security state (e.g. "2FA Enabled")
+  highlight: 'bg-amber-100 text-amber-900',
 };
 
 export interface BadgeProps {
@@ -16,8 +19,9 @@ export interface BadgeProps {
   className?: string;
 }
 
+/** Small label for categories and attributes. For record state with a dot, use StatusPill. */
 export const Badge: React.FC<BadgeProps> = ({ tone = 'neutral', children, className = '' }) => (
-  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-semibold whitespace-nowrap ${TONES[tone]} ${className}`}>
+  <span className={cn('inline-flex items-center gap-1 whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-medium', TONES[tone], className)}>
     {children}
   </span>
 );

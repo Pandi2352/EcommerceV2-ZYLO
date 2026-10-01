@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../../../packages/shared/src/styles/ui.css";
 /* Generate classes used by shared components too */
 @source "../../../packages/shared/src";
 
