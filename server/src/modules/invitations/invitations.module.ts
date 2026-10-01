@@ -6,6 +6,7 @@ import { Role, RoleSchema } from '../roles/schemas/role.schema';
 import { MailModule } from '../mail/mail.module';
 import { AuditModule } from '../audit/audit.module';
 import { InvitationsService } from './invitations.service';
+import { UserCodeService } from './user-code.service';
 import { InvitationAcceptanceService } from './invitation-acceptance.service';
 import { InvitationsController } from './invitations.controller';
 import { PublicInvitationsController } from './public-invitations.controller';
@@ -21,7 +22,7 @@ import { PublicInvitationsController } from './public-invitations.controller';
     AuditModule,
   ],
   controllers: [InvitationsController, PublicInvitationsController],
-  providers: [InvitationsService, InvitationAcceptanceService],
+  providers: [InvitationsService, UserCodeService, InvitationAcceptanceService],
   exports: [InvitationsService, InvitationAcceptanceService, MongooseModule],
 })
 export class InvitationsModule {}

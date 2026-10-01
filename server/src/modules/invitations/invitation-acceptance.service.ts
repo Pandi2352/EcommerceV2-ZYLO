@@ -105,6 +105,7 @@ export class InvitationAcceptanceService {
           status: InvitationStatus.REGISTERED,
           registeredAt: now,
         },
+        $unset: { tokenEncrypted: 1 },
       },
       { new: false },
     );

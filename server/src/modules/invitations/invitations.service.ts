@@ -18,12 +18,15 @@ import { AuditService } from '../audit/audit.service';
 import { AuditEvent } from '../audit/audit-event.enum';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { InvitationQueryDto } from './dto/invitation-query.dto';
+import { UserCodeService } from './user-code.service';
+import { decrypt, encrypt } from '../../common/utils/crypto.util';
 
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 @Injectable()
 export class InvitationsService {
   private readonly adminAppUrl: string;
+  private readonly encryptionKey: string;
 
   constructor(
     @InjectModel(StaffInvitation.name)
@@ -35,11 +38,24 @@ export class InvitationsService {
     private readonly mailService: MailService,
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
+    private readonly userCodes: UserCodeService,
   ) {
-    this.adminAppUrl = this.configService.get<string>('auth.adminUrl') || 'http://127.0.0.1:5175';
+    this.adminAppUrl = this.configService.get<string>('app.adminUrl') || 'http://127.0.0.1:5175';
+    this.encryptionKey = this.configService.getOrThrow<string>('app.encryptionKey');
   }
 
-  async list(query: InvitationQueryDto) {
+  /** Rebuild the invite URL from the encrypted token; undefined if absent or unreadable. */
+  private inviteUrlFor(tokenEncrypted?: string): string | undefined {
+    if (!tokenEncrypted) return undefined;
+    try {
+      return `${this.adminAppUrl}/accept-invite?token=${decrypt(tokenEncrypted, this.encryptionKey)}`;
+    } catch {
+      return undefined; // e.g. ENCRYPTION_KEY changed since the link was issued
+    }
+  }
+
+  /** `includeLinks`: add the copyable invite URL for pending invitations (callers with users.invite). */
+  async list(query: InvitationQueryDto, includeLinks = false) {
     const filter: Record<string, any> = {};
 
     if (query.status) {
@@ -70,6 +86,7 @@ export class InvitationsService {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
+      .select(includeLinks ? '+tokenEncrypted' : '')
       .lean();
 
     // Attach role objects and lazy-check expiration
@@ -79,7 +96,10 @@ export class InvitationsService {
         let currentStatus = inv.status;
         if (currentStatus === InvitationStatus.INVITED && inv.expiresAt < now) {
           currentStatus = InvitationStatus.EXPIRED;
-          await this.invitationModel.updateOne({ _id: inv._id }, { $set: { status: InvitationStatus.EXPIRED } });
+          await this.invitationModel.updateOne(
+            { _id: inv._id },
+            { $set: { status: InvitationStatus.EXPIRED }, $unset: { tokenEncrypted: 1 } },
+          );
         }
 
         const role = await this.roleModel.findById(inv.roleIds[0]).lean();
@@ -104,6 +124,7 @@ export class InvitationsService {
           registeredAt: inv.registeredAt,
           userId: inv.userId,
           createdAt: inv.createdAt,
+          inviteUrl: currentStatus === InvitationStatus.INVITED ? this.inviteUrlFor(inv.tokenEncrypted) : undefined,
         };
       }),
     );
@@ -142,8 +163,6 @@ export class InvitationsService {
 
   async create(dto: CreateInvitationDto, actor: any, reqMeta?: { ip?: string; userAgent?: string }) {
     const email = dto.email.trim().toLowerCase();
-    const userCode = dto.userCode.trim().toUpperCase();
-
     // R9: Email must not belong to an existing user
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) {
@@ -166,26 +185,6 @@ export class InvitationsService {
       });
     }
 
-    // R10: userCode uniqueness check across active users and open invitations
-    const userCodeUser = await this.userModel.findOne({ userCode });
-    if (userCodeUser) {
-      throw new ConflictException({
-        code: 'USER_CODE_TAKEN',
-        message: `User ID code "${userCode}" is already assigned to a staff member`,
-      });
-    }
-
-    const userCodeInvite = await this.invitationModel.findOne({
-      userCode,
-      status: InvitationStatus.INVITED,
-      expiresAt: { $gt: new Date() },
-    });
-    if (userCodeInvite) {
-      throw new ConflictException({
-        code: 'USER_CODE_TAKEN',
-        message: `User ID code "${userCode}" is already assigned to a pending invitation`,
-      });
-    }
 
     // R8: Target role must exist and be ACTIVE
     const targetRoleId = dto.roleIds[0];
@@ -203,6 +202,9 @@ export class InvitationsService {
     // R5: Escalation check
     this.assertNoEscalation(actor, role.permissions);
 
+    // Auto-generated User ID from the shop prefix (e.g. ZY-0004)
+    const userCode = await this.userCodes.next();
+
     // Generate secure 32-byte token
     const rawToken = crypto.randomBytes(32).toString('base64url');
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -218,6 +220,7 @@ export class InvitationsService {
       roleIds: [role._id.toString()],
       message: dto.message?.trim(),
       tokenHash,
+      tokenEncrypted: encrypt(rawToken, this.encryptionKey),
       status: InvitationStatus.INVITED,
       expiresAt,
       invitedBy: actor.id,
@@ -260,8 +263,12 @@ export class InvitationsService {
       data: {
         id: invitation._id.toString(),
         email: invitation.email,
+        userCode: invitation.userCode,
         roleName: role.name,
         expiresAt: invitation.expiresAt,
+        // One-time copy of the link for the inviting admin (e.g. to share manually).
+        // Only the token hash is stored, so this can't be retrieved again later.
+        inviteUrl: inviteLink,
       },
     };
   }
@@ -302,6 +309,7 @@ export class InvitationsService {
     const expiresAt = new Date(now.getTime() + INVITATION_TTL_MS);
 
     inv.tokenHash = tokenHash;
+    inv.tokenEncrypted = encrypt(rawToken, this.encryptionKey);
     inv.expiresAt = expiresAt;
     inv.sentCount += 1;
     inv.lastSentAt = now;
@@ -336,6 +344,14 @@ export class InvitationsService {
     return {
       success: true,
       message: `Invitation email re-sent to ${inv.email}. Previous link has been invalidated.`,
+      data: {
+        id: inv._id.toString(),
+        email: inv.email,
+        userCode: inv.userCode,
+        roleName: role.name,
+        expiresAt: inv.expiresAt,
+        inviteUrl: inviteLink,
+      },
     };
   }
 
@@ -353,6 +369,7 @@ export class InvitationsService {
     }
 
     inv.status = InvitationStatus.REVOKED;
+    inv.tokenEncrypted = undefined;
     inv.revokedAt = new Date();
     inv.revokedBy = actor.id;
     await inv.save();

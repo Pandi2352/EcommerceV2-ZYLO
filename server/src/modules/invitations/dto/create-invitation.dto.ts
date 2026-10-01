@@ -31,12 +31,6 @@ export class CreateInvitationDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ example: 'ZY-0042', description: 'Internal staff reference code' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
-  @MaxLength(30)
-  userCode: string;
 
   @ApiPropertyOptional({ example: 'Senior Catalog Executive' })
   @IsOptional()

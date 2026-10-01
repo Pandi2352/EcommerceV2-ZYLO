@@ -50,8 +50,12 @@ export const ROUTES = {
   USERS_LOGIN_ACTIVITY: '/login-activity',
 
   // Platform & Administration
+  /** Old path of the staff list; redirects to USERS */
   STAFF: '/staff',
   AUDIT_LOGS: '/audit-logs',
+  /** The signed-in staff member's own password, 2FA and sessions */
+  ACCOUNT: '/account',
+  /** Store-wide settings */
   SETTINGS: '/settings',
   SETTINGS_PAYMENTS: '/settings/payments',
   SETTINGS_SHIPPING: '/settings/shipping',

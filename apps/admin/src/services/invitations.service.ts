@@ -22,6 +22,8 @@ export interface StaffInvitationItem {
   registeredAt?: string;
   userId?: string;
   createdAt: string;
+  /** Copyable link; only for pending invitations and callers with users.invite */
+  inviteUrl?: string;
 }
 
 export interface InvitationsResponse {
@@ -52,7 +54,6 @@ export interface CreateInvitationPayload {
   firstName: string;
   lastName: string;
   email: string;
-  userCode: string;
   designation?: string;
   roleIds: string[];
   message?: string;
@@ -68,6 +69,20 @@ export interface VerifiedInvitationData {
   expiresAt: string;
 }
 
+/**
+ * Returned only when a link is created or re-issued. The server stores just a
+ * hash of the token, so the link can never be fetched again afterwards.
+ */
+export interface InvitationLinkResult {
+  id: string;
+  email: string;
+  /** Auto-generated User ID, e.g. ZY-0004 */
+  userCode: string;
+  roleName: string;
+  expiresAt: string;
+  inviteUrl: string;
+}
+
 export const invitationsService = {
   listInvitations: (query: InvitationQuery = {}) => {
     const params = Object.fromEntries(
@@ -76,17 +91,13 @@ export const invitationsService = {
     return unwrap<InvitationsResponse>(api.get('/admin/invitations', { params }));
   },
 
-  createInvitation: (payload: CreateInvitationPayload) => {
-    return unwrap<{ id: string; email: string; roleName: string; expiresAt: string }>(
-      api.post('/admin/invitations', payload),
-    );
-  },
+  /** Creates and emails an invitation; the response carries the link once (see InvitationLinkResult). */
+  createInvitation: (payload: CreateInvitationPayload) =>
+    unwrap<InvitationLinkResult>(api.post('/admin/invitations', payload)),
 
-  resendInvitation: (id: string) => {
-    return unwrap<{ id: string; email: string; roleName: string; expiresAt: string }>(
-      api.post(`/admin/invitations/${id}/resend`),
-    );
-  },
+  /** Issues a new link (the previous one stops working) and emails it again. */
+  resendInvitation: (id: string) =>
+    unwrap<InvitationLinkResult>(api.post(`/admin/invitations/${id}/resend`)),
 
   revokeInvitation: (id: string) => {
     return unwrap<{ id: string; email: string; status: InvitationStatus }>(

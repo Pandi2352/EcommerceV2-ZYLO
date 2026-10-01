@@ -132,7 +132,6 @@ export const UsersPage: React.FC = () => {
         isOpen={inviteOpen}
         onClose={() => setInviteOpen(false)}
         onSuccess={state.reload}
-        suggestedUserCode={`ZY-${String((state.meta?.total ?? 0) + 1).padStart(4, '0')}`}
       />
       <EditUserDrawer isOpen={!!editing} onClose={() => setEditing(null)} user={editing} onSuccess={state.reload} />
       <ChangeRoleDialog isOpen={!!changingRole} onClose={() => setChangingRole(null)} user={changingRole} onSuccess={state.reload} />

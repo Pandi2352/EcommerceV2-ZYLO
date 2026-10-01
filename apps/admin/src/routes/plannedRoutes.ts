@@ -27,6 +27,7 @@ export const MANAGER_PLANNED: PlannedRoute[] = [
   { path: ROUTES.CATEGORIES, title: 'Categories Management' },
   { path: ROUTES.BRANDS, title: 'Brands Management' },
   { path: ROUTES.INVENTORY, title: 'Inventory & Stock Control' },
+  { path: ROUTES.SETTINGS, title: 'General Store Settings' },
   { path: ROUTES.SETTINGS_PAYMENTS, title: 'Payment Gateways Setup' },
   { path: ROUTES.SETTINGS_SHIPPING, title: 'Shipping Methods & Rates' },
 ];

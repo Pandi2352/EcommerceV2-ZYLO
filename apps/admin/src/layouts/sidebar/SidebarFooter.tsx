@@ -24,14 +24,14 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ isCollapsed = fals
         {/* Settings Icon Link with Tooltip */}
         <div className="relative group">
           <Link
-            to={ROUTES.SETTINGS}
+            to={ROUTES.ACCOUNT}
             className="w-8 h-8 rounded-md flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors"
-            aria-label="Settings & Security"
+            aria-label="My account & 2FA"
           >
             <Settings className="w-4 h-4" />
           </Link>
           <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-0.5 rounded bg-[#1a1d2e] border border-slate-700/80 text-white text-[11px] font-semibold whitespace-nowrap shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
-            Settings & Security
+            My account &amp; 2FA
           </div>
         </div>
 
@@ -69,9 +69,9 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ isCollapsed = fals
       {/* Account Settings & Sign Out Row */}
       <div className="flex items-center justify-between pt-1">
         <Link
-          to={ROUTES.SETTINGS}
+          to={ROUTES.ACCOUNT}
           className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors truncate max-w-[130px]"
-          title={user?.name || 'Settings'}
+          title="My account & 2FA"
         >
           <Settings className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">{user?.name ? user.name.split(' ')[0] : 'Settings'}</span>

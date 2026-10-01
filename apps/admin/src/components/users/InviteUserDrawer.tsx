@@ -7,6 +7,7 @@ import Button from '@shared/ui/Button';
 import { toast } from '@shared/ui/Toast';
 import { cn } from '@shared/utils/cn';
 import { extractErrorMessage } from '@shared/api/client';
+import { inviteLinkDialog } from '../../features/invitations/inviteLinkStore';
 import { invitationsService } from '../../services/invitations.service';
 import { useRoleOptions } from '../../features/roles/hooks/useRoleOptions';
 
@@ -14,17 +15,15 @@ export interface InviteUserDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  suggestedUserCode?: string;
 }
 
 const MESSAGE_MAX = 500;
-type Field = 'name' | 'email' | 'userCode' | 'roleId';
+type Field = 'name' | 'email' | 'roleId';
 
-export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({ isOpen, onClose, onSuccess, suggestedUserCode }) => {
+export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({ isOpen, onClose, onSuccess }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [typedUserCode, setTypedUserCode] = useState<string | null>(null);
   const [designation, setDesignation] = useState('');
   const [pickedRoleId, setPickedRoleId] = useState('');
   const [message, setMessage] = useState('');
@@ -50,14 +49,11 @@ export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({ isOpen, onCl
   // Default to Operations Manager, else the first active role, until the user picks one
   const defaultRoleId = (activeRoles.find((r) => r.key === 'operations_manager') ?? activeRoles[0])?.id ?? '';
   const roleId = pickedRoleId || defaultRoleId;
-  // Prefill the suggested code until the user edits the field
-  const userCode = typedUserCode ?? suggestedUserCode ?? '';
 
   const close = () => {
     setFirstName('');
     setLastName('');
     setEmail('');
-    setTypedUserCode(null);
     setDesignation('');
     setPickedRoleId('');
     setMessage('');
@@ -69,7 +65,6 @@ export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({ isOpen, onCl
     const next: Partial<Record<Field, string>> = {};
     if (!firstName.trim() || !lastName.trim()) next.name = 'First and last name are required';
     if (!email.trim() || !email.includes('@')) next.email = 'Please enter a valid work email address';
-    if (!userCode.trim()) next.userCode = 'Staff User ID code is required (e.g. ZY-0003)';
     if (!roleId) next.roleId = 'Please select an active role for this staff member';
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -82,19 +77,19 @@ export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({ isOpen, onCl
     const normalizedEmail = email.trim().toLowerCase();
     try {
       setIsSubmitting(true);
-      await invitationsService.createInvitation({
+      const result = await invitationsService.createInvitation({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: normalizedEmail,
-        userCode: userCode.trim().toUpperCase(),
         designation: designation.trim() || undefined,
         roleIds: [roleId],
         message: message.trim() || undefined,
       });
 
-      toast.success(`We emailed a sign-up link to ${normalizedEmail}. It's valid for 7 days.`, { title: 'Invitation sent' });
       onSuccess();
       close();
+      // Show the one-time link so it can be copied and shared directly
+      inviteLinkDialog.open(result);
     } catch (err) {
       toast.error(extractErrorMessage(err));
     } finally {
@@ -141,9 +136,12 @@ export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({ isOpen, onCl
           placeholder="s.jenkins@company.com" helperText="The sign-up link is sent here and stays valid for 7 days." />
 
         <div className="grid grid-cols-2 gap-3">
-          <InputField fieldSize="sm" label="User ID" name="userCode" value={userCode} maxLength={30} required error={errors.userCode}
-            onChange={(e) => { setTypedUserCode(e.target.value.toUpperCase()); clearError('userCode'); }}
-            placeholder="ZY-0003" helperText="Unique staff identifier" />
+          <div>
+            <span className="mb-1.5 block text-[13px] font-medium text-zinc-800">User ID</span>
+            <p className="flex h-9 items-center rounded-md border border-dashed border-zinc-200 bg-zinc-50 px-3 text-[13px] text-zinc-500">
+              Assigned automatically
+            </p>
+          </div>
           <InputField fieldSize="sm" label="Designation" name="designation" value={designation} maxLength={80}
             onChange={(e) => setDesignation(e.target.value)} placeholder="Senior Catalog Lead" />
         </div>

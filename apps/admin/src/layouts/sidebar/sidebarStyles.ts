@@ -5,7 +5,6 @@ import {
   ShoppingCart,
   Users,
   Tag,
-  ShieldCheck,
   Settings,
   UserCheck,
 } from 'lucide-react';
@@ -161,23 +160,13 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         id: 'user-management',
         label: 'User Management',
         icon: UserCheck,
-        badge: { text: 'RBAC', color: 'bg-indigo-500/20 text-indigo-400' },
         pages: [
           { label: 'Overview', to: ROUTES.USER_MANAGEMENT_OVERVIEW },
           { label: 'Users', to: ROUTES.USERS },
           { label: 'Roles', to: ROUTES.ROLES },
           { label: 'Invitations', to: ROUTES.INVITATIONS },
           { label: 'Login Activity', to: ROUTES.LOGIN_ACTIVITY },
-        ],
-      },
-      {
-        id: 'security',
-        label: 'Staff & Security',
-        icon: ShieldCheck,
-        pages: [
-          { label: 'Staff Accounts', to: ROUTES.STAFF },
-          { label: 'Security & Audit Logs', to: ROUTES.AUDIT_LOGS },
-          { label: 'My Account & 2FA', to: ROUTES.SETTINGS },
+          { label: 'Security Logs', to: ROUTES.AUDIT_LOGS },
         ],
       },
       {

@@ -23,8 +23,10 @@ export class InvitationsController {
   @Get()
   @RequirePermissions('users.view')
   @ApiOperation({ summary: 'List staff invitations with status filters' })
-  async list(@Query() query: InvitationQueryDto) {
-    return this.invitationsService.list(query);
+  async list(@Query() query: InvitationQueryDto, @Req() req: any) {
+    // Copyable invite links are only returned to staff who may send invitations
+    const canInvite = Array.isArray(req.user?.permissions) && req.user.permissions.includes('users.invite');
+    return this.invitationsService.list(query, canInvite);
   }
 
   @Post()

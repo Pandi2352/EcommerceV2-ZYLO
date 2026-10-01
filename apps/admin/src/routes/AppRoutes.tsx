@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import { useAuth } from '@shared/auth/AuthContext';
 import ProtectedRoute from '@shared/auth/ProtectedRoute';
 import PublicOnlyRoute from '@shared/auth/PublicOnlyRoute';
@@ -64,7 +64,7 @@ export const AppRoutes: React.FC = () => {
         <Route element={<AppLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<AdminDashboardPage />} />
           <Route path={ROUTES.DASHBOARDS_ECOMMERCE} element={<AdminDashboardPage />} />
-          <Route path={ROUTES.SETTINGS} element={<AdminSecurityPage />} />
+          <Route path={ROUTES.ACCOUNT} element={<AdminSecurityPage />} />
           {renderPlanned(STAFF_PLANNED)}
 
           <Route element={<ProtectedRoute role={USER_ROLES.ADMIN} />}>
@@ -77,7 +77,7 @@ export const AppRoutes: React.FC = () => {
             <Route path={ROUTES.USER_MANAGEMENT_OVERVIEW} element={<UserManagementOverviewPage />} />
             <Route path={ROUTES.USERS} element={<UsersPage />} />
             <Route path={ROUTES.USER_DETAILS} element={<UserDetailsPage />} />
-            <Route path={ROUTES.STAFF} element={<UsersPage />} />
+            <Route path={ROUTES.STAFF} element={<Navigate to={ROUTES.USERS} replace />} />
             <Route path={ROUTES.INVITATIONS} element={<InvitationsPage />} />
             <Route path={ROUTES.USERS_INVITES} element={<InvitationsPage />} />
             <Route path={ROUTES.LOGIN_ACTIVITY} element={<LoginActivityPage />} />

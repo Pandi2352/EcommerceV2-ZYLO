@@ -14,6 +14,14 @@ export function parseOrigins(value: string | undefined, fallback: string): strin
   return origins.length ? origins : [fallback];
 }
 
+function userCodePrefix(): string {
+  const prefix = (process.env.USER_CODE_PREFIX || 'ZY').trim().toUpperCase();
+  if (!/^[A-Z]{2,5}$/.test(prefix)) {
+    throw new Error('USER_CODE_PREFIX must be 2–5 letters (e.g. ZY).');
+  }
+  return prefix;
+}
+
 export const appConfig = registerAs('app', () => {
   const clientOrigins = parseOrigins(process.env.CLIENT_URL, DEFAULT_CLIENT_URL);
   const adminOrigins = parseOrigins(process.env.ADMIN_URL, DEFAULT_ADMIN_URL);
@@ -26,6 +34,8 @@ export const appConfig = registerAs('app', () => {
     adminUrl: adminOrigins[0],
     /** Every origin allowed to call the API from a browser */
     corsOrigins: [...new Set([...clientOrigins, ...adminOrigins])],
+    /** Shop prefix for generated staff User IDs, e.g. "ZY" → ZY-0001 (2–5 letters) */
+    userCodePrefix: userCodePrefix(),
     /** Key for encrypting secrets at rest (e.g. TOTP secrets). Changing it invalidates them. */
     encryptionKey: requireEnv('ENCRYPTION_KEY', 32),
   };

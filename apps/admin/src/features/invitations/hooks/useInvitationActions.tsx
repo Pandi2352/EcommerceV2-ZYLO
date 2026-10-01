@@ -3,6 +3,7 @@ import ConfirmDialog from '@shared/ui/ConfirmDialog';
 import { toast } from '@shared/ui/Toast';
 import { extractErrorMessage } from '@shared/api/client';
 import { invitationsService, type StaffInvitationItem } from '../../../services/invitations.service';
+import { inviteLinkDialog } from '../inviteLinkStore';
 
 type PendingAction = { kind: 'resend' | 'revoke'; invitation: StaffInvitationItem } | null;
 
@@ -20,10 +21,8 @@ export function useInvitationActions(onChanged: () => void) {
     setIsRunning(true);
     try {
       if (kind === 'resend') {
-        await invitationsService.resendInvitation(invitation.id);
-        toast.success(`A new link was emailed to ${invitation.email}. The previous link no longer works.`, {
-          title: 'Invitation resent',
-        });
+        const result = await invitationsService.resendInvitation(invitation.id);
+        inviteLinkDialog.open(result, { resent: true });
       } else {
         await invitationsService.revokeInvitation(invitation.id);
         toast.success(`${invitation.email} can no longer use their invitation link.`, {
@@ -51,8 +50,8 @@ export function useInvitationActions(onChanged: () => void) {
         }
       : {
           title: 'Resend invitation?',
-          body: `We'll email a new link to ${email}, valid for 7 days. The previous link stops working immediately.`,
-          cta: 'Resend invitation',
+          body: `We'll email a new link to ${email}, valid for 7 days, and show it to you so you can also share it directly. The previous link stops working immediately.`,
+          cta: 'Resend and get link',
           tone: 'primary' as const,
         };
 

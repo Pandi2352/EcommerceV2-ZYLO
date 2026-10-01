@@ -43,6 +43,13 @@ export class StaffInvitation extends BaseSchema {
   @Prop({ required: true, select: false, index: true })
   tokenHash: string;
 
+  /**
+   * AES-GCM encrypted copy of the raw token so admins can copy the link while the
+   * invitation is pending. Cleared once it is accepted or revoked.
+   */
+  @Prop({ select: false })
+  tokenEncrypted?: string;
+
   @Prop({
     type: String,
     enum: Object.values(InvitationStatus),

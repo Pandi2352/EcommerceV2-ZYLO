@@ -33,7 +33,13 @@ export const InvitationRowActions: React.FC<{ invitation: StaffInvitationItem } 
   return (
     <div className="flex items-center justify-end gap-1.5">
       {showResend && (
-        <Button size="xs" variant="outline" leftIcon={<RotateCw />} onClick={() => onResend(invitation)}>
+        <Button
+          size="xs"
+          variant="outline"
+          leftIcon={<RotateCw />}
+          title="Email a new link and show it to copy (the old link stops working)"
+          onClick={() => onResend(invitation)}
+        >
           Resend
         </Button>
       )}

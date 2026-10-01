@@ -66,3 +66,26 @@
   --viz-grid: #f0f0f1;
   --viz-axis: #a1a1aa;
 }
+
+/*
+ * Pointer cursor for everything clickable. Tailwind v4's preflight resets buttons to
+ * the default arrow, which makes buttons, menu items and options feel inert.
+ */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="option"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not(:disabled),
+  [role="tab"],
+  summary,
+  label[for],
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}

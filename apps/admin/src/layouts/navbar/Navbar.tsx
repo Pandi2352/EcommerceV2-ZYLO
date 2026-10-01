@@ -9,8 +9,6 @@ import {
   Sun,
   Bell,
   User as UserIcon,
-  Settings,
-  Lock,
   LogOut,
   ChevronDown,
 } from 'lucide-react';
@@ -249,30 +247,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
 
               <Link
-                to={ROUTES.SETTINGS}
+                to={ROUTES.ACCOUNT}
                 onClick={() => setProfileDropdownOpen(false)}
                 className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 <UserIcon className="w-3.5 h-3.5 text-slate-400" />
-                <span>My Profile</span>
-              </Link>
-
-              <Link
-                to={ROUTES.SETTINGS}
-                onClick={() => setProfileDropdownOpen(false)}
-                className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                <Settings className="w-3.5 h-3.5 text-slate-400" />
-                <span>Settings</span>
-              </Link>
-
-              <Link
-                to={ROUTES.AUDIT_LOGS}
-                onClick={() => setProfileDropdownOpen(false)}
-                className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                <Lock className="w-3.5 h-3.5 text-slate-400" />
-                <span>Security & Logs</span>
+                <span>My account &amp; 2FA</span>
               </Link>
 
               <div className="border-t border-slate-100 my-1" />

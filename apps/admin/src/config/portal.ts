@@ -13,7 +13,7 @@ export const adminPortal: PortalConfig = {
     forgotPassword: ROUTES.FORGOT_PASSWORD,
     resetPassword: ROUTES.RESET_PASSWORD,
     changePassword: ROUTES.CHANGE_PASSWORD,
-    security: ROUTES.SETTINGS,
+    security: ROUTES.ACCOUNT,
   },
 };
 

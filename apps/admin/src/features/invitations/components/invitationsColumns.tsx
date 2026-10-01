@@ -1,5 +1,6 @@
-import { BadgeCheck, Calendar, CalendarClock, CircleDot, Hash, Repeat, Send, User, UserCog } from 'lucide-react';
+import { BadgeCheck, Calendar, CalendarClock, CircleDot, Hash, Link2, Repeat, Send, User, UserCog } from 'lucide-react';
 import Avatar from '@shared/ui/Avatar';
+import CopyButton from '@shared/ui/CopyButton';
 import StatusPill, { type StatusTone } from '@shared/ui/StatusPill';
 import type { DataTableColumn } from '@shared/ui/DataTable';
 import { formatDateTime } from '@shared/utils/format';
@@ -65,6 +66,23 @@ export function invitationsColumns(handlers: InvitationRowHandlers): DataTableCo
         const meta = INVITATION_STATUS[inv.status];
         return meta ? <StatusPill tone={meta.tone}>{meta.label}</StatusPill> : muted;
       },
+    },
+    {
+      key: 'link',
+      header: 'Invite link',
+      icon: <Link2 />,
+      // Only pending invitations have a usable link; it is hidden from staff without users.invite
+      render: (inv) =>
+        inv.inviteUrl ? (
+          <div className="flex items-center gap-1">
+            <span className="max-w-[11rem] truncate font-mono text-xs text-zinc-600" title={inv.inviteUrl}>
+              {inv.inviteUrl.replace(/^https?:\/\//, '')}
+            </span>
+            <CopyButton value={inv.inviteUrl} label={`Copy invitation link for ${inv.email}`} successMessage="Invitation link copied" />
+          </div>
+        ) : (
+          muted
+        ),
     },
     {
       key: 'invitedBy',
