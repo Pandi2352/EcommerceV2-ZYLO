@@ -6,8 +6,17 @@ export type AuthPortal = 'customer' | 'admin';
 export interface AuthUser {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   role: UserRole;
+  accountType?: 'CUSTOMER' | 'STAFF';
+  roleIds?: string[];
+  roles?: { id: string; key: string; name: string }[];
+  permissions?: string[];
+  userCode?: string;
+  designation?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
   isActive: boolean;
   isEmailVerified: boolean;
   hasPassword: boolean;

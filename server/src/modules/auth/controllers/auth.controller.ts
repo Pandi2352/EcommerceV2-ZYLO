@@ -16,12 +16,15 @@ import { LoginDto } from '../dto/login.dto';
 import { AuthPortal } from '../enums/auth-portal.enum';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
 
+import { PermissionResolverService } from '../../../common/authorization/permission-resolver.service';
+
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly cookies: AuthCookieService,
+    private readonly permissionResolver: PermissionResolverService,
     @Inject(oauthConfig.KEY) private readonly oauth: OAuthConfig,
   ) {}
 
@@ -116,8 +119,18 @@ export class AuthController {
   @ApiOperation({ summary: 'Retrieve the currently authenticated user profile' })
   @ApiResponse({ status: 200, description: 'User profile' })
   @ApiResponse({ status: 401, description: 'Not signed in' })
-  getProfile(@CurrentUser() user: UserDocument) {
-    return { user };
+  async getProfile(@CurrentUser() user: UserDocument) {
+    const isStaff = user.accountType === 'STAFF' || (user.role && user.role !== 'CUSTOMER');
+    if (!isStaff) {
+      return { user };
+    }
+
+    const { permissions, roles } = await this.permissionResolver.forUser(user.roleIds || []);
+    const userJson: Record<string, any> = user.toJSON ? user.toJSON() : { ...user };
+    userJson.permissions = permissions;
+    userJson.roles = roles;
+
+    return { user: userJson };
   }
 
   @Public()

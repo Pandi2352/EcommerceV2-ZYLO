@@ -20,10 +20,12 @@ import AdminChangePasswordPage from '../pages/AdminChangePasswordPage';
 import AdminSecurityPage from '../pages/AdminSecurityPage';
 import AdminAuditLogsPage from '../pages/AdminAuditLogsPage';
 import AcceptInvitePage from '../pages/AcceptInvitePage';
-import StaffUsersPage from '../pages/StaffUsersPage';
-import StaffInvitesPage from '../pages/StaffInvitesPage';
-import RolesOverviewPage from '../pages/RolesOverviewPage';
-import PermissionsMatrixPage from '../pages/PermissionsMatrixPage';
+import UsersPage from '../pages/UsersPage';
+import UserDetailsPage from '../pages/UserDetailsPage';
+import RolesPage from '../pages/RolesPage';
+import RoleDetailsPage from '../pages/RoleDetailsPage';
+import InvitationsPage from '../pages/InvitationsPage';
+import LoginActivityPage from '../pages/LoginActivityPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -66,13 +68,25 @@ export const AppRoutes: React.FC = () => {
 
           <Route element={<ProtectedRoute role={USER_ROLES.ADMIN} />}>
             <Route path={ROUTES.AUDIT_LOGS} element={<AdminAuditLogsPage />} />
-            {/* User Management & RBAC */}
-            <Route path={ROUTES.USERS} element={<StaffUsersPage />} />
-            <Route path={ROUTES.STAFF} element={<StaffUsersPage />} />
-            <Route path={ROUTES.USERS_INVITES} element={<StaffInvitesPage />} />
-            <Route path={ROUTES.USERS_ROLES} element={<RolesOverviewPage />} />
-            <Route path={ROUTES.USERS_PERMISSIONS} element={<PermissionsMatrixPage />} />
             {renderPlanned(MANAGER_PLANNED)}
+          </Route>
+
+          {/* User Management & RBAC with Granular Permission Guards */}
+          <Route element={<ProtectedRoute permission="users.view" />}>
+            <Route path={ROUTES.USERS} element={<UsersPage />} />
+            <Route path={ROUTES.USER_DETAILS} element={<UserDetailsPage />} />
+            <Route path={ROUTES.STAFF} element={<UsersPage />} />
+            <Route path={ROUTES.INVITATIONS} element={<InvitationsPage />} />
+            <Route path={ROUTES.USERS_INVITES} element={<InvitationsPage />} />
+            <Route path={ROUTES.LOGIN_ACTIVITY} element={<LoginActivityPage />} />
+            <Route path={ROUTES.USERS_LOGIN_ACTIVITY} element={<LoginActivityPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute permission="roles.view" />}>
+            <Route path={ROUTES.ROLES} element={<RolesPage />} />
+            <Route path={ROUTES.ROLE_DETAILS} element={<RoleDetailsPage />} />
+            <Route path={ROUTES.USERS_ROLES} element={<RolesPage />} />
+            <Route path={ROUTES.USERS_PERMISSIONS} element={<RolesPage />} />
           </Route>
 
           <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage homeLabel="Back to Dashboard" />} />

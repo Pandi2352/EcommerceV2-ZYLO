@@ -26,9 +26,12 @@ import { GoogleOAuthService } from './services/google-oauth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 
+import { RolesModule } from '../roles/roles.module';
+
 @Module({
   imports: [
     UsersModule,
+    RolesModule,
     MongooseModule.forFeature([{ name: RefreshSession.name, schema: RefreshSessionSchema }]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     // Secrets and lifetimes are passed per call (access, refresh and MFA tokens use different secrets)
@@ -61,6 +64,6 @@ import { GoogleStrategy } from './strategies/google.strategy';
       useFactory: (config: OAuthConfig) => (config.google.enabled ? new GoogleStrategy(config) : null),
     },
   ],
-  exports: [AuthService, PassportModule, PasswordService],
+  exports: [AuthService, PassportModule, PasswordService, TokenService, PasswordManagementService],
 })
 export class AuthModule {}

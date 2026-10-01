@@ -1,19 +1,20 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { UserRole } from '../../common/enums/user-role.enum';
+import { StaffOnly } from '../../common/authorization/account-type.decorator';
+import { RequirePermissions } from '../../common/authorization/require-permissions.decorator';
 import { AuditService } from './audit.service';
 import { AuditLogQueryDto } from './dto/audit-log-query.dto';
 
 @ApiTags('Audit')
 @ApiBearerAuth('JWT-auth')
 @ApiCookieAuth('access_token')
-@Roles(UserRole.ADMIN)
+@StaffOnly()
 @Controller('audit-logs')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
+  @RequirePermissions('audit_logs.view')
   @ApiOperation({ summary: 'List security audit events (logins, password and MFA changes)' })
   @ApiResponse({ status: 200, description: 'Paginated audit events, newest first' })
   @ApiResponse({ status: 403, description: 'Requires ADMIN or SUPER_ADMIN role' })

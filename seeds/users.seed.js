@@ -38,40 +38,67 @@ async function seedUsers(db, clean = false) {
   const customerPassword = seedPassword('SEED_CUSTOMER_PASSWORD', 'CustomerPassword123!');
   const supportPassword = seedPassword('SEED_SUPPORT_PASSWORD', 'SupportPassword123!');
 
+  const rolesCollection = db.collection('roles');
+  const superAdminRole = await rolesCollection.findOne({ key: 'super_admin' });
+  const supportRole = await rolesCollection.findOne({ key: 'customer_support' });
+
   const userRecords = [
     {
       name: 'System Administrator',
+      firstName: 'System',
+      lastName: 'Administrator',
       email: 'admin@zylo.internal',
       password: adminPassword,
       role: 'SUPER_ADMIN',
+      accountType: 'STAFF',
+      roleIds: superAdminRole ? [superAdminRole._id.toString()] : [],
+      userCode: 'ZY-0001',
+      designation: 'Platform Super Administrator',
       isActive: true,
+      status: 'ACTIVE',
       isEmailVerified: true,
-      // Seeded credentials are shared/known: force a change on first sign-in
       mustChangePassword: true,
     },
     {
       name: 'Support Agent',
+      firstName: 'Support',
+      lastName: 'Agent',
       email: 'support@zylo.internal',
       password: supportPassword,
       role: 'SUPPORT_AGENT',
+      accountType: 'STAFF',
+      roleIds: supportRole ? [supportRole._id.toString()] : [],
+      userCode: 'ZY-0002',
+      designation: 'Customer Care Executive',
       isActive: true,
+      status: 'ACTIVE',
       isEmailVerified: true,
       mustChangePassword: true,
     },
     {
       name: 'Test Customer',
+      firstName: 'Test',
+      lastName: 'Customer',
       email: 'customer@zylo.internal',
       password: customerPassword,
       role: 'CUSTOMER',
+      accountType: 'CUSTOMER',
+      roleIds: [],
       isActive: true,
+      status: 'ACTIVE',
       isEmailVerified: true,
     },
     {
       name: 'John Doe',
+      firstName: 'John',
+      lastName: 'Doe',
       email: 'john.doe@example.com',
       password: customerPassword,
       role: 'CUSTOMER',
+      accountType: 'CUSTOMER',
+      roleIds: [],
       isActive: true,
+      status: 'ACTIVE',
       isEmailVerified: true,
     },
   ];
@@ -95,9 +122,16 @@ async function seedUsers(db, clean = false) {
         {
           $set: {
             name: record.name,
+            firstName: record.firstName,
+            lastName: record.lastName,
             passwordHash,
             role: record.role,
+            accountType: record.accountType,
+            roleIds: record.roleIds,
+            userCode: record.userCode,
+            designation: record.designation,
             isActive: record.isActive,
+            status: record.status,
             isEmailVerified: record.isEmailVerified,
             ...securityFields,
             updatedAt: now,
@@ -105,16 +139,23 @@ async function seedUsers(db, clean = false) {
           $unset: { previousPasswordHash: 1 },
         }
       );
-      console.log(`    ↳ Updated: ${record.email} (${record.role})`);
+      console.log(`    ↳ Updated: ${record.email} (${record.role}) [accountType: ${record.accountType}]`);
     } else {
       const id = crypto.randomUUID();
       await usersCollection.insertOne({
         _id: id,
         name: record.name,
+        firstName: record.firstName,
+        lastName: record.lastName,
         email: record.email.toLowerCase(),
         passwordHash,
         role: record.role,
+        accountType: record.accountType,
+        roleIds: record.roleIds,
+        userCode: record.userCode,
+        designation: record.designation,
         isActive: record.isActive,
+        status: record.status,
         isEmailVerified: record.isEmailVerified,
         ...securityFields,
         mfaEnabled: false,

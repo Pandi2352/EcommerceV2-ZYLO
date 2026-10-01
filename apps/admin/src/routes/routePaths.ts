@@ -38,9 +38,15 @@ export const ROUTES = {
 
   // User Management (Multi-Admin RBAC)
   USERS: '/users',
-  USERS_INVITES: '/users/invites',
-  USERS_ROLES: '/users/roles',
-  USERS_PERMISSIONS: '/users/permissions',
+  USER_DETAILS: '/users/:id',
+  ROLES: '/roles',
+  ROLE_DETAILS: '/roles/:id',
+  INVITATIONS: '/invitations',
+  LOGIN_ACTIVITY: '/login-activity',
+  USERS_INVITES: '/invitations',
+  USERS_ROLES: '/roles',
+  USERS_PERMISSIONS: '/roles',
+  USERS_LOGIN_ACTIVITY: '/login-activity',
 
   // Platform & Administration
   STAFF: '/staff',

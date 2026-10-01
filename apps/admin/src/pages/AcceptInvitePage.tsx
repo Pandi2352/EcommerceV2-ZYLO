@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Shield, Check, AlertCircle, ArrowRight } from 'lucide-react';
-import { ROLE_LABELS } from '@shared/constants/roles';
-import InputField from '@shared/ui/InputField';
 import PasswordField from '@shared/ui/PasswordField';
 import Button from '@shared/ui/Button';
 import PageLoader from '@shared/ui/PageLoader';
 import { toast } from '@shared/ui/Toast';
 import { ROUTES } from '../routes/routePaths';
-import { staffService, type ValidateInviteResponse } from '../services/staff.service';
+import { invitationsService, type VerifiedInvitationData } from '../services/invitations.service';
+import { extractErrorMessage } from '@shared/api/client';
 
 export const AcceptInvitePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
 
   const [isLoading, setIsLoading] = useState(true);
-  const [inviteData, setInviteData] = useState<ValidateInviteResponse | null>(null);
+  const [inviteData, setInviteData] = useState<VerifiedInvitationData | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,15 +29,14 @@ export const AcceptInvitePage: React.FC = () => {
       return;
     }
 
-    staffService
-      .validateToken(token)
+    invitationsService
+      .verifyInvitationToken(token)
       .then((data) => {
         setInviteData(data);
-        if (data.name) setName(data.name);
       })
       .catch((err) => {
         setErrorMessage(
-          err?.response?.data?.message || 'Invalid or expired invitation link. Please request a new invite.',
+          extractErrorMessage(err) || 'Invalid or expired invitation link. Please request a new invite.',
         );
       })
       .finally(() => {
@@ -50,11 +47,6 @@ export const AcceptInvitePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
-
-    if (!name.trim()) {
-      toast.error('Please enter your full name');
-      return;
-    }
 
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters long');
@@ -68,16 +60,15 @@ export const AcceptInvitePage: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      await staffService.acceptInvitation({
+      await invitationsService.acceptInvitation({
         token,
-        name: name.trim(),
         password,
       });
 
       setIsSuccess(true);
       toast.success('Your administrator account is now active!');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to complete invitation setup');
+      toast.error(extractErrorMessage(err) || 'Failed to complete invitation setup');
     } finally {
       setIsSubmitting(false);
     }
@@ -145,24 +136,24 @@ export const AcceptInvitePage: React.FC = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-md">
-                <p className="text-[11px] text-slate-400">Invited Email Address</p>
-                <p className="font-bold text-slate-800 text-xs mt-0.5">{inviteData?.email}</p>
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200/60">
-                  <span className="text-[11px] text-slate-500">Assigned Role:</span>
-                  <span className="text-[11px] font-bold text-[#299cdb]">
-                    {ROLE_LABELS[inviteData?.role || 'ADMIN']}
+              <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500">Welcome</span>
+                  <span className="text-xs font-bold text-slate-900">
+                    {inviteData?.firstName} {inviteData?.lastName}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500">Email</span>
+                  <span className="text-xs font-medium text-slate-700">{inviteData?.email}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                  <span className="text-[11px] font-semibold text-slate-500">Assigned Role:</span>
+                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                    {inviteData?.roleName}
                   </span>
                 </div>
               </div>
-
-              <InputField
-                label="Full Name"
-                required
-                placeholder="Alex Morgan"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
 
               <PasswordField
                 label="Create Password"

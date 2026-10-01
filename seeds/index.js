@@ -32,6 +32,7 @@ for (const envFile of envCandidates) {
 }
 
 // ─── Import individual seed modules ──────────────────────────────────────────
+const { seedRoles } = require('./roles.seed');
 const { seedUsers } = require('./users.seed');
 const { seedCategories } = require('./categories.seed');
 const { seedProducts } = require('./products.seed');
@@ -43,10 +44,11 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/zylo';
 async function runSeed() {
   const args = process.argv.slice(2);
   const clean = args.includes('--clean');
+  const onlyRoles = args.includes('--roles');
   const onlyUsers = args.includes('--users');
   const onlyCategories = args.includes('--categories');
   const onlyProducts = args.includes('--products');
-  const runAll = !onlyUsers && !onlyCategories && !onlyProducts;
+  const runAll = !onlyRoles && !onlyUsers && !onlyCategories && !onlyProducts;
 
   console.log('====================================================');
   console.log('🌱  ZYLO Database Seeder');
@@ -60,8 +62,14 @@ async function runSeed() {
   console.log('✓ Connected to MongoDB.\n');
 
   try {
+    if (runAll || onlyRoles) {
+      console.log('▶ [1/4] Roles');
+      await seedRoles(db, clean);
+      console.log('');
+    }
+
     if (runAll || onlyUsers) {
-      console.log('▶ [1/3] Users');
+      console.log('▶ [2/4] Users');
       await seedUsers(db, clean);
       console.log('');
     }

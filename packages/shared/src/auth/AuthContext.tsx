@@ -4,11 +4,15 @@ import { usePortal } from './PortalContext';
 import { authService } from '../api/auth.service';
 import { onSessionExpired } from '../api/client';
 
+import type { PermissionKey } from '../constants/permissionKeys';
+
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   /** True only while the initial session check runs on app load */
   isLoading: boolean;
+  can: (permission: PermissionKey | string) => boolean;
+  canAny: (...permissions: (PermissionKey | string)[]) => boolean;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
   /** First factor. Resolves with `mfaRequired: true` when a second factor is needed. */
   login: (payload: LoginPayload) => Promise<LoginResult>;
@@ -81,11 +85,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   }, []);
 
+  const can = useCallback((permission: PermissionKey | string) => {
+    if (!user) return false;
+    const perms = user.permissions || [];
+    if (perms.includes('*') || user.role === 'SUPER_ADMIN') return true;
+    return perms.includes(permission);
+  }, [user]);
+
+  const canAny = useCallback((...permissions: (PermissionKey | string)[]) => {
+    if (!user) return false;
+    const perms = user.permissions || [];
+    if (perms.includes('*') || user.role === 'SUPER_ADMIN') return true;
+    return permissions.some((p) => perms.includes(p));
+  }, [user]);
+
   const value = useMemo<AuthContextType>(
     () => ({
       user,
       isAuthenticated: !!user,
       isLoading,
+      can,
+      canAny,
       register,
       login,
       verifyMfa,
@@ -94,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser,
       refreshUser,
     }),
-    [user, isLoading, register, login, verifyMfa, logout, logoutAll, refreshUser],
+    [user, isLoading, can, canAny, register, login, verifyMfa, logout, logoutAll, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

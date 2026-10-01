@@ -2,9 +2,15 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { BaseSchema, baseSchemaOptions } from '../../../common/schemas/base.schema';
 import { UserRole } from '../../../common/enums/user-role.enum';
+import { AccountType } from '../../../common/enums/account-type.enum';
 import { Address, AddressSchema } from './address.schema';
 
 export type UserDocument = HydratedDocument<User>;
+
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
 
 /** Fields that must never leave the server in API responses. */
 const SENSITIVE_FIELDS = [
@@ -37,6 +43,12 @@ export class User extends BaseSchema {
   @Prop({ required: true, trim: true, maxlength: 120 })
   name: string;
 
+  @Prop({ trim: true, maxlength: 60 })
+  firstName?: string;
+
+  @Prop({ trim: true, maxlength: 60 })
+  lastName?: string;
+
   @Prop({
     required: true,
     unique: true,
@@ -45,6 +57,33 @@ export class User extends BaseSchema {
     index: true,
   })
   email: string;
+
+  @Prop({
+    type: String,
+    enum: Object.values(AccountType),
+    default: AccountType.CUSTOMER,
+    index: true,
+  })
+  accountType: AccountType;
+
+  /** References to roles collection */
+  @Prop({ type: [String], default: [], index: true })
+  roleIds: string[];
+
+  /** Display reference code (e.g. ZY-0042) */
+  @Prop({ trim: true, index: true, unique: true, sparse: true })
+  userCode?: string;
+
+  @Prop({ trim: true, maxlength: 80 })
+  designation?: string;
+
+  @Prop({
+    type: String,
+    enum: Object.values(UserStatus),
+    default: UserStatus.ACTIVE,
+    index: true,
+  })
+  status: UserStatus;
 
   @Prop({
     type: String,
@@ -59,6 +98,18 @@ export class User extends BaseSchema {
 
   @Prop({ type: [String], default: [] })
   customPermissions: string[];
+
+  @Prop()
+  invitedBy?: string;
+
+  @Prop()
+  invitationId?: string;
+
+  @Prop({ type: Date, index: true })
+  deletedAt?: Date;
+
+  @Prop()
+  deletedBy?: string;
 
   @Prop({ trim: true })
   phone?: string;

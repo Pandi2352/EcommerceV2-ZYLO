@@ -6,9 +6,12 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './modules/health/health.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { AdminModule } from './modules/admin/admin.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { StaffUsersModule } from './modules/staff-users/staff-users.module';
+import { InvitationsModule } from './modules/invitations/invitations.module';
 import { mongooseAsyncConfig } from './config/database.config';
 import { appConfig } from './config/app.config';
 import { authConfig } from './config/auth.config';
@@ -17,6 +20,8 @@ import { oauthConfig } from './config/oauth.config';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { PasswordChangeGuard } from './common/guards/password-change.guard';
+import { AccountTypeGuard } from './common/authorization/account-type.guard';
+import { PermissionsGuard } from './common/authorization/permissions.guard';
 
 @Module({
   imports: [
@@ -33,14 +38,19 @@ import { PasswordChangeGuard } from './common/guards/password-change.guard';
     HealthModule,
     UsersModule,
     AuthModule,
-    AdminModule,
+    PermissionsModule,
+    RolesModule,
+    StaffUsersModule,
+    InvitationsModule,
   ],
   providers: [
-    // Guards run in registration order: rate limit → authenticate → forced password change → authorize.
+    // Guards run in registration order: rate limit → authenticate → forced password change → account type → permissions → roles.
     // Every route requires a valid JWT unless marked with @Public().
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: PasswordChangeGuard },
+    { provide: APP_GUARD, useClass: AccountTypeGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })

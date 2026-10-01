@@ -22,6 +22,21 @@ export class AuditLog extends BaseSchema {
   @Prop()
   role?: string;
 
+  @Prop({ type: String, index: true })
+  actorId?: string;
+
+  @Prop({ lowercase: true, trim: true, index: true })
+  actorEmail?: string;
+
+  @Prop({ type: String, index: true })
+  resourceType?: string;
+
+  @Prop({ type: String, index: true })
+  resourceId?: string;
+
+  @Prop()
+  resourceName?: string;
+
   /** Which portal the action came from: 'customer' or 'admin' */
   @Prop({ index: true })
   portal?: string;
