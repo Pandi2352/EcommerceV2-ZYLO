@@ -28,16 +28,14 @@ export class StaffUsersController {
   @RequirePermissions('users.view')
   @ApiOperation({ summary: 'List staff users with filtering, sorting, and stats' })
   async list(@Query() query: StaffUserQueryDto) {
-    const data = await this.staffUsersService.list(query);
-    return { success: true, data };
+    return this.staffUsersService.list(query);
   }
 
   @Get(':id')
   @RequirePermissions('users.view')
   @ApiOperation({ summary: 'Get staff user details, permissions, and recent activity' })
   async getById(@Param('id') id: string) {
-    const data = await this.staffUsersService.getById(id);
-    return { success: true, data };
+    return this.staffUsersService.getById(id);
   }
 
   @Patch(':id')
@@ -48,11 +46,10 @@ export class StaffUsersController {
     @Body() dto: UpdateStaffUserDto,
     @Req() req: any,
   ) {
-    const data = await this.staffUsersService.updateProfile(id, dto, req.user, {
+    return this.staffUsersService.updateProfile(id, dto, req.user, {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
     });
-    return { success: true, data, message: 'Profile updated successfully' };
   }
 
   @Put(':id/roles')
@@ -63,11 +60,10 @@ export class StaffUsersController {
     @Body() dto: AssignRolesDto,
     @Req() req: any,
   ) {
-    const data = await this.staffUsersService.assignRoles(id, dto.roleIds, req.user, {
+    return this.staffUsersService.assignRoles(id, dto.roleIds, req.user, {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
     });
-    return { success: true, data, message: 'Role assigned successfully' };
   }
 
   @Post(':id/activate')

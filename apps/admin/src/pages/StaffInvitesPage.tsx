@@ -12,7 +12,7 @@ import {
 import { ROLE_LABELS } from '@shared/constants/roles';
 import { formatDateTime } from '@shared/utils/format';
 import Button from '@shared/ui/Button';
-import PageLoader from '@shared/ui/PageLoader';
+import ApiLoader from '@shared/ui/Spinner';
 import { toast } from '@shared/ui/Toast';
 import { staffService, type StaffInvitationItem } from '../services/staff.service';
 import InviteStaffModal from '../components/staff/InviteStaffModal';
@@ -135,8 +135,8 @@ export const StaffInvitesPage: React.FC = () => {
       {/* Invitations Table Container */}
       <div className="bg-white border border-slate-200/90 rounded-lg overflow-hidden shadow-xs">
         {isLoading && invitations.length === 0 ? (
-          <div className="p-12 flex justify-center">
-            <PageLoader variant="mascot" size="md" text="Loading invitations..." />
+          <div className="p-8 flex justify-center">
+            <ApiLoader text="Loading invitations..." />
           </div>
         ) : error && invitations.length === 0 ? (
           <div className="p-12 text-center space-y-3">

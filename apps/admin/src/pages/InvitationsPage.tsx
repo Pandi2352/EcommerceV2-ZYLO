@@ -4,18 +4,24 @@ import {
   Mail,
   RefreshCw,
   Plus,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
   RotateCw,
   ExternalLink,
   Shield,
   Search,
+  XCircle,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
 } from 'lucide-react';
+import {
+  FcInvite,
+  FcClock,
+  FcCheckmark,
+  FcCancel,
+} from 'react-icons/fc';
 import { formatDateTime } from '@shared/utils/format';
 import Button from '@shared/ui/Button';
-import PageLoader from '@shared/ui/PageLoader';
+import ApiLoader from '@shared/ui/Spinner';
 import ConfirmDialog from '@shared/ui/ConfirmDialog';
 import { toast } from '@shared/ui/Toast';
 import { useAuth } from '@shared/auth/AuthContext';
@@ -35,6 +41,12 @@ export const InvitationsPage: React.FC = () => {
   const queryPage = parseInt(searchParams.get('page') || '1', 10);
 
   const [invitations, setInvitations] = useState<StaffInvitationItem[]>([]);
+  const [stats, setStats] = useState({
+    totalCount: 0,
+    pendingCount: 0,
+    registeredCount: 0,
+    expiredOrRevokedCount: 0,
+  });
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,18 +60,23 @@ export const InvitationsPage: React.FC = () => {
   const fetchInvitations = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await invitationsService.listInvitations({
+      const res: any = await invitationsService.listInvitations({
         page: queryPage,
         limit: 15,
         status: queryStatus || undefined,
         q: queryQ.trim() || undefined,
       });
 
-      setInvitations(res.items);
-      setTotal(res.meta.total);
-      setTotalPages(res.meta.totalPages);
+      const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+      setInvitations(list);
+      setTotal(res?.meta?.total ?? res?.total ?? list.length);
+      setTotalPages(res?.meta?.totalPages ?? res?.totalPages ?? 1);
+      if (res?.stats) {
+        setStats(res.stats);
+      }
     } catch (err) {
       toast.error(extractErrorMessage(err));
+      setInvitations([]);
     } finally {
       setIsLoading(false);
     }
@@ -129,7 +146,7 @@ export const InvitationsPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">Staff Invitations</h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
               {total} Total
             </span>
           </div>
@@ -161,17 +178,68 @@ export const InvitationsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Metrics Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-indigo-50/70 border border-indigo-100 flex items-center justify-center shrink-0">
+            <FcInvite className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Total Invites
+            </div>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">{stats.totalCount || total}</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-amber-50/70 border border-amber-100 flex items-center justify-center shrink-0">
+            <FcClock className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Pending Acceptance
+            </div>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">{stats.pendingCount}</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-emerald-50/70 border border-emerald-100 flex items-center justify-center shrink-0">
+            <FcCheckmark className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Accepted & Joined
+            </div>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">{stats.registeredCount}</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-rose-50/70 border border-rose-100 flex items-center justify-center shrink-0">
+            <FcCancel className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Expired / Revoked
+            </div>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">{stats.expiredOrRevokedCount}</div>
+          </div>
+        </div>
+      </div>
+
       {/* Tabs & Search Bar */}
-      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+      <div className="bg-white p-3.5 rounded-md border border-slate-200 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5 border-b sm:border-b-0 pb-2 sm:pb-0">
             {statusTabs.map((tab) => (
               <button
                 key={tab.value}
                 onClick={() => updateQuery({ status: tab.value || null, page: '1' })}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                   queryStatus === tab.value
-                    ? 'bg-indigo-600 text-white shadow-xs'
+                    ? 'bg-indigo-600 text-white'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -187,19 +255,19 @@ export const InvitationsPage: React.FC = () => {
               value={queryQ}
               onChange={(e) => updateQuery({ q: e.target.value })}
               placeholder="Search invitees, email, code..."
-              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
             />
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-md border border-slate-200 overflow-hidden">
         {isLoading ? (
-          <div className="p-12 text-center">
-            <PageLoader variant="mascot" size="md" text="Loading invitations..." />
+          <div className="p-8 text-center">
+            <ApiLoader text="Loading invitations..." />
           </div>
-        ) : invitations.length === 0 ? (
+        ) : !invitations || invitations.length === 0 ? (
           <div className="p-12 text-center text-slate-400 text-xs">
             <Mail className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-base font-bold text-slate-800">No invitations found</h3>
@@ -222,7 +290,7 @@ export const InvitationsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {invitations.map((inv) => {
+                {(invitations || []).map((inv) => {
                   const isPending = inv.status === 'INVITED';
 
                   return (
@@ -235,7 +303,7 @@ export const InvitationsPage: React.FC = () => {
                       </td>
 
                       <td className="px-4 py-3.5 font-mono text-xs">
-                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                           {inv.userCode}
                         </span>
                         {inv.designation && (
@@ -252,25 +320,25 @@ export const InvitationsPage: React.FC = () => {
 
                       <td className="px-4 py-3.5">
                         {inv.status === 'INVITED' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                             <Clock className="w-3 h-3 text-amber-500" />
                             Pending
                           </span>
                         )}
                         {inv.status === 'REGISTERED' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <CheckCircle className="w-3 h-3 text-emerald-500" />
                             Registered
                           </span>
                         )}
                         {inv.status === 'EXPIRED' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                             <AlertTriangle className="w-3 h-3 text-rose-500" />
                             Expired
                           </span>
                         )}
                         {inv.status === 'REVOKED' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                             <XCircle className="w-3 h-3 text-slate-400" />
                             Revoked
                           </span>
@@ -293,7 +361,7 @@ export const InvitationsPage: React.FC = () => {
                                 type="button"
                                 onClick={() => setResendInviteItem(inv)}
                                 title="Rotate token and resend invite"
-                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-md transition-colors"
                               >
                                 <RotateCw className="w-4 h-4" />
                               </button>
@@ -301,7 +369,7 @@ export const InvitationsPage: React.FC = () => {
                                 type="button"
                                 onClick={() => setRevokeInviteItem(inv)}
                                 title="Revoke Invitation"
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-slate-100 rounded-md transition-colors"
                               >
                                 <XCircle className="w-4 h-4" />
                               </button>

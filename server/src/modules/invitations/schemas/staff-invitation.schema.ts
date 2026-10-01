@@ -82,4 +82,3 @@ export class StaffInvitation extends BaseSchema {
 export const StaffInvitationSchema = SchemaFactory.createForClass(StaffInvitation);
 StaffInvitationSchema.index({ email: 1, status: 1 });
 StaffInvitationSchema.index({ status: 1, expiresAt: 1 });
-StaffInvitationSchema.index({ tokenHash: 1 });

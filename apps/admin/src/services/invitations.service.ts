@@ -26,6 +26,12 @@ export interface StaffInvitationItem {
 
 export interface InvitationsResponse {
   items: StaffInvitationItem[];
+  stats?: {
+    totalCount: number;
+    pendingCount: number;
+    registeredCount: number;
+    expiredOrRevokedCount: number;
+  };
   meta: {
     total: number;
     page: number;

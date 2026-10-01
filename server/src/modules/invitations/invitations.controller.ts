@@ -24,8 +24,7 @@ export class InvitationsController {
   @RequirePermissions('users.view')
   @ApiOperation({ summary: 'List staff invitations with status filters' })
   async list(@Query() query: InvitationQueryDto) {
-    const data = await this.invitationsService.list(query);
-    return { success: true, data };
+    return this.invitationsService.list(query);
   }
 
   @Post()

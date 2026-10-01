@@ -71,11 +71,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           onClick={() => !isLoading && onClose()}
         />
 
-        <div className="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200/80">
+        <div className="relative transform overflow-hidden rounded-md bg-white text-left border border-slate-200 transition-all sm:my-8 sm:w-full sm:max-w-lg">
           <div className="bg-white px-6 pt-6 pb-4">
             <div className="sm:flex sm:items-start gap-4">
               <div
-                className={`mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-xl sm:mx-0 sm:h-10 sm:w-10 ${toneConfig.iconBg}`}
+                className={`mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-md sm:mx-0 sm:h-10 sm:w-10 ${toneConfig.iconBg}`}
               >
                 <IconComponent className="h-5 w-5" />
               </div>

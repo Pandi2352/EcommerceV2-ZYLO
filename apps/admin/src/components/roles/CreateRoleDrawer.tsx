@@ -128,7 +128,7 @@ export const CreateRoleDrawer: React.FC<CreateRoleDrawerProps> = ({
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="Oversees warehouse receiving, stock adjustments, and fulfillment dispatches..."
-            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors resize-none"
+            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors resize-none"
           />
         </div>
 
@@ -139,7 +139,7 @@ export const CreateRoleDrawer: React.FC<CreateRoleDrawerProps> = ({
           <select
             value={cloneRoleId}
             onChange={(e) => setCloneRoleId(e.target.value)}
-            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
           >
             <option value="">Start with blank permissions</option>
             {existingRoles.map((r) => (

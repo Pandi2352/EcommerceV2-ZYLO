@@ -2,9 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Users,
-  UserCheck,
-  UserX,
-  ShieldCheck,
   Search,
   Plus,
   RefreshCw,
@@ -16,10 +13,17 @@ import {
   ExternalLink,
   Lock,
   Unlock,
+  ShieldCheck,
 } from 'lucide-react';
+import {
+  FcConferenceCall,
+  FcApproval,
+  FcCancel,
+  FcPrivacy,
+} from 'react-icons/fc';
 import { formatDateTime } from '@shared/utils/format';
 import Button from '@shared/ui/Button';
-import PageLoader from '@shared/ui/PageLoader';
+import ApiLoader from '@shared/ui/Spinner';
 import ConfirmDialog from '@shared/ui/ConfirmDialog';
 import { toast } from '@shared/ui/Toast';
 import { useAuth } from '@shared/auth/AuthContext';
@@ -75,15 +79,18 @@ export const UsersPage: React.FC = () => {
   useEffect(() => {
     rolesService
       .listRoles()
-      .then((res) => setRoles(res.items))
-      .catch(() => {});
+      .then((res: any) => {
+        const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+        setRoles(list);
+      })
+      .catch(() => setRoles([]));
   }, []);
 
   // Fetch Users
   const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await staffUsersService.list({
+      const res: any = await staffUsersService.list({
         page: queryPage,
         limit: 15,
         q: queryQ.trim() || undefined,
@@ -91,10 +98,11 @@ export const UsersPage: React.FC = () => {
         status: queryStatus || undefined,
       });
 
-      setUsers(res.items);
-      setTotal(res.total);
-      setTotalPages(res.totalPages);
-      if (res.stats) {
+      const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+      setUsers(list);
+      setTotal(res?.meta?.total ?? res?.total ?? list.length);
+      setTotalPages(res?.meta?.totalPages ?? res?.totalPages ?? 1);
+      if (res?.stats) {
         setStats(res.stats);
       }
     } catch (err) {
@@ -191,7 +199,7 @@ export const UsersPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">Staff Directory</h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
               {total} Members
             </span>
           </div>
@@ -224,9 +232,9 @@ export const UsersPage: React.FC = () => {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <Users className="w-5 h-5" />
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-indigo-50/70 border border-indigo-100 flex items-center justify-center shrink-0">
+            <FcConferenceCall className="w-6 h-6" />
           </div>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -236,9 +244,9 @@ export const UsersPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <UserCheck className="w-5 h-5" />
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-emerald-50/70 border border-emerald-100 flex items-center justify-center shrink-0">
+            <FcApproval className="w-6 h-6" />
           </div>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -248,9 +256,9 @@ export const UsersPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-            <UserX className="w-5 h-5" />
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-rose-50/70 border border-rose-100 flex items-center justify-center shrink-0">
+            <FcCancel className="w-6 h-6" />
           </div>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -260,9 +268,9 @@ export const UsersPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-5 h-5" />
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-sky-50/70 border border-sky-100 flex items-center justify-center shrink-0">
+            <FcPrivacy className="w-6 h-6" />
           </div>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -274,7 +282,7 @@ export const UsersPage: React.FC = () => {
       </div>
 
       {/* Filters & Search Bar */}
-      <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white p-3.5 rounded-md border border-slate-200 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-1 items-center gap-3 min-w-[280px]">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -283,17 +291,17 @@ export const UsersPage: React.FC = () => {
               value={queryQ}
               onChange={(e) => updateQuery({ q: e.target.value })}
               placeholder="Search by name, email, user code, designation..."
-              className="w-full pl-9 pr-3 py-1.5 bg-slate-50/70 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              className="w-full pl-9 pr-3 py-1.5 bg-slate-50/70 border border-slate-200 rounded-md text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
             />
           </div>
 
           <select
             value={queryRole}
             onChange={(e) => updateQuery({ role: e.target.value })}
-            className="px-3 py-1.5 bg-slate-50/70 border border-slate-200 rounded-lg text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="px-3 py-1.5 bg-slate-50/70 border border-slate-200 rounded-md text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
           >
             <option value="">All Roles</option>
-            {roles.map((r) => (
+            {(roles || []).map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
               </option>
@@ -303,7 +311,7 @@ export const UsersPage: React.FC = () => {
           <select
             value={queryStatus}
             onChange={(e) => updateQuery({ status: e.target.value })}
-            className="px-3 py-1.5 bg-slate-50/70 border border-slate-200 rounded-lg text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="px-3 py-1.5 bg-slate-50/70 border border-slate-200 rounded-md text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
           >
             <option value="">All Statuses</option>
             <option value="ACTIVE">Active</option>
@@ -322,12 +330,12 @@ export const UsersPage: React.FC = () => {
       </div>
 
       {/* Staff Table */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-md border border-slate-200 overflow-hidden">
         {isLoading ? (
-          <div className="p-12 text-center">
-            <PageLoader variant="mascot" size="md" text="Loading staff records..." />
+          <div className="p-8 text-center">
+            <ApiLoader text="Loading staff records..." />
           </div>
-        ) : users.length === 0 ? (
+        ) : !users || users.length === 0 ? (
           <div className="p-12 text-center">
             <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-base font-bold text-slate-800">No staff members found</h3>
@@ -350,7 +358,7 @@ export const UsersPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {users.map((u) => {
+                {(users || []).map((u) => {
                   const isCurrent = currentUser?.id === u.id;
                   const isSuperAdmin = u.roleKey === 'super_admin' || u.roleName === 'Super Administrator';
 
@@ -359,7 +367,7 @@ export const UsersPage: React.FC = () => {
                       {/* Name & Email */}
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-200">
+                          <div className="w-9 h-9 rounded-md bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-200">
                             {u.firstName?.[0] || u.name?.[0] || 'U'}
                             {u.lastName?.[0] || ''}
                           </div>
@@ -367,7 +375,7 @@ export const UsersPage: React.FC = () => {
                             <div className="flex items-center gap-1.5">
                               <span className="font-semibold text-slate-900">{u.name}</span>
                               {isCurrent && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-600 border border-indigo-200">
+                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-200">
                                   You
                                 </span>
                               )}
@@ -379,7 +387,7 @@ export const UsersPage: React.FC = () => {
 
                       {/* User ID code */}
                       <td className="px-4 py-3.5">
-                        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                           {u.userCode || '—'}
                         </span>
                         {u.designation && (
@@ -406,12 +414,12 @@ export const UsersPage: React.FC = () => {
                       {/* Status */}
                       <td className="px-4 py-3.5">
                         {u.status === 'ACTIVE' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                             Suspended
                           </span>
@@ -442,7 +450,7 @@ export const UsersPage: React.FC = () => {
                             type="button"
                             onClick={() => navigate(`/users/${u.id}`)}
                             title="View Full Details"
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-md transition-colors"
                           >
                             <ExternalLink className="w-4 h-4" />
                           </button>
@@ -454,7 +462,7 @@ export const UsersPage: React.FC = () => {
                                 e.stopPropagation();
                                 setActiveMenuId(activeMenuId === u.id ? null : u.id);
                               }}
-                              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
                             >
                               <MoreVertical className="w-4 h-4" />
                             </button>
@@ -462,7 +470,7 @@ export const UsersPage: React.FC = () => {
                             {activeMenuId === u.id && (
                               <div
                                 onClick={(e) => e.stopPropagation()}
-                                className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30 animate-in fade-in text-left"
+                                className="absolute right-0 mt-1 w-48 bg-white rounded-md border border-slate-200 py-1.5 z-30 animate-in fade-in text-left"
                               >
                                 <button
                                   type="button"

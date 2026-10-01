@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
-  ShieldAlert,
   CheckCircle2,
   XCircle,
   Search,
@@ -14,12 +13,17 @@ import {
   Globe,
   Copy,
   Check,
-  Shield,
   Activity,
 } from 'lucide-react';
+import {
+  FcMultipleDevices,
+  FcSafe,
+  FcHighPriority,
+  FcBusinessman,
+} from 'react-icons/fc';
 import { formatDateTime } from '@shared/utils/format';
 import Button from '@shared/ui/Button';
-import PageLoader from '@shared/ui/PageLoader';
+import ApiLoader from '@shared/ui/Spinner';
 import ConfirmDialog from '@shared/ui/ConfirmDialog';
 import { toast } from '@shared/ui/Toast';
 import { useAuth } from '@shared/auth/AuthContext';
@@ -59,7 +63,7 @@ export const LoginActivityPage: React.FC = () => {
   const fetchLogs = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await loginActivityService.getLoginActivity({
+      const res: any = await loginActivityService.getLoginActivity({
         page: queryPage,
         limit: 20,
         status: queryStatus || undefined,
@@ -67,14 +71,16 @@ export const LoginActivityPage: React.FC = () => {
         range: queryRange,
       });
 
-      setLogs(res.items);
-      setTotal(res.total);
-      setTotalPages(res.totalPages);
-      if (res.stats) {
+      const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+      setLogs(list);
+      setTotal(res?.meta?.total ?? res?.total ?? list.length);
+      setTotalPages(res?.meta?.totalPages ?? res?.totalPages ?? 1);
+      if (res?.stats) {
         setStats(res.stats);
       }
     } catch (err) {
       toast.error(extractErrorMessage(err));
+      setLogs([]);
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +142,7 @@ export const LoginActivityPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">Login Activity</h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
               {total} Events
             </span>
           </div>
@@ -165,9 +171,9 @@ export const LoginActivityPage: React.FC = () => {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <Activity className="w-5 h-5" />
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-indigo-50/70 border border-indigo-100 flex items-center justify-center shrink-0">
+            <FcMultipleDevices className="w-6 h-6" />
           </div>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -177,9 +183,9 @@ export const LoginActivityPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5" />
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-emerald-50/70 border border-emerald-100 flex items-center justify-center shrink-0">
+            <FcSafe className="w-6 h-6" />
           </div>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -189,9 +195,9 @@ export const LoginActivityPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-            <ShieldAlert className="w-5 h-5" />
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-rose-50/70 border border-rose-100 flex items-center justify-center shrink-0">
+            <FcHighPriority className="w-6 h-6" />
           </div>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -201,9 +207,9 @@ export const LoginActivityPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-            <Shield className="w-5 h-5" />
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-sky-50/70 border border-sky-100 flex items-center justify-center shrink-0">
+            <FcBusinessman className="w-6 h-6" />
           </div>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -215,7 +221,7 @@ export const LoginActivityPage: React.FC = () => {
       </div>
 
       {/* Filters & Range Bar */}
-      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+      <div className="bg-white p-3.5 rounded-md border border-slate-200 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Status Tabs */}
           <div className="flex flex-wrap items-center gap-1.5 border-b sm:border-b-0 pb-2 sm:pb-0">
@@ -223,9 +229,9 @@ export const LoginActivityPage: React.FC = () => {
               <button
                 key={tab.value}
                 onClick={() => updateQuery({ status: tab.value || null, page: '1' })}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                   queryStatus === tab.value
-                    ? 'bg-indigo-600 text-white shadow-xs'
+                    ? 'bg-indigo-600 text-white'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -240,7 +246,7 @@ export const LoginActivityPage: React.FC = () => {
             <select
               value={queryRange}
               onChange={(e) => updateQuery({ range: e.target.value as any, page: '1' })}
-              className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="today">Today</option>
               <option value="7d">Last 7 Days</option>
@@ -258,18 +264,18 @@ export const LoginActivityPage: React.FC = () => {
             value={queryQ}
             onChange={(e) => updateQuery({ q: e.target.value })}
             placeholder="Search activity by staff name, email, IP address, or browser..."
-            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
           />
         </div>
       </div>
 
       {/* Activity Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-md border border-slate-200 overflow-hidden">
         {isLoading ? (
-          <div className="p-12 text-center">
-            <PageLoader variant="mascot" size="md" text="Loading login activity records..." />
+          <div className="p-8 text-center">
+            <ApiLoader text="Loading login activity records..." />
           </div>
-        ) : logs.length === 0 ? (
+        ) : !logs || logs.length === 0 ? (
           <div className="p-12 text-center text-slate-400 text-xs">
             <Activity className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-base font-bold text-slate-800">No login activity records</h3>
@@ -291,20 +297,20 @@ export const LoginActivityPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {logs.map((log) => {
+                {(logs || []).map((log) => {
                   return (
                     <tr key={log.id} className="hover:bg-slate-50/60 transition-colors">
                       {/* Staff User */}
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200">
+                          <div className="w-8 h-8 rounded-md bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200">
                             {log.userName?.[0] || 'U'}
                           </div>
                           <div>
                             <div className="flex items-center gap-1.5">
                               <span className="font-semibold text-slate-900">{log.userName}</span>
                               {log.userCode && (
-                                <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                                <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
                                   {log.userCode}
                                 </span>
                               )}
@@ -318,7 +324,7 @@ export const LoginActivityPage: React.FC = () => {
                       <td className="px-4 py-3.5">
                         {log.status === 'SUCCESS' && (
                           <div className="flex items-center gap-1.5">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                               <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                               Success
                             </span>
@@ -327,7 +333,7 @@ export const LoginActivityPage: React.FC = () => {
 
                         {log.status === 'FAILED' && (
                           <div>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                               <XCircle className="w-3 h-3 text-rose-500" />
                               Failed
                             </span>
@@ -341,7 +347,7 @@ export const LoginActivityPage: React.FC = () => {
 
                         {log.status === 'BLOCKED' && (
                           <div>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                               <Lock className="w-3 h-3 text-amber-500" />
                               Blocked
                             </span>
@@ -353,7 +359,7 @@ export const LoginActivityPage: React.FC = () => {
 
                         {log.status === 'LOGOUT' && (
                           <div className="flex items-center gap-1.5">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                               <LogOut className="w-3 h-3 text-slate-400" />
                               {log.statusLabel}
                             </span>
@@ -381,7 +387,7 @@ export const LoginActivityPage: React.FC = () => {
                       {/* IP Address */}
                       <td className="px-4 py-3.5">
                         <div className="inline-flex items-center gap-1.5">
-                          <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                          <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                             {log.ip}
                           </span>
                           <button
@@ -422,7 +428,7 @@ export const LoginActivityPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => setRevokeUserItem(log)}
-                              className="text-xs font-semibold text-rose-600 hover:text-rose-800 px-1.5 py-0.5 rounded hover:bg-rose-50"
+                              className="text-xs font-semibold text-rose-600 hover:text-rose-800 px-1.5 py-0.5 rounded-md hover:bg-rose-50"
                               title="Revoke all active sessions for this user"
                             >
                               Revoke Sessions

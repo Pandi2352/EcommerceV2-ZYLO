@@ -2,7 +2,7 @@
   "name": "zylo",
   "version": "1.0.0",
   "private": true,
-  "description": "ZYLO \u2014 Modern E-Commerce Platform Monorepo",
+  "description": "ZYLO — Modern E-Commerce Platform Monorepo",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -23,5 +23,8 @@
   "devDependencies": {
     "@types/node": "^22.20.4",
     "typescript": "~6.0.2"
+  },
+  "dependencies": {
+    "react-icons": "^5.7.0"
   }
 }

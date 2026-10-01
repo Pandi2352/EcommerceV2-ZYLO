@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { formatDateTime } from '@shared/utils/format';
 import Button from '@shared/ui/Button';
-import PageLoader from '@shared/ui/PageLoader';
+import ApiLoader from '@shared/ui/Spinner';
 import ConfirmDialog from '@shared/ui/ConfirmDialog';
 import { toast } from '@shared/ui/Toast';
 import { useAuth } from '@shared/auth/AuthContext';
@@ -113,8 +113,8 @@ export const UserDetailsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-12 text-center">
-        <PageLoader variant="mascot" size="md" text="Loading user profile..." />
+      <div className="p-8 text-center bg-white rounded-md border border-slate-200">
+        <ApiLoader text="Loading user profile..." minHeight="min-h-[320px]" />
       </div>
     );
   }
@@ -144,21 +144,21 @@ export const UserDetailsPage: React.FC = () => {
       </div>
 
       {/* Main Header Profile Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6">
+      <div className="bg-white rounded-md border border-slate-200 p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-100 text-indigo-700 font-bold text-xl flex items-center justify-center border-2 border-indigo-200 shrink-0 shadow-xs">
+            <div className="w-16 h-16 rounded-md bg-indigo-100 text-indigo-700 font-bold text-xl flex items-center justify-center border-2 border-indigo-200 shrink-0">
               {user.firstName?.[0] || user.name?.[0] || 'U'}
               {user.lastName?.[0] || ''}
             </div>
             <div>
               <div className="flex items-center gap-2.5">
                 <h1 className="text-xl font-bold text-slate-900">{user.name}</h1>
-                <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                   {user.userCode}
                 </span>
                 {isCurrent && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
                     Your Account
                   </span>
                 )}
@@ -246,12 +246,12 @@ export const UserDetailsPage: React.FC = () => {
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-slate-500">Status:</span>
             {user.status === 'ACTIVE' ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 Active
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                 Suspended
               </span>
@@ -300,7 +300,7 @@ export const UserDetailsPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Effective Permissions */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6">
+          <div className="bg-white rounded-md border border-slate-200 p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Effective Permissions</h3>
@@ -315,14 +315,14 @@ export const UserDetailsPage: React.FC = () => {
                   placeholder="Filter permissions..."
                   value={permSearch}
                   onChange={(e) => setPermSearch(e.target.value)}
-                  className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               )}
             </div>
 
             <div className="mt-4">
               {hasWildcard ? (
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-start gap-3">
+                <div className="p-4 bg-purple-50 border border-purple-200 rounded-md flex items-start gap-3">
                   <ShieldCheck className="w-5 h-5 text-purple-700 shrink-0 mt-0.5" />
                   <div>
                     <h4 className="text-sm font-bold text-purple-900">Unrestricted Wildcard Authority (*)</h4>
@@ -340,7 +340,7 @@ export const UserDetailsPage: React.FC = () => {
                   {filteredPerms.map((perm) => (
                     <div
                       key={perm}
-                      className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-between"
+                      className="p-2.5 rounded-md bg-slate-50 border border-slate-200/70 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -357,21 +357,21 @@ export const UserDetailsPage: React.FC = () => {
         {/* Right Column: Roles & Activity */}
         <div className="space-y-6">
           {/* Assigned Roles Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5">
+          <div className="bg-white rounded-md border border-slate-200 p-5">
             <h3 className="text-sm font-bold text-slate-900 mb-3">Assigned Role</h3>
             <div className="space-y-2">
               {user.roles && user.roles.length > 0 ? (
                 user.roles.map((r) => (
                   <div
                     key={r.id}
-                    className="p-3 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-between"
+                    className="p-3 rounded-md border border-slate-200 bg-slate-50/50 flex items-center justify-between"
                   >
                     <div>
                       <div className="flex items-center gap-1.5">
                         <Shield className="w-3.5 h-3.5 text-indigo-600" />
                         <span className="text-xs font-bold text-slate-900">{r.name}</span>
                         {r.isSystem && (
-                          <span className="text-[9px] font-semibold px-1 rounded bg-slate-200 text-slate-700">
+                          <span className="text-[9px] font-semibold px-1 rounded-md bg-slate-200 text-slate-700">
                             System
                           </span>
                         )}
@@ -394,7 +394,7 @@ export const UserDetailsPage: React.FC = () => {
           </div>
 
           {/* Recent Security Activity */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5">
+          <div className="bg-white rounded-md border border-slate-200 p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                 <Activity className="w-4 h-4 text-slate-500" />

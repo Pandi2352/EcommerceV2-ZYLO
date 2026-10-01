@@ -108,8 +108,29 @@ export class InvitationsService {
       }),
     );
 
+    const totalCount = await this.invitationModel.countDocuments();
+    const pendingCount = await this.invitationModel.countDocuments({
+      status: InvitationStatus.INVITED,
+      expiresAt: { $gt: now },
+    });
+    const registeredCount = await this.invitationModel.countDocuments({
+      status: InvitationStatus.REGISTERED,
+    });
+    const expiredOrRevokedCount = await this.invitationModel.countDocuments({
+      $or: [
+        { status: { $in: [InvitationStatus.EXPIRED, InvitationStatus.REVOKED] } },
+        { status: InvitationStatus.INVITED, expiresAt: { $lte: now } },
+      ],
+    });
+
     return {
       items,
+      stats: {
+        totalCount,
+        pendingCount,
+        registeredCount,
+        expiredOrRevokedCount,
+      },
       meta: {
         total,
         page,

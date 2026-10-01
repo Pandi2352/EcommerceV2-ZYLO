@@ -29,38 +29,34 @@ export class RolesController {
   @RequirePermissions('roles.view')
   @ApiOperation({ summary: 'List roles with member counts and filters' })
   async list(@Query() query: RoleQueryDto) {
-    const data = await this.rolesService.list(query);
-    return { success: true, data };
+    return this.rolesService.list(query);
   }
 
   @Post()
   @RequirePermissions('roles.create')
   @ApiOperation({ summary: 'Create a new administrative role' })
   async create(@Body() dto: CreateRoleDto, @Req() req: any) {
-    const data = await this.rolesService.create(dto, req.user, {
+    return this.rolesService.create(dto, req.user, {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
     });
-    return { success: true, data, message: 'Role created successfully' };
   }
 
   @Get(':id')
   @RequirePermissions('roles.view')
   @ApiOperation({ summary: 'Get role details, permissions, and member counts' })
   async getById(@Param('id') id: string) {
-    const data = await this.rolesService.getById(id);
-    return { success: true, data };
+    return this.rolesService.getById(id);
   }
 
   @Patch(':id')
   @RequirePermissions('roles.edit')
   @ApiOperation({ summary: 'Update role title, description, or status' })
   async update(@Param('id') id: string, @Body() dto: UpdateRoleDto, @Req() req: any) {
-    const data = await this.rolesService.update(id, dto, req.user, {
+    return this.rolesService.update(id, dto, req.user, {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
     });
-    return { success: true, data, message: 'Role updated successfully' };
   }
 
   @Put(':id/permissions')
@@ -76,8 +72,7 @@ export class RolesController {
       userAgent: req.headers['user-agent'],
     });
     return {
-      success: true,
-      data: data.role,
+      role: data.role,
       diff: data.diff,
       message: `Permissions updated successfully (+${data.diff.added.length}, -${data.diff.removed.length})`,
     };
@@ -91,8 +86,7 @@ export class RolesController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    const data = await this.rolesService.getRoleUsers(id, Number(page) || 1, Number(limit) || 20);
-    return { success: true, data };
+    return this.rolesService.getRoleUsers(id, Number(page) || 1, Number(limit) || 20);
   }
 
   @Delete(':id')

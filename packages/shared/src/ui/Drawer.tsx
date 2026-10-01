@@ -58,7 +58,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
       <div className="fixed inset-y-0 right-0 flex pl-10 max-w-full">
         <div
-          className={`w-screen ${SIZE_CLASSES[size]} bg-white shadow-2xl border-l border-slate-200 flex flex-col transform transition-transform duration-300 animate-slideLeft ${className}`}
+          className={`w-screen ${SIZE_CLASSES[size]} bg-white border-l border-slate-200 flex flex-col transform transition-transform duration-300 animate-slideLeft ${className}`}
         >
           {/* Header */}
           <div className="px-6 py-5 border-b border-slate-200/80 flex items-start justify-between bg-slate-50/70">

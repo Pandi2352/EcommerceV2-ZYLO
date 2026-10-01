@@ -17,7 +17,6 @@ export class LoginActivityController {
   @RequireAnyPermission('audit_logs.view', 'users.view')
   @ApiOperation({ summary: 'List admin login activity, client devices, and authentication metrics' })
   async getLoginActivity(@Query() query: LoginActivityQueryDto) {
-    const data = await this.auditService.getLoginActivity(query);
-    return { success: true, data };
+    return this.auditService.getLoginActivity(query);
   }
 }

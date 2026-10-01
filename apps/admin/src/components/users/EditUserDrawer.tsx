@@ -89,7 +89,7 @@ export const EditUserDrawer: React.FC<EditUserDrawerProps> = ({
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 mb-2">
+        <div className="p-3 bg-slate-50 rounded-md border border-slate-200/80 mb-2">
           <div className="text-xs text-slate-500 font-medium">Work Email (Primary Identifier)</div>
           <div className="text-sm font-semibold text-slate-800 mt-0.5">{user.email}</div>
           <div className="text-[11px] text-slate-400 mt-1">
@@ -135,7 +135,7 @@ export const EditUserDrawer: React.FC<EditUserDrawerProps> = ({
           />
         </div>
 
-        <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs text-amber-800">
+        <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-md text-xs text-amber-800">
           <span className="font-bold">Role Assignment:</span> To modify role or permissions, use the dedicated "Change Role" option to ensure privilege hierarchy checks and audit logs are recorded.
         </div>
       </form>

@@ -15,7 +15,7 @@ import { formatDateTime } from '@shared/utils/format';
 import Button from '@shared/ui/Button';
 import Badge from '@shared/ui/Badge';
 import SelectField from '@shared/ui/SelectField';
-import PageLoader from '@shared/ui/PageLoader';
+import ApiLoader from '@shared/ui/Spinner';
 import { toast } from '@shared/ui/Toast';
 import { staffService, type StaffUser, type StaffStats } from '../services/staff.service';
 import InviteStaffModal from '../components/staff/InviteStaffModal';
@@ -212,8 +212,8 @@ export const StaffUsersPage: React.FC = () => {
       {/* Staff Table */}
       <div className="bg-white border border-slate-200/90 rounded-lg overflow-hidden shadow-xs">
         {isLoading && users.length === 0 ? (
-          <div className="p-12 flex justify-center">
-            <PageLoader variant="mascot" size="md" text="Loading staff directory..." />
+          <div className="p-8 flex justify-center">
+            <ApiLoader text="Loading staff directory..." />
           </div>
         ) : error && users.length === 0 ? (
           <div className="p-12 text-center space-y-3">

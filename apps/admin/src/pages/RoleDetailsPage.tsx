@@ -15,7 +15,7 @@ import {
   Lock,
 } from 'lucide-react';
 import Button from '@shared/ui/Button';
-import PageLoader from '@shared/ui/PageLoader';
+import ApiLoader from '@shared/ui/Spinner';
 import { toast } from '@shared/ui/Toast';
 import {
   rolesService,
@@ -69,20 +69,22 @@ export const RoleDetailsPage: React.FC = () => {
       setIsLoading(true);
       const [roleData, catalogData, usersData] = await Promise.all([
         rolesService.getRoleById(id),
-        permissionsService.getGroupedPermissions(),
+        permissionsService.getGroupedPermissions().catch(() => []),
         rolesService.getRoleUsers(id).catch(() => []),
       ]);
 
       setRole(roleData);
-      setCatalog(catalogData);
-      setRoleUsers(usersData);
+      const catalogList = Array.isArray(catalogData) ? catalogData : Array.isArray((catalogData as any)?.data) ? (catalogData as any).data : [];
+      setCatalog(catalogList);
+      const usersList = Array.isArray((usersData as any)?.items) ? (usersData as any).items : Array.isArray(usersData) ? usersData : [];
+      setRoleUsers(usersList);
 
       const permsSet = new Set(roleData.permissions || []);
       setSavedPermissions(permsSet);
       setCurrentPermissions(new Set(permsSet));
 
       // Expand all domains initially
-      setExpandedDomains(new Set(catalogData.map((d) => d.group)));
+      setExpandedDomains(new Set(catalogList.map((d: any) => d.group)));
 
       // Settings fields
       setEditName(roleData.name);
@@ -226,8 +228,8 @@ export const RoleDetailsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-12 text-center">
-        <PageLoader variant="mascot" size="md" text="Loading role details..." />
+      <div className="p-8 text-center bg-white rounded-md border border-slate-200">
+        <ApiLoader text="Loading role details..." minHeight="min-h-[320px]" />
       </div>
     );
   }
@@ -266,11 +268,11 @@ export const RoleDetailsPage: React.FC = () => {
       </div>
 
       {/* Role Header Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6">
+      <div className="bg-white rounded-md border border-slate-200 p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-xs border ${
+              className={`w-14 h-14 rounded-md flex items-center justify-center shrink-0 border ${
                 isSuperAdmin
                   ? 'bg-purple-100 text-purple-700 border-purple-200'
                   : role.isSystem
@@ -290,16 +292,16 @@ export const RoleDetailsPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2.5">
                 <h1 className="text-xl font-bold text-slate-900">{role.name}</h1>
-                <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                   {role.key}
                 </span>
                 {role.isSystem ? (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
                     <Lock className="w-2.5 h-2.5" />
                     System Role
                   </span>
                 ) : (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
                     Custom Role
                   </span>
                 )}
@@ -330,7 +332,7 @@ export const RoleDetailsPage: React.FC = () => {
           >
             <Key className="w-3.5 h-3.5" />
             Permissions Matrix
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 font-semibold">
+            <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 font-semibold">
               {isSuperAdmin ? 'Root (*)' : currentPermissions.size}
             </span>
           </button>
@@ -346,7 +348,7 @@ export const RoleDetailsPage: React.FC = () => {
           >
             <Users className="w-3.5 h-3.5" />
             Assigned Users
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 font-semibold">
+            <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 font-semibold">
               {roleUsers.length}
             </span>
           </button>
@@ -373,7 +375,7 @@ export const RoleDetailsPage: React.FC = () => {
         <div className="space-y-4">
           {/* Super Admin Notice */}
           {isSuperAdmin && (
-            <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl flex items-start gap-3">
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-md flex items-start gap-3">
               <ShieldAlert className="w-5 h-5 text-purple-700 shrink-0 mt-0.5" />
               <div>
                 <h4 className="text-sm font-bold text-purple-900">Protected Super Administrator</h4>
@@ -385,7 +387,7 @@ export const RoleDetailsPage: React.FC = () => {
           )}
 
           {/* Search & Actions Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-white p-4 rounded-md border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative flex-1 max-w-md">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -393,7 +395,7 @@ export const RoleDetailsPage: React.FC = () => {
                 value={permSearch}
                 onChange={(e) => setPermSearch(e.target.value)}
                 placeholder="Search by action, module, or permission name..."
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
               />
             </div>
 
@@ -424,7 +426,7 @@ export const RoleDetailsPage: React.FC = () => {
               return (
                 <div
                   key={domain.group}
-                  className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden"
+                  className="bg-white rounded-md border border-slate-200 overflow-hidden"
                 >
                   {/* Domain Header */}
                   <div
@@ -440,7 +442,7 @@ export const RoleDetailsPage: React.FC = () => {
                       <h3 className="text-sm font-bold text-slate-900 tracking-tight">
                         {domain.group}
                       </h3>
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-200/70 text-slate-700">
                         {domainActiveCount}/{domainPermCount} Active
                       </span>
                     </div>
@@ -458,7 +460,7 @@ export const RoleDetailsPage: React.FC = () => {
                         return (
                           <div
                             key={mod.module}
-                            className="rounded-xl border border-slate-200/70 overflow-hidden bg-white"
+                            className="rounded-md border border-slate-200/70 overflow-hidden bg-white"
                           >
                             {/* Module Bar */}
                             <div className="px-4 py-2.5 bg-slate-50/60 border-b border-slate-200/60 flex items-center justify-between">
@@ -476,7 +478,7 @@ export const RoleDetailsPage: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleModuleAction(mod, 'all')}
-                                    className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 px-2 py-0.5 rounded hover:bg-indigo-50 transition-colors"
+                                    className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 px-2 py-0.5 rounded-md hover:bg-indigo-50 transition-colors"
                                   >
                                     Select All
                                   </button>
@@ -484,7 +486,7 @@ export const RoleDetailsPage: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleModuleAction(mod, 'view')}
-                                    className="text-[11px] font-semibold text-slate-600 hover:text-slate-800 px-2 py-0.5 rounded hover:bg-slate-100 transition-colors"
+                                    className="text-[11px] font-semibold text-slate-600 hover:text-slate-800 px-2 py-0.5 rounded-md hover:bg-slate-100 transition-colors"
                                   >
                                     View Only
                                   </button>
@@ -492,7 +494,7 @@ export const RoleDetailsPage: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleModuleAction(mod, 'none')}
-                                    className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 px-2 py-0.5 rounded hover:bg-rose-50 transition-colors"
+                                    className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 px-2 py-0.5 rounded-md hover:bg-rose-50 transition-colors"
                                   >
                                     Clear
                                   </button>
@@ -508,11 +510,11 @@ export const RoleDetailsPage: React.FC = () => {
                                 return (
                                   <label
                                     key={p.key}
-                                    className={`p-2.5 rounded-lg border transition-all flex items-start gap-2.5 ${
+                                    className={`p-2.5 rounded-md border transition-all flex items-start gap-2.5 ${
                                       isSuperAdmin
                                         ? 'border-purple-200 bg-purple-50/30 cursor-not-allowed opacity-90'
                                         : isChecked
-                                        ? 'border-indigo-500 bg-indigo-50/40 cursor-pointer shadow-2xs'
+                                        ? 'border-indigo-500 bg-indigo-50/40 cursor-pointer'
                                         : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 cursor-pointer'
                                     }`}
                                   >
@@ -521,7 +523,7 @@ export const RoleDetailsPage: React.FC = () => {
                                       checked={isChecked}
                                       disabled={isSuperAdmin}
                                       onChange={() => handleTogglePermission(p.key)}
-                                      className="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20 w-4 h-4"
+                                      className="mt-0.5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500/20 w-4 h-4"
                                     />
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center gap-1.5">
@@ -529,7 +531,7 @@ export const RoleDetailsPage: React.FC = () => {
                                           {p.name}
                                         </span>
                                         {p.isSensitive && (
-                                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700">
+                                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-rose-100 text-rose-700">
                                             Sensitive
                                           </span>
                                         )}
@@ -559,7 +561,7 @@ export const RoleDetailsPage: React.FC = () => {
 
       {/* TAB 2: Assigned Staff Users */}
       {activeTab === 'users' && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-md border border-slate-200 overflow-hidden">
           <div className="p-5 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Assigned Staff Members</h3>
@@ -597,7 +599,7 @@ export const RoleDetailsPage: React.FC = () => {
                       <td className="px-4 py-3 text-xs text-slate-600">{u.designation || '—'}</td>
                       <td className="px-4 py-3">
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          className={`text-xs px-2 py-0.5 rounded-md font-medium ${
                             u.status === 'ACTIVE'
                               ? 'bg-emerald-50 text-emerald-700'
                               : 'bg-rose-50 text-rose-700'
@@ -626,7 +628,7 @@ export const RoleDetailsPage: React.FC = () => {
 
       {/* TAB 3: Role Settings */}
       {activeTab === 'settings' && !role.isSystem && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 max-w-xl">
+        <div className="bg-white rounded-md border border-slate-200 p-6 max-w-xl">
           <h3 className="text-base font-bold text-slate-900 mb-4">Edit Role Settings</h3>
           <form onSubmit={handleSaveSettings} className="space-y-4">
             <div>
@@ -635,7 +637,7 @@ export const RoleDetailsPage: React.FC = () => {
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 required
               />
             </div>
@@ -646,7 +648,7 @@ export const RoleDetailsPage: React.FC = () => {
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
 
@@ -655,7 +657,7 @@ export const RoleDetailsPage: React.FC = () => {
               <select
                 value={editStatus}
                 onChange={(e) => setEditStatus(e.target.value as any)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 <option value="ACTIVE">Active (Assign to staff members)</option>
                 <option value="INACTIVE">Inactive (Prevent new assignments)</option>
@@ -673,7 +675,7 @@ export const RoleDetailsPage: React.FC = () => {
 
       {/* Floating Unsaved Changes Bar */}
       {isDirty && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-6 z-40 animate-in slide-in-from-bottom duration-200">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3.5 rounded-md border border-slate-700 flex items-center gap-6 z-40 animate-in slide-in-from-bottom duration-200">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-sm font-semibold">

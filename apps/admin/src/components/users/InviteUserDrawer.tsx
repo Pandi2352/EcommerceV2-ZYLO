@@ -38,17 +38,19 @@ export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({
       setIsLoadingRoles(true);
       rolesService
         .listRoles()
-        .then((res) => {
-          const activeRoles = res.items.filter((r) => r.status === 'ACTIVE');
+        .then((res: any) => {
+          const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+          const activeRoles = list.filter((r: Role) => r.status === 'ACTIVE');
           setRoles(activeRoles);
           // Default to Operations Manager or first non-super-admin active role
-          const defaultRole = activeRoles.find((r) => r.key === 'operations_manager') || activeRoles[0];
+          const defaultRole = activeRoles.find((r: Role) => r.key === 'operations_manager') || activeRoles[0];
           if (defaultRole) {
             setRoleId(defaultRole.id);
           }
         })
         .catch((err) => {
           toast.error(extractErrorMessage(err));
+          setRoles([]);
         })
         .finally(() => {
           setIsLoadingRoles(false);
@@ -194,12 +196,12 @@ export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({
             Assigned Role <span className="text-rose-500">*</span>
           </label>
           {isLoadingRoles ? (
-            <div className="h-10 bg-slate-100 animate-pulse rounded-lg" />
+            <div className="h-10 bg-slate-100 animate-pulse rounded-md" />
           ) : (
             <select
               value={roleId}
               onChange={(e) => setRoleId(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
             >
               {roles.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -210,12 +212,12 @@ export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({
           )}
 
           {selectedRole && (
-            <div className="mt-2.5 p-3 rounded-xl bg-indigo-50/60 border border-indigo-100 text-xs">
+            <div className="mt-2.5 p-3 rounded-md bg-indigo-50/60 border border-indigo-100 text-xs">
               <div className="flex items-center gap-1.5 font-bold text-indigo-900 mb-1">
                 <Shield className="w-3.5 h-3.5 text-indigo-600" />
                 <span>{selectedRole.name}</span>
                 {selectedRole.isSystem && (
-                  <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-200/60 text-indigo-800">
+                  <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-indigo-200/60 text-indigo-800">
                     System Role
                   </span>
                 )}
@@ -236,7 +238,7 @@ export const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
             placeholder="Welcome to the team! Here is your access link to our administration workspace..."
-            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors resize-none"
+            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors resize-none"
           />
         </div>
       </form>

@@ -14,8 +14,7 @@ export class PermissionsController {
   @RequirePermissions('roles.view')
   @ApiOperation({ summary: 'List permission catalog grouped by domain and module' })
   @ApiResponse({ status: 200, description: 'Active permission catalog' })
-  async list(): Promise<{ success: boolean; data: GroupedPermissionResponse[] }> {
-    const data = await this.permissionsService.getGroupedPermissions();
-    return { success: true, data };
+  async list(): Promise<GroupedPermissionResponse[]> {
+    return this.permissionsService.getGroupedPermissions();
   }
 }

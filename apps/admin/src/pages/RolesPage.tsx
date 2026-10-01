@@ -12,8 +12,14 @@ import {
   RefreshCw,
   Lock,
 } from 'lucide-react';
+import {
+  FcKey,
+  FcLock,
+  FcDepartment,
+  FcConferenceCall,
+} from 'react-icons/fc';
 import Button from '@shared/ui/Button';
-import PageLoader from '@shared/ui/PageLoader';
+import ApiLoader from '@shared/ui/Spinner';
 import ConfirmDialog from '@shared/ui/ConfirmDialog';
 import { toast } from '@shared/ui/Toast';
 import { useAuth } from '@shared/auth/AuthContext';
@@ -33,10 +39,12 @@ export const RolesPage: React.FC = () => {
   const fetchRoles = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await rolesService.listRoles();
-      setRoles(res.items);
+      const res: any = await rolesService.listRoles();
+      const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+      setRoles(list);
     } catch (err) {
       toast.error(extractErrorMessage(err));
+      setRoles([]);
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +76,7 @@ export const RolesPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">Roles & Permissions</h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
               {roles.length} Roles
             </span>
           </div>
@@ -100,14 +108,71 @@ export const RolesPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Metrics Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-indigo-50/70 border border-indigo-100 flex items-center justify-center shrink-0">
+            <FcKey className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Total Roles
+            </div>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">{roles.length}</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-purple-50/70 border border-purple-100 flex items-center justify-center shrink-0">
+            <FcLock className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              System Roles
+            </div>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">
+              {roles.filter((r) => r.isSystem).length}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-emerald-50/70 border border-emerald-100 flex items-center justify-center shrink-0">
+            <FcDepartment className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Custom Roles
+            </div>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">
+              {roles.filter((r) => !r.isSystem).length}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-md border border-slate-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md bg-sky-50/70 border border-sky-100 flex items-center justify-center shrink-0">
+            <FcConferenceCall className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Staff Assigned
+            </div>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">
+              {roles.reduce((acc, r) => acc + (r.userCount || 0), 0)}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Roles Grid */}
       {isLoading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200/80">
-          <PageLoader variant="mascot" size="md" text="Loading roles and permissions..." />
+        <div className="p-8 text-center bg-white rounded-md border border-slate-200">
+          <ApiLoader text="Loading roles and permissions..." />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {roles.map((role) => {
+          {(roles || []).map((role) => {
             const isSuperAdmin = role.key === 'super_admin';
             const hasWildcard = role.permissions.includes('*') || isSuperAdmin;
             const canDelete = !role.isSystem && (role.userCount ?? 0) === 0 && can('roles.delete');
@@ -115,13 +180,13 @@ export const RolesPage: React.FC = () => {
             return (
               <div
                 key={role.id}
-                className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between overflow-hidden"
+                className="bg-white rounded-md border border-slate-200 hover:border-slate-300 transition-all flex flex-col justify-between overflow-hidden"
               >
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        className={`w-10 h-10 rounded-md flex items-center justify-center shrink-0 ${
                           isSuperAdmin
                             ? 'bg-purple-100 text-purple-700'
                             : role.isSystem
@@ -149,12 +214,12 @@ export const RolesPage: React.FC = () => {
 
                     <div className="flex items-center gap-1.5 shrink-0">
                       {role.isSystem ? (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
                           <Lock className="w-2.5 h-2.5" />
                           System
                         </span>
                       ) : (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
                           Custom
                         </span>
                       )}
@@ -165,7 +230,7 @@ export const RolesPage: React.FC = () => {
                     {role.description || 'Pre-configured access controls and system authorization rules.'}
                   </p>
 
-                  <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                  <div className="grid grid-cols-2 gap-2 p-2.5 rounded-md bg-slate-50 border border-slate-100 text-xs">
                     <div className="flex items-center gap-1.5 text-slate-600">
                       <Users className="w-3.5 h-3.5 text-slate-400" />
                       <span className="font-bold text-slate-800">{role.userCount ?? 0}</span>
@@ -199,7 +264,7 @@ export const RolesPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setDeleteRoleItem(role)}
-                      className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                      className="p-1 text-slate-400 hover:text-rose-600 rounded-md transition-colors"
                       title="Delete Custom Role"
                     >
                       <Trash2 className="w-4 h-4" />

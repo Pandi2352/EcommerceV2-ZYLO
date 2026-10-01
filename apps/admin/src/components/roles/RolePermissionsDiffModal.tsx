@@ -40,12 +40,12 @@ export const RolePermissionsDiffModal: React.FC<RolePermissionsDiffModalProps> =
           onClick={() => !isLoading && onClose()}
         />
 
-        <div className="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl border border-slate-200/80">
+        <div className="relative transform overflow-hidden rounded-md bg-white text-left border border-slate-200 transition-all sm:my-8 sm:w-full sm:max-w-xl">
           <form onSubmit={handleSubmit}>
             <div className="bg-white px-6 pt-6 pb-5">
               <div className="flex items-start justify-between pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
@@ -73,11 +73,11 @@ export const RolePermissionsDiffModal: React.FC<RolePermissionsDiffModalProps> =
                       <span className="w-2 h-2 rounded-full bg-emerald-500" />
                       Granting Permissions (+{addedPermissions.length})
                     </div>
-                    <div className="flex flex-wrap gap-1.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+                    <div className="flex flex-wrap gap-1.5 p-3 rounded-md bg-emerald-50/60 border border-emerald-100">
                       {addedPermissions.map((perm) => (
                         <span
                           key={perm}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-100/80 text-emerald-800 font-mono text-[11px] font-semibold"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100/80 text-emerald-800 font-mono text-[11px] font-semibold"
                         >
                           <Plus className="w-3 h-3 text-emerald-600" />
                           {perm}
@@ -94,11 +94,11 @@ export const RolePermissionsDiffModal: React.FC<RolePermissionsDiffModalProps> =
                       <span className="w-2 h-2 rounded-full bg-rose-500" />
                       Revoking Permissions (-{removedPermissions.length})
                     </div>
-                    <div className="flex flex-wrap gap-1.5 p-3 rounded-xl bg-rose-50/60 border border-rose-100">
+                    <div className="flex flex-wrap gap-1.5 p-3 rounded-md bg-rose-50/60 border border-rose-100">
                       {removedPermissions.map((perm) => (
                         <span
                           key={perm}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-100/80 text-rose-800 font-mono text-[11px] font-semibold"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100/80 text-rose-800 font-mono text-[11px] font-semibold"
                         >
                           <Minus className="w-3 h-3 text-rose-600" />
                           {perm}
@@ -118,7 +118,7 @@ export const RolePermissionsDiffModal: React.FC<RolePermissionsDiffModalProps> =
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     placeholder="e.g. Added customer refund authorization per management policy"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   />
                 </div>
               </div>

@@ -29,14 +29,16 @@ export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({
       setIsLoadingRoles(true);
       rolesService
         .listRoles()
-        .then((res) => {
-          const activeRoles = res.items.filter((r) => r.status === 'ACTIVE');
+        .then((res: any) => {
+          const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+          const activeRoles = list.filter((r: Role) => r.status === 'ACTIVE');
           setRoles(activeRoles);
           const currentId = user.roleIds?.[0] || '';
           setSelectedRoleId(currentId);
         })
         .catch((err) => {
           toast.error(extractErrorMessage(err));
+          setRoles([]);
         })
         .finally(() => {
           setIsLoadingRoles(false);
@@ -79,12 +81,12 @@ export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({
           onClick={() => !isSubmitting && onClose()}
         />
 
-        <div className="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200/80">
+        <div className="relative transform overflow-hidden rounded-md bg-white text-left border border-slate-200 transition-all sm:my-8 sm:w-full sm:max-w-lg">
           <form onSubmit={handleSubmit}>
             <div className="bg-white px-6 pt-6 pb-5">
               <div className="flex items-start justify-between pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
@@ -110,7 +112,7 @@ export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({
                     Select New Role
                   </label>
                   {isLoadingRoles ? (
-                    <div className="h-10 bg-slate-100 animate-pulse rounded-lg" />
+                    <div className="h-10 bg-slate-100 animate-pulse rounded-md" />
                   ) : (
                     <div className="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                       {roles.map((r) => {
@@ -121,9 +123,9 @@ export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({
                           <div
                             key={r.id}
                             onClick={() => setSelectedRoleId(r.id)}
-                            className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
+                            className={`p-3 rounded-md border transition-all cursor-pointer flex items-center justify-between ${
                               isSelected
-                                ? 'border-indigo-600 bg-indigo-50/50 shadow-xs'
+                                ? 'border-indigo-600 bg-indigo-50/50'
                                 : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
                             }`}
                           >
@@ -131,12 +133,12 @@ export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-900">{r.name}</span>
                                 {r.isSystem && (
-                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-slate-200 text-slate-700">
                                     System
                                   </span>
                                 )}
                                 {isCurrent && (
-                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
                                     Current
                                   </span>
                                 )}
@@ -146,7 +148,7 @@ export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({
                               </p>
                             </div>
                             <div
-                              className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                              className={`w-5 h-5 rounded-md border flex items-center justify-center ${
                                 isSelected
                                   ? 'border-indigo-600 bg-indigo-600 text-white'
                                   : 'border-slate-300 bg-white'
@@ -162,7 +164,7 @@ export const ChangeRoleDialog: React.FC<ChangeRoleDialogProps> = ({
                 </div>
 
                 {isSuperAdminTarget && (
-                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-800">
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-md flex items-start gap-2.5 text-xs text-rose-800">
                     <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                     <div>
                       <span className="font-bold">Privilege Escalation Warning:</span> Assigning the Super Administrator role grants unrestricted root authority across all modules, sensitive settings, and financial records.
