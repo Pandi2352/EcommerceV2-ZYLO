@@ -43,7 +43,9 @@ export interface LoginPayload {
 }
 
 /** A login step either finishes (user) or asks for a second factor. */
-export type LoginResult = { mfaRequired: false; user: AuthUser } | { mfaRequired: true };
+export type LoginResult =
+  | { mfaRequired: false; user: AuthUser }
+  | { mfaRequired: true; user?: never };
 
 export interface ChangePasswordPayload {
   currentPassword: string;

@@ -51,6 +51,25 @@
 - [x] Admin login audit log (Records timestamp, IP address, and user-agent)
 - [x] Force password reset on first initial admin login
 
+### Staff User Management & Granular RBAC (Admin)
+- [x] Staff Directory with search, status filter, role filter, and server-side pagination (`/users`)
+- [x] Staff account status toggling (Active vs Suspended) with instant session revocation
+- [x] Staff account soft deletion
+- [x] Staff password reset link generation and email dispatch
+- [x] Staff User Profile Details (`/users/:id`) with effective permissions, assigned roles, and activity
+- [x] Staff Invitations management (`/invitations`) with tokenized onboarding links
+- [x] Invitation token rotation / resend capabilities
+- [x] Invitation revocation and expiration tracking
+- [x] Invitation acceptance & onboarding flow (`/accept-invite`)
+- [x] Dynamic Roles & Permissions catalog (`/roles`)
+- [x] Custom role creation with permission cloning option
+- [x] Granular Permissions Matrix (`/roles/:id`) grouped by system domains and modules
+- [x] Quick module permission actions (Select All, View Only, Clear)
+- [x] Permission Diff Review modal before saving role changes
+- [x] Login Activity Audit Trail (`/login-activity`) tracking IPs, devices, browsers, and events
+- [x] Remote session revocation per user from login activity log
+- [x] Fine-grained permission guards (`@RequirePermissions(...)`, `PermissionsGuard`, frontend route guards)
+
 ### Multi-Factor Authentication (MFA / 2FA — Advanced / Optional)
 - [x] TOTP 2FA secret generation & QR code display (Google Authenticator)
 - [x] 2FA code verification on login
@@ -347,8 +366,8 @@
 ---
 
 ## 21. Database Schemas, Indexes & Data Seeders
-- [ ] Mongoose Schema & Model definitions with strict typing
-- [ ] MongoDB compound and unique indexing scripts
+- [x] Mongoose Schema & Model definitions with strict typing (Users, Roles, StaffInvitations, AuditLogs, MFA)
+- [x] MongoDB compound and unique indexing scripts
 - [x] Seed script: Super Admin user initialization
 - [x] Seed script: Default sample categories & subcategories
 - [ ] Seed script: Demo products with variants and images
@@ -357,13 +376,17 @@
 ---
 
 ## 22. Frontend UI/UX Shell & Feedback Elements
-- [ ] Toast notification system (Success, Error, Warning, Info)
-- [ ] Action confirmation modals (Delete address, cancel order, empty cart)
-- [ ] Mobile navigation drawer / responsive hamburger menu
-- [ ] Breadcrumbs navigation component
-- [ ] Skeleton loaders for cards, tables, and product details
+- [x] Toast notification system (Success, Error, Warning, Info)
+- [x] Action confirmation modals (`ConfirmDialog`)
+- [x] Slide-over drawer component (`Drawer`)
+- [x] Mobile navigation drawer / responsive hamburger menu
+- [x] Breadcrumbs navigation component
+- [x] Scoped outlet API loader (`ApiLoader` without refreshing sidebar/navbar)
+- [x] Skeleton loaders for cards, tables, and product details
+- [x] Form submission button loading spinners (`Button` with `isLoading`)
+- [x] Design standard: Zero-shadow aesthetic with `rounded-md` across count cards, tables, and dialogs
+- [x] Unique vibrant Flat Color Icons (`react-icons/fc`) for dashboard & management count cards
 - [ ] Empty state placeholders with call-to-action buttons
-- [ ] Form submission button loading spinners
 
 ---
 
@@ -372,7 +395,8 @@
 - [x] Interactive Swagger UI documentation at `/api/docs`
 - [x] Global request DTO validation pipe with `class-validator`
 - [x] Global HTTP exception filter with uniform error envelopes
-- [ ] Global response transform interceptor (`{ success, data, meta }`)
+- [x] Global response transform interceptor (`{ success, data, meta }` with unwrap safeguards)
+- [x] Dual-portal session isolation (customer vs admin)
 - [x] MongoDB connection pool with `@nestjs/mongoose` and `mongoose` (Compass / Atlas)
 - [x] Health check endpoint (`GET /api/v1/health`)
 - [x] Helmet security headers

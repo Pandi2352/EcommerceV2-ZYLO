@@ -62,7 +62,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (payload: LoginPayload) => {
     const result = await authService.login(payload, portal);
-    if (!result.mfaRequired) setUser(result.user);
+    if (!result.mfaRequired && 'user' in result && result.user) {
+      setUser(result.user);
+    }
     return result;
   }, [portal]);
 
