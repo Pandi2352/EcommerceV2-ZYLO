@@ -45,10 +45,59 @@ export const SidebarGroup: React.FC<SidebarGroupProps> = ({
 
   const isPageActive = (to: string) => {
     if (to === '/' && location.pathname === '/') return true;
-    return location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
+    if (location.pathname === to) return true;
+    const hasExactSibling = pages.some((p) => p.to === location.pathname);
+    if (hasExactSibling) return false;
+    return to !== '/' && location.pathname.startsWith(`${to}/`);
   };
 
   const isGroupActive = pages.some((p) => isPageActive(p.to));
+
+  // If group only has 1 page, render direct navigation link
+  if (pages.length === 1) {
+    const single = pages[0];
+    const active = isPageActive(single.to);
+
+    if (isCollapsed) {
+      return (
+        <div className="px-2" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+          <NavLink
+            to={single.to}
+            onClick={onPageClick}
+            title={label}
+            className={`${SIDEBAR_CLASSES.railButton} ${
+              active ? SIDEBAR_CLASSES.railButtonActive : SIDEBAR_CLASSES.railButtonInactive
+            }`}
+            aria-label={label}
+          >
+            <Icon className="w-4 h-4" />
+          </NavLink>
+        </div>
+      );
+    }
+
+    return (
+      <div className="px-2">
+        <NavLink
+          to={single.to}
+          onClick={onPageClick}
+          className={`${SIDEBAR_CLASSES.itemTrigger} ${
+            active ? `${SIDEBAR_CLASSES.itemTriggerActive} bg-slate-800 font-semibold` : SIDEBAR_CLASSES.itemTriggerInactive
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <Icon className="w-4 h-4 shrink-0" />
+            <span>{label}</span>
+          </div>
+          {badge && (
+            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${badge.color}`}>
+              {badge.text}
+            </span>
+          )}
+        </NavLink>
+      </div>
+    );
+  }
 
   // Collapsed Mode: Renders single rail icon button with hover trigger
   if (isCollapsed) {

@@ -17,6 +17,7 @@ export interface PaginationProps {
   disabled?: boolean;
   /** Word used in "1–15 of 380 rows" */
   itemLabel?: string;
+  className?: string;
 }
 
 /** Page numbers with ellipses: 1 … 4 [5] 6 … 20 */
@@ -56,9 +57,10 @@ export const Pagination: React.FC<PaginationProps> = ({
   meta,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 15, 25, 50, 100],
+  pageSizeOptions = [5, 10, 15, 25, 50, 100],
   disabled = false,
   itemLabel = 'rows',
+  className,
 }) => {
   const page = meta?.page ?? pageProp ?? 1;
   const pageSize = meta?.limit ?? pageSizeProp ?? 15;
@@ -69,7 +71,10 @@ export const Pagination: React.FC<PaginationProps> = ({
   const go = (p: number) => onPageChange(Math.min(Math.max(1, p), lastPage));
 
   return (
-    <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-500">
+    <nav
+      aria-label="Pagination"
+      className={cn('flex w-full flex-wrap items-center justify-between gap-3 text-xs text-zinc-500', className)}
+    >
       <div className="flex items-center gap-3">
         {onPageSizeChange && (
           <div className="flex items-center gap-2">
@@ -90,7 +95,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       </div>
 
       {lastPage > 1 && (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 ml-auto">
           <NavButton label="First page" disabled={disabled || page <= 1} onClick={() => go(1)}>
             <ChevronsLeft className="h-3.5 w-3.5" />
           </NavButton>

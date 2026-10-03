@@ -26,7 +26,7 @@ export function Tabs<K extends string = string>({ items, value, onChange, classN
   };
 
   return (
-    <div role="tablist" className={cn('flex items-center gap-4 border-b border-zinc-200', className)}>
+    <div role="tablist" className={cn('flex items-center gap-4 border-b border-zinc-200 overflow-x-auto no-scrollbar', className)}>
       {items.map((item, index) => {
         const selected = item.key === value;
         return (
@@ -40,7 +40,7 @@ export function Tabs<K extends string = string>({ items, value, onChange, classN
             onClick={() => onChange(item.key)}
             onKeyDown={(e) => onKeyDown(e, index)}
             className={cn(
-              '-mb-px inline-flex items-center gap-1.5 border-b-2 px-0.5 pb-2 pt-1 text-[13px] font-medium outline-none transition-colors',
+              '-mb-px inline-flex items-center gap-1.5 border-b-2 px-1 pb-2 pt-1 text-[13px] font-medium outline-none transition-colors whitespace-nowrap shrink-0',
               selected ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-500 hover:text-zinc-800',
             )}
           >

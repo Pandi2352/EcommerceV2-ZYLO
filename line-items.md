@@ -92,15 +92,20 @@
 
 ## 3. Categories & Brands
 ### Categories
-- [ ] List all active categories
-- [ ] View single category details
-- [ ] Hierarchical parent-child category tree (Subcategories)
-- [ ] Auto-generate category URL slug
-- [ ] Category banner/icon image upload
-- [ ] Admin: Create category
-- [ ] Admin: Edit category
-- [ ] Admin: Delete category
-- [ ] Admin: Toggle category active/inactive status
+- [x] List all active categories (Storefront & Admin)
+- [x] View single category details & slug routing
+- [x] Hierarchical parent-child category tree (Subcategories with 3+ depth levels)
+- [x] Auto-generate collision-proof URL slugs with manual override
+- [x] Category desktop/mobile banners, square thumbnail, and SVG icon imagery
+- [x] Admin: Create category (Multi-tab drawer: General, Media, Merchandising, SEO, Facets)
+- [x] Admin: Edit category with cycle-preventing parent re-assignment
+- [x] Admin: Safely delete category with orphan subcategory re-assignment selector
+- [x] Admin: Toggle category active/inactive visibility status
+- [x] Admin: Interactive Visual Tree view with expand/collapse and Move Up/Down reordering
+- [x] Admin: Flat Table view with sorting, status indicators, and configurable pagination (5, 10, 15, 20, 50 rows per page) with right-aligned navigation controls
+- [x] Admin: Dedicated top-level Categories menu in admin sidebar with Overview & Taxonomy submenus
+- [x] Admin: Category Management Overview page with 6 KPI count cards (Flat color icons), department distribution bar charts, hierarchy depth distribution, storefront merchandising breakdown, and SEO quality audit cards
+- [x] Admin: 35 high-fidelity retail categories seeded across 10 root departments with multi-level hierarchies, complete imagery, badges, and SEO metadata
 
 ### Brands
 - [ ] List all active brands

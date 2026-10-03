@@ -27,6 +27,8 @@ import RolesPage from '../pages/RolesPage';
 import RoleDetailsPage from '../pages/RoleDetailsPage';
 import InvitationsPage from '../pages/InvitationsPage';
 import LoginActivityPage from '../pages/LoginActivityPage';
+import CategoriesPage from '../pages/CategoriesPage';
+import CategoriesOverviewPage from '../pages/CategoriesOverviewPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -89,6 +91,12 @@ export const AppRoutes: React.FC = () => {
             <Route path={ROUTES.ROLE_DETAILS} element={<RoleDetailsPage />} />
             <Route path={ROUTES.USERS_ROLES} element={<RolesPage />} />
             <Route path={ROUTES.USERS_PERMISSIONS} element={<RolesPage />} />
+          </Route>
+
+          {/* Catalog: Categories */}
+          <Route element={<ProtectedRoute permission="categories.view" />}>
+            <Route path={ROUTES.CATEGORIES_OVERVIEW} element={<CategoriesOverviewPage />} />
+            <Route path={ROUTES.CATEGORIES} element={<CategoriesPage />} />
           </Route>
 
           <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage homeLabel="Back to Dashboard" />} />

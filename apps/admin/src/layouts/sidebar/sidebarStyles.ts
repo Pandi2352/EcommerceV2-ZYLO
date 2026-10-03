@@ -7,6 +7,7 @@ import {
   Tag,
   Settings,
   UserCheck,
+  FolderTree,
 } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
 import type { SubPageItem } from './SidebarGroup';
@@ -19,6 +20,7 @@ export const SIDEBAR_DIMENSIONS = {
   collapsedWidth: 'w-[60px]',
   mainPlExpanded: 'md:pl-[224px]',
   mainPlCollapsed: 'md:pl-[60px]',
+  collapsedFlyoutLeft: 'left-[60px]',
 } as const;
 
 export const SIDEBAR_CLASSES = {
@@ -99,12 +101,20 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         ],
       },
       {
+        id: 'categories',
+        label: 'Categories',
+        icon: FolderTree,
+        pages: [
+          { label: 'Overview', to: ROUTES.CATEGORIES_OVERVIEW },
+          { label: 'Taxonomy & List', to: ROUTES.CATEGORIES },
+        ],
+      },
+      {
         id: 'catalog',
         label: 'Product Catalog',
         icon: Package,
         pages: [
           { label: 'All Products', to: ROUTES.PRODUCTS },
-          { label: 'Categories', to: ROUTES.CATEGORIES },
           { label: 'Brands', to: ROUTES.BRANDS },
           { label: 'Inventory & Stock', to: ROUTES.INVENTORY },
         ],

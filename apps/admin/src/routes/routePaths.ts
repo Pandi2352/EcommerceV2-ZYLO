@@ -18,6 +18,7 @@ export const ROUTES = {
 
   // Catalog
   PRODUCTS: '/products',
+  CATEGORIES_OVERVIEW: '/categories/overview',
   CATEGORIES: '/categories',
   BRANDS: '/brands',
   INVENTORY: '/inventory',

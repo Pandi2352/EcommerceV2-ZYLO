@@ -32,8 +32,16 @@ export const appConfig = registerAs('app', () => {
     clientUrl: clientOrigins[0],
     /** Admin console origin: staff email links (first ADMIN_URL entry) */
     adminUrl: adminOrigins[0],
-    /** Every origin allowed to call the API from a browser */
-    corsOrigins: [...new Set([...clientOrigins, ...adminOrigins])],
+    corsOrigins: [
+      ...new Set([
+        ...clientOrigins,
+        ...adminOrigins,
+        'http://localhost:5175',
+        'http://127.0.0.1:5175',
+        'http://localhost:5176',
+        'http://127.0.0.1:5176',
+      ]),
+    ],
     /** Shop prefix for generated staff User IDs, e.g. "ZY" → ZY-0001 (2–5 letters) */
     userCodePrefix: userCodePrefix(),
     /** Key for encrypting secrets at rest (e.g. TOTP secrets). Changing it invalidates them. */
