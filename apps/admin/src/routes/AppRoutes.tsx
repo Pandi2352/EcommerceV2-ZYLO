@@ -29,6 +29,7 @@ import InvitationsPage from '../pages/InvitationsPage';
 import LoginActivityPage from '../pages/LoginActivityPage';
 import CategoriesPage from '../pages/CategoriesPage';
 import CategoriesOverviewPage from '../pages/CategoriesOverviewPage';
+import BrandsPage from '../pages/BrandsPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -97,6 +98,11 @@ export const AppRoutes: React.FC = () => {
           <Route element={<ProtectedRoute permission="categories.view" />}>
             <Route path={ROUTES.CATEGORIES_OVERVIEW} element={<CategoriesOverviewPage />} />
             <Route path={ROUTES.CATEGORIES} element={<CategoriesPage />} />
+          </Route>
+
+          {/* Catalog: Brands */}
+          <Route element={<ProtectedRoute permission="brands.view" />}>
+            <Route path={ROUTES.BRANDS} element={<BrandsPage />} />
           </Route>
 
           <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage homeLabel="Back to Dashboard" />} />

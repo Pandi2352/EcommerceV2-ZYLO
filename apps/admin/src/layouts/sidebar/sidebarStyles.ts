@@ -8,6 +8,7 @@ import {
   Settings,
   UserCheck,
   FolderTree,
+  Award,
 } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
 import type { SubPageItem } from './SidebarGroup';
@@ -110,12 +111,19 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         ],
       },
       {
+        id: 'brands',
+        label: 'Brands',
+        icon: Award,
+        pages: [
+          { label: 'Brand Directory', to: ROUTES.BRANDS },
+        ],
+      },
+      {
         id: 'catalog',
         label: 'Product Catalog',
         icon: Package,
         pages: [
           { label: 'All Products', to: ROUTES.PRODUCTS },
-          { label: 'Brands', to: ROUTES.BRANDS },
           { label: 'Inventory & Stock', to: ROUTES.INVENTORY },
         ],
       },

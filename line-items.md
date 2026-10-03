@@ -113,13 +113,19 @@
 - [x] Admin (Phase 2): Storefront Mega-Menu Live Simulator with Desktop multi-column mega dropdown and Mobile drawer preview
 
 ### Brands
-- [ ] List all active brands
-- [ ] View brand details
-- [ ] Brand logo upload
-- [ ] Admin: Create brand
-- [ ] Admin: Edit brand
-- [ ] Admin: Delete brand
-- [ ] Admin: Toggle brand active/inactive status
+- [x] List all active brands (Storefront public & Admin)
+- [x] View brand details & slug routing (`/brands/:slug`)
+- [x] Brand logo and widescreen showcase banner URL support with live image previews
+- [x] Admin: Create brand partner with automatic collision-free slug generation, description, and website
+- [x] Admin: Edit brand profile with tabbed drawer (General, Media, Merchandising, SEO)
+- [x] Admin: Delete brand with confirmation dialog and product disassociation warning
+- [x] Admin: Toggle brand active/inactive visibility status
+- [x] Admin: Toggle brand featured spotlight flag with real-time UI update
+- [x] Admin: 4 KPI metric count cards with flat color icons (`react-icons/fc`)
+- [x] Admin: Dedicated top-level "Brands" menu in admin sidebar
+- [x] Admin: Multi-criteria search, status filter, featured filter, and country filter with custom Dropdown
+- [x] Admin: Right-aligned table pagination with configurable rows per page (5, 10, 15, 20, 50)
+- [x] Seeded 25 premier global brands across 10 countries (Apple, Sony, Samsung, Nike, Adidas, Rolex, Breville, Dyson, Lego, Razer, Asus ROG, LG, Canon, Dell, Puma, Sennheiser, Logitech, GoPro, Under Armour, Leica, Nikon, KitchenAid, Sonos, Garmin)
 
 ---
 
