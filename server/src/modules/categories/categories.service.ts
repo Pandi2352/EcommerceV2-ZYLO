@@ -435,6 +435,217 @@ export class CategoriesService {
   }
 
   /**
+   * Export all categories formatted for JSON or CSV download.
+   */
+  async exportData(format: 'json' | 'csv' = 'json') {
+    const categories: any[] = await this.categoryModel
+      .find()
+      .sort({ level: 1, displayOrder: 1 })
+      .lean()
+      .exec();
+
+    if (format === 'json') {
+      return {
+        format: 'json',
+        data: categories,
+        filename: `categories-taxonomy-${new Date().toISOString().split('T')[0]}.json`,
+      };
+    }
+
+    // Convert to CSV
+    const headers = [
+      'Name',
+      'Slug',
+      'Description',
+      'Level',
+      'ParentSlug',
+      'DisplayOrder',
+      'Status',
+      'IncludeInMenu',
+      'IsFeatured',
+      'BadgeText',
+      'BadgeColor',
+      'BadgeExpiresAt',
+      'IsSmartCollection',
+      'RulesCondition',
+      'FilterableAttributes',
+      'MetaTitle',
+      'MetaDescription',
+      'IconUrl',
+      'ThumbnailUrl',
+      'BannerDesktopUrl',
+    ];
+
+    const slugMap = new Map<string, string>();
+    for (const c of categories) {
+      slugMap.set(c._id.toString(), c.slug);
+    }
+
+    const rows = categories.map((c) => {
+      const parentSlug = c.parentId ? slugMap.get(c.parentId.toString()) || '' : '';
+      return [
+        `"${(c.name || '').replace(/"/g, '""')}"`,
+        `"${c.slug || ''}"`,
+        `"${(c.description || '').replace(/"/g, '""')}"`,
+        c.level || 1,
+        `"${parentSlug}"`,
+        c.displayOrder ?? 0,
+        c.status || 'ACTIVE',
+        c.includeInMenu ?? true,
+        c.isFeatured ?? false,
+        `"${(c.badge?.text || '').replace(/"/g, '""')}"`,
+        `"${c.badge?.color || ''}"`,
+        `"${c.badgeExpiresAt ? new Date(c.badgeExpiresAt).toISOString() : ''}"`,
+        c.isSmartCollection || false,
+        c.rulesCondition || 'ALL',
+        `"${(c.filterableAttributes || []).join(';')}"`,
+        `"${(c.seo?.metaTitle || '').replace(/"/g, '""')}"`,
+        `"${(c.seo?.metaDescription || '').replace(/"/g, '""')}"`,
+        `"${c.iconUrl || ''}"`,
+        `"${c.thumbnailUrl || ''}"`,
+        `"${c.bannerDesktopUrl || ''}"`,
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    return {
+      format: 'csv',
+      data: csvContent,
+      filename: `categories-taxonomy-${new Date().toISOString().split('T')[0]}.csv`,
+    };
+  }
+
+  /**
+   * Bulk import categories from JSON or parsed CSV rows.
+   */
+  async importData(items: any[]) {
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new BadRequestException('Import payload must be a non-empty array of category items');
+    }
+
+    let createdCount = 0;
+    let updatedCount = 0;
+    const errors: Array<{ index: number; name?: string; error: string }> = [];
+
+    // Sort by level ascending so parent categories exist before child categories
+    const sorted = [...items].sort((a, b) => (Number(a.level) || 1) - (Number(b.level) || 1));
+
+    for (let i = 0; i < sorted.length; i++) {
+      const item = sorted[i];
+      try {
+        if (!item.name || !item.name.trim()) {
+          errors.push({ index: i, error: 'Category name is required' });
+          continue;
+        }
+
+        const candidateSlug = (item.slug || item.name)
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+
+        // Resolve parentId if parentSlug is provided
+        let resolvedParentId: string | null = null;
+        if (item.parentId && Types.ObjectId.isValid(item.parentId)) {
+          resolvedParentId = item.parentId;
+        } else if (item.parentSlug && item.parentSlug.trim()) {
+          const parent = await this.categoryModel.findOne({
+            slug: item.parentSlug.toLowerCase().trim(),
+          });
+          if (parent) resolvedParentId = parent._id.toString();
+        }
+
+        const existing = await this.categoryModel.findOne({ slug: candidateSlug });
+
+        const filterableAttrs = Array.isArray(item.filterableAttributes)
+          ? item.filterableAttributes
+          : typeof item.filterableAttributes === 'string'
+          ? item.filterableAttributes.split(';').map((s: string) => s.trim()).filter(Boolean)
+          : [];
+
+        if (existing) {
+          await this.update(existing._id.toString(), {
+            name: item.name,
+            description: item.description,
+            parentId: resolvedParentId,
+            displayOrder: Number(item.displayOrder) || 0,
+            status: item.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+            includeInMenu: item.includeInMenu !== false,
+            isFeatured: item.isFeatured === true,
+            iconUrl: item.iconUrl || null,
+            thumbnailUrl: item.thumbnailUrl || null,
+            bannerDesktopUrl: item.bannerDesktopUrl || null,
+            bannerMobileUrl: item.bannerMobileUrl || null,
+            imageAltText: item.imageAltText || '',
+            badge: item.badge?.text
+              ? { text: item.badge.text, color: item.badge.color || 'indigo' }
+              : item.badgeText
+              ? { text: item.badgeText, color: item.badgeColor || 'indigo' }
+              : null,
+            badgeExpiresAt: item.badgeExpiresAt ? new Date(item.badgeExpiresAt).toISOString() : null,
+            isSmartCollection: !!item.isSmartCollection,
+            rulesCondition: item.rulesCondition === 'ANY' ? 'ANY' : 'ALL',
+            rules: Array.isArray(item.rules) ? item.rules : [],
+            filterableAttributes: filterableAttrs,
+            seo: {
+              metaTitle: item.seo?.metaTitle || item.metaTitle || item.name,
+              metaDescription: item.seo?.metaDescription || item.metaDescription || item.description || '',
+              keywords: Array.isArray(item.seo?.keywords) ? item.seo.keywords : [],
+              canonicalUrl: item.seo?.canonicalUrl || '',
+              ogImage: item.seo?.ogImage || item.thumbnailUrl || null,
+            },
+          });
+          updatedCount++;
+        } else {
+          await this.create({
+            name: item.name,
+            slug: candidateSlug,
+            description: item.description || '',
+            parentId: resolvedParentId,
+            displayOrder: Number(item.displayOrder) || 0,
+            status: item.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+            includeInMenu: item.includeInMenu !== false,
+            isFeatured: item.isFeatured === true,
+            iconUrl: item.iconUrl || null,
+            thumbnailUrl: item.thumbnailUrl || null,
+            bannerDesktopUrl: item.bannerDesktopUrl || null,
+            bannerMobileUrl: item.bannerMobileUrl || null,
+            imageAltText: item.imageAltText || '',
+            badge: item.badge?.text
+              ? { text: item.badge.text, color: item.badge.color || 'indigo' }
+              : item.badgeText
+              ? { text: item.badgeText, color: item.badgeColor || 'indigo' }
+              : null,
+            badgeExpiresAt: item.badgeExpiresAt ? new Date(item.badgeExpiresAt).toISOString() : null,
+            isSmartCollection: !!item.isSmartCollection,
+            rulesCondition: item.rulesCondition === 'ANY' ? 'ANY' : 'ALL',
+            rules: Array.isArray(item.rules) ? item.rules : [],
+            filterableAttributes: filterableAttrs,
+            seo: {
+              metaTitle: item.seo?.metaTitle || item.metaTitle || item.name,
+              metaDescription: item.seo?.metaDescription || item.metaDescription || item.description || '',
+              keywords: Array.isArray(item.seo?.keywords) ? item.seo.keywords : [],
+              canonicalUrl: item.seo?.canonicalUrl || '',
+              ogImage: item.seo?.ogImage || item.thumbnailUrl || null,
+            },
+          });
+          createdCount++;
+        }
+      } catch (err: any) {
+        errors.push({ index: i, name: item.name, error: err.message || 'Import error' });
+      }
+    }
+
+    return {
+      totalProcessed: sorted.length,
+      createdCount,
+      updatedCount,
+      errorsCount: errors.length,
+      errors,
+    };
+  }
+
+  /**
    * Find single category by ID.
    */
   async findOne(id: string): Promise<CategoryDocument> {

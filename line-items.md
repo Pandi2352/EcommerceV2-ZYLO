@@ -106,6 +106,11 @@
 - [x] Admin: Dedicated top-level Categories menu in admin sidebar with Overview & Taxonomy submenus
 - [x] Admin: Category Management Overview page with 6 KPI count cards (Flat color icons), department distribution bar charts, hierarchy depth distribution, storefront merchandising breakdown, and SEO quality audit cards
 - [x] Admin: 35 high-fidelity retail categories seeded across 10 root departments with multi-level hierarchies, complete imagery, badges, and SEO metadata
+- [x] Admin (Phase 2): Dynamic Smart Collections engine with rule builder (Tags, Price, Discount %, Rating, Inventory, Brand) and ALL/ANY matching conditions
+- [x] Admin (Phase 2): Scheduled time-decay promotional badge expiration (auto-deactivation datetime)
+- [x] Admin (Phase 2): Bulk Catalog Taxonomy Export (JSON / CSV) with browser auto-download
+- [x] Admin (Phase 2): Bulk Catalog Taxonomy Import modal with drag-and-drop parsing, preview validation, and safe upsert
+- [x] Admin (Phase 2): Storefront Mega-Menu Live Simulator with Desktop multi-column mega dropdown and Mobile drawer preview
 
 ### Brands
 - [ ] List all active brands

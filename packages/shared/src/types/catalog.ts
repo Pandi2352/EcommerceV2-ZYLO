@@ -18,6 +18,12 @@ export interface CategorySeo {
   ogImage: string | null;
 }
 
+export interface SmartCollectionRule {
+  field: string;
+  operator: string;
+  value: string;
+}
+
 export interface CategoryItem {
   _id: string;
   name: string;
@@ -36,6 +42,10 @@ export interface CategoryItem {
   includeInMenu: boolean;
   isFeatured: boolean;
   badge: CategoryBadge | null;
+  badgeExpiresAt?: string | null;
+  isSmartCollection?: boolean;
+  rulesCondition?: 'ALL' | 'ANY';
+  rules?: SmartCollectionRule[];
   filterableAttributes: string[];
   seo: CategorySeo;
   productCount: number;
@@ -73,6 +83,10 @@ export interface CreateCategoryPayload {
   includeInMenu?: boolean;
   isFeatured?: boolean;
   badge?: CategoryBadge | null;
+  badgeExpiresAt?: string | null;
+  isSmartCollection?: boolean;
+  rulesCondition?: 'ALL' | 'ANY';
+  rules?: SmartCollectionRule[];
   filterableAttributes?: string[];
   seo?: Partial<CategorySeo>;
 }

@@ -80,6 +80,28 @@ export class Category {
   })
   badge: { text: string; color?: string } | null;
 
+  @Prop({ type: Date, default: null })
+  badgeExpiresAt: Date | null;
+
+  // Phase 2: Dynamic Smart Collections (Automated Rule-Based Category)
+  @Prop({ type: Boolean, default: false })
+  isSmartCollection: boolean;
+
+  @Prop({ type: String, enum: ['ALL', 'ANY'], default: 'ALL' })
+  rulesCondition: 'ALL' | 'ANY';
+
+  @Prop({
+    type: [
+      {
+        field: { type: String, required: true },
+        operator: { type: String, required: true },
+        value: { type: String, required: true },
+      },
+    ],
+    default: [],
+  })
+  rules: Array<{ field: string; operator: string; value: string }>;
+
   // Dynamic filter facets (product attribute keys applicable to this category)
   @Prop({ type: [String], default: [] })
   filterableAttributes: string[];

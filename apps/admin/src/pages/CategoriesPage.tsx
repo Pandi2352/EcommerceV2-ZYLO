@@ -4,6 +4,9 @@ import {
   RefreshCw,
   FolderTree,
   Table as TableIcon,
+  Download,
+  Upload,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@shared/auth/AuthContext';
 import PageHeader from '@shared/ui/PageHeader';
@@ -28,6 +31,8 @@ import CategoryVisualTree from '../components/categories/CategoryVisualTree';
 import CategoryTableView from '../components/categories/CategoryTableView';
 import CategoryFormDrawer from '../components/categories/CategoryFormDrawer';
 import DeleteCategoryDialog from '../components/categories/DeleteCategoryDialog';
+import CategoryImportModal from '../components/categories/CategoryImportModal';
+import CategoryMegaMenuModal from '../components/categories/CategoryMegaMenuModal';
 
 export const CategoriesPage: React.FC = () => {
   const { can } = useAuth();
@@ -57,6 +62,31 @@ export const CategoriesPage: React.FC = () => {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryItem | null>(null);
+
+  // Phase 2: Import & Mega-Menu Modals
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isMegaMenuModalOpen, setIsMegaMenuModalOpen] = useState(false);
+
+  // Export categories to CSV or JSON file
+  const handleExport = async (format: 'json' | 'csv') => {
+    try {
+      const res = await categoriesService.exportData(format);
+      const content = format === 'json' ? JSON.stringify(res.data, null, 2) : res.data;
+      const type = format === 'json' ? 'application/json' : 'text/csv;charset=utf-8;';
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = res.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success(`Catalog exported as ${format.toUpperCase()}`);
+    } catch (err) {
+      toast.error(extractErrorMessage(err));
+    }
+  };
 
   // Flatten tree to get all flat categories for parent picker dropdown
   const flattenTree = (nodes: CategoryTreeNode[]): CategoryItem[] => {
@@ -192,16 +222,22 @@ export const CategoriesPage: React.FC = () => {
   // Reordering display order
   const handleMoveOrder = async (category: CategoryTreeNode, direction: 'up' | 'down') => {
     // Find siblings
-    const parentId =
-      typeof category.parentId === 'object' && category.parentId
+    const parentIdStr: string | null =
+      category.parentId && typeof category.parentId === 'object'
         ? category.parentId._id
-        : category.parentId || null;
+        : typeof category.parentId === 'string'
+        ? category.parentId
+        : null;
 
     const siblings = allFlatCategories
       .filter((c: CategoryItem) => {
-        const cParentId =
-          typeof c.parentId === 'object' && c.parentId ? c.parentId._id : c.parentId || null;
-        return cParentId === parentId;
+        const cParentIdStr: string | null =
+          c.parentId && typeof c.parentId === 'object'
+            ? c.parentId._id
+            : typeof c.parentId === 'string'
+            ? c.parentId
+            : null;
+        return cParentIdStr === parentIdStr;
       })
       .sort((a: CategoryItem, b: CategoryItem) => a.displayOrder - b.displayOrder);
 
@@ -215,8 +251,8 @@ export const CategoriesPage: React.FC = () => {
 
     try {
       await categoriesService.reorder([
-        { id: category._id, displayOrder: targetSibling.displayOrder, parentId },
-        { id: targetSibling._id, displayOrder: category.displayOrder, parentId },
+        { id: category._id, displayOrder: targetSibling.displayOrder, parentId: parentIdStr },
+        { id: targetSibling._id, displayOrder: category.displayOrder, parentId: parentIdStr },
       ]);
       fetchTree();
       fetchFlatList();
@@ -261,7 +297,33 @@ export const CategoriesPage: React.FC = () => {
         count={stats?.total}
         description="Organize store taxonomy, visual banners, navigation hierarchy, and faceted search filters."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              leftIcon={<Sparkles className="w-3.5 h-3.5 text-indigo-600" />}
+              onClick={() => setIsMegaMenuModalOpen(true)}
+            >
+              Mega-Menu Preview
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              leftIcon={<Download className="w-3.5 h-3.5" />}
+              onClick={() => handleExport('csv')}
+            >
+              Export CSV
+            </Button>
+            {can('categories.create') && (
+              <Button
+                size="sm"
+                variant="outline"
+                leftIcon={<Upload className="w-3.5 h-3.5" />}
+                onClick={() => setIsImportModalOpen(true)}
+              >
+                Import
+              </Button>
+            )}
             <Button
               size="sm"
               variant="outline"
@@ -403,6 +465,23 @@ export const CategoriesPage: React.FC = () => {
         category={categoryToDelete}
         allCategories={allFlatCategories}
         onConfirm={handleConfirmDelete}
+      />
+
+      {/* Phase 2: Bulk Import Modal */}
+      <CategoryImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          reloadData();
+          fetchStats();
+        }}
+      />
+
+      {/* Phase 2: Live Storefront Mega-Menu Simulator */}
+      <CategoryMegaMenuModal
+        isOpen={isMegaMenuModalOpen}
+        onClose={() => setIsMegaMenuModalOpen(false)}
+        categories={treeData}
       />
     </div>
   );

@@ -45,6 +45,21 @@ export class AdminCategoriesController {
     return this.categoriesService.getTree(status || 'ALL');
   }
 
+  @Get('export')
+  @RequirePermissions('categories.view')
+  @ApiOperation({ summary: 'Export categories taxonomy as JSON or CSV' })
+  @ApiQuery({ name: 'format', required: false, enum: ['json', 'csv'] })
+  async exportData(@Query('format') format?: 'json' | 'csv') {
+    return this.categoriesService.exportData(format || 'json');
+  }
+
+  @Post('import')
+  @RequirePermissions('categories.create')
+  @ApiOperation({ summary: 'Bulk import categories from JSON or parsed rows' })
+  async importData(@Body() items: any[]) {
+    return this.categoriesService.importData(items);
+  }
+
   @Get()
   @RequirePermissions('categories.view')
   @ApiOperation({ summary: 'List categories with pagination, search, and hierarchy filtering' })

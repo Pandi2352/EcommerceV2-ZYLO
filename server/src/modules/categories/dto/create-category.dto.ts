@@ -59,6 +59,22 @@ export class CategorySeoDto {
   ogImage?: string | null;
 }
 
+export class SmartCollectionRuleDto {
+  @ApiProperty({ description: 'Target attribute or property name', example: 'tags' })
+  @IsString()
+  @IsNotEmpty()
+  field: string;
+
+  @ApiProperty({ description: 'Rule comparison operator', example: 'contains' })
+  @IsString()
+  @IsNotEmpty()
+  operator: string;
+
+  @ApiProperty({ description: 'Comparison operand value', example: 'summer-sale' })
+  @IsString()
+  value: string;
+}
+
 export class CreateCategoryDto {
   @ApiProperty({ description: 'Category name', example: 'Smartphones & Tablets' })
   @IsString()
@@ -139,6 +155,28 @@ export class CreateCategoryDto {
   @ValidateNested()
   @Type(() => CategoryBadgeDto)
   badge?: CategoryBadgeDto | null;
+
+  @ApiPropertyOptional({ description: 'Expiry date for time-limited promotional badge' })
+  @IsOptional()
+  @IsString()
+  badgeExpiresAt?: string | null;
+
+  @ApiPropertyOptional({ description: 'Whether this is a dynamic smart collection', default: false })
+  @IsOptional()
+  @IsBoolean()
+  isSmartCollection?: boolean;
+
+  @ApiPropertyOptional({ description: 'Conditions join type for smart rules', enum: ['ALL', 'ANY'], default: 'ALL' })
+  @IsOptional()
+  @IsEnum(['ALL', 'ANY'])
+  rulesCondition?: 'ALL' | 'ANY';
+
+  @ApiPropertyOptional({ description: 'List of smart collection matching rules', type: [SmartCollectionRuleDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SmartCollectionRuleDto)
+  rules?: SmartCollectionRuleDto[];
 
   @ApiPropertyOptional({
     description: 'Filterable product attribute keys for this category',

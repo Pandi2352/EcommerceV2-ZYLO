@@ -39,6 +39,20 @@ export const categoriesService = {
       api.delete(`/admin/categories/${id}`, { params: { reassignToId } }),
     ),
 
+  exportData: (format: 'json' | 'csv' = 'json') =>
+    unwrap<{ format: string; data: any; filename: string }>(
+      api.get('/admin/categories/export', { params: { format } }),
+    ),
+
+  importData: (items: any[]) =>
+    unwrap<{
+      totalProcessed: number;
+      createdCount: number;
+      updatedCount: number;
+      errorsCount: number;
+      errors: Array<{ index: number; name?: string; error: string }>;
+    }>(api.post('/admin/categories/import', items)),
+
   // Storefront Public Operations
   getPublicTree: () =>
     unwrap<CategoryTreeNode[]>(api.get('/categories/tree')),

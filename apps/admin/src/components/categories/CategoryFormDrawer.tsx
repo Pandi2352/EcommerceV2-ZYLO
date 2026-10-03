@@ -7,6 +7,7 @@ import {
   Filter,
   X,
   Info,
+  Plus,
 } from 'lucide-react';
 import Drawer from '@shared/ui/Drawer';
 import Tabs from '@shared/ui/Tabs';
@@ -65,6 +66,12 @@ export const CategoryFormDrawer: React.FC<CategoryFormDrawerProps> = ({
   const [isFeatured, setIsFeatured] = useState(false);
   const [badgeText, setBadgeText] = useState('');
   const [badgeColor, setBadgeColor] = useState<'indigo' | 'emerald' | 'amber' | 'rose'>('indigo');
+  const [badgeExpiresAt, setBadgeExpiresAt] = useState('');
+
+  // Phase 2: Dynamic Smart Collection Rules
+  const [isSmartCollection, setIsSmartCollection] = useState(false);
+  const [rulesCondition, setRulesCondition] = useState<'ALL' | 'ANY'>('ALL');
+  const [rules, setRules] = useState<Array<{ field: string; operator: string; value: string }>>([]);
 
   // SEO
   const [metaTitle, setMetaTitle] = useState('');
@@ -107,6 +114,15 @@ export const CategoryFormDrawer: React.FC<CategoryFormDrawerProps> = ({
       setIsFeatured(initialData.isFeatured ?? false);
       setBadgeText(initialData.badge?.text || '');
       setBadgeColor(initialData.badge?.color || 'indigo');
+      setBadgeExpiresAt(
+        initialData.badgeExpiresAt
+          ? new Date(initialData.badgeExpiresAt).toISOString().slice(0, 16)
+          : ''
+      );
+
+      setIsSmartCollection(initialData.isSmartCollection ?? false);
+      setRulesCondition(initialData.rulesCondition || 'ALL');
+      setRules(initialData.rules || []);
 
       setMetaTitle(initialData.seo?.metaTitle || '');
       setMetaDescription(initialData.seo?.metaDescription || '');
@@ -134,6 +150,11 @@ export const CategoryFormDrawer: React.FC<CategoryFormDrawerProps> = ({
       setIsFeatured(false);
       setBadgeText('');
       setBadgeColor('indigo');
+      setBadgeExpiresAt('');
+
+      setIsSmartCollection(false);
+      setRulesCondition('ALL');
+      setRules([]);
 
       setMetaTitle('');
       setMetaDescription('');
@@ -229,6 +250,10 @@ export const CategoryFormDrawer: React.FC<CategoryFormDrawerProps> = ({
         badge: badgeText.trim()
           ? { text: badgeText.trim().toUpperCase(), color: badgeColor }
           : null,
+        badgeExpiresAt: badgeExpiresAt ? new Date(badgeExpiresAt).toISOString() : null,
+        isSmartCollection,
+        rulesCondition,
+        rules: isSmartCollection ? rules : [],
         filterableAttributes: facets,
         seo: {
           metaTitle: metaTitle.trim() || name.trim(),
@@ -615,7 +640,159 @@ export const CategoryFormDrawer: React.FC<CategoryFormDrawerProps> = ({
                     ]}
                   />
                 </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs text-slate-600 mb-1">
+                    Scheduled Badge Expiration (Optional)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={badgeExpiresAt}
+                    onChange={(e) => setBadgeExpiresAt(e.target.value)}
+                    className="w-full text-xs rounded-md border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    The promotional badge will automatically deactivate on this date.
+                  </p>
+                </div>
               </div>
+            </div>
+
+            {/* Dynamic Smart Collection & Rule Engine */}
+            <div className="border border-slate-200 rounded-md p-4 bg-white space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isSmartCollection}
+                  onChange={(e) => setIsSmartCollection(e.target.checked)}
+                  className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                />
+                <div>
+                  <span className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                    Dynamic Smart Collection (Rules-Based)
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      SMART ENGINE
+                    </span>
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    Products matching the configured rules will automatically populate this category.
+                  </span>
+                </div>
+              </label>
+
+              {isSmartCollection && (
+                <div className="pt-3 border-t border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Matching Conditions
+                    </span>
+                    <div className="w-56">
+                      <Dropdown<'ALL' | 'ANY'>
+                        size="sm"
+                        value={rulesCondition}
+                        onChange={(val) => setRulesCondition((val as 'ALL' | 'ANY') || 'ALL')}
+                        options={[
+                          { value: 'ALL', label: 'Match ALL rules (AND)' },
+                          { value: 'ANY', label: 'Match ANY rule (OR)' },
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Rules list */}
+                  {rules.length === 0 ? (
+                    <div className="p-3 rounded-md bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-500">
+                      No rules added yet. Click &quot;Add Rule Condition&quot; below to build dynamic criteria.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {rules.map((rule, idx) => (
+                        <div
+                          key={idx}
+                          className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-md"
+                        >
+                          <div className="w-36">
+                            <Dropdown
+                              size="sm"
+                              value={rule.field}
+                              onChange={(val) => {
+                                const next = [...rules];
+                                next[idx] = { ...next[idx], field: val || 'tags' };
+                                setRules(next);
+                              }}
+                              options={[
+                                { value: 'tags', label: 'Product Tags' },
+                                { value: 'price', label: 'Price (USD)' },
+                                { value: 'discountPercent', label: 'Discount %' },
+                                { value: 'rating', label: 'Customer Rating' },
+                                { value: 'inventoryQuantity', label: 'Stock Level' },
+                                { value: 'brand', label: 'Brand Name' },
+                              ]}
+                            />
+                          </div>
+
+                          <div className="w-36">
+                            <Dropdown
+                              size="sm"
+                              value={rule.operator}
+                              onChange={(val) => {
+                                const next = [...rules];
+                                next[idx] = { ...next[idx], operator: val || 'equals' };
+                                setRules(next);
+                              }}
+                              options={[
+                                { value: 'equals', label: 'Equals' },
+                                { value: 'contains', label: 'Contains' },
+                                { value: 'greaterThan', label: 'Greater than (>)' },
+                                { value: 'lessThan', label: 'Less than (<)' },
+                                { value: 'in', label: 'In List' },
+                              ]}
+                            />
+                          </div>
+
+                          <div className="flex-1 min-w-[120px]">
+                            <InputField
+                              value={rule.value}
+                              onChange={(e) => {
+                                const next = [...rules];
+                                next[idx] = { ...next[idx], value: e.target.value };
+                                setRules(next);
+                              }}
+                              placeholder="Value..."
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRules(rules.filter((_, rIdx) => rIdx !== idx));
+                            }}
+                            className="p-1.5 rounded text-rose-500 hover:bg-rose-50 transition-colors"
+                            title="Remove rule"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="outline"
+                    leftIcon={<Plus className="w-3.5 h-3.5" />}
+                    onClick={() => {
+                      setRules([
+                        ...rules,
+                        { field: 'tags', operator: 'contains', value: '' },
+                      ]);
+                    }}
+                  >
+                    Add Rule Condition
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
