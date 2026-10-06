@@ -1,6 +1,7 @@
 import React from 'react';
 import { FcShop, FcApproval, FcRating, FcGlobe } from 'react-icons/fc';
 import type { BrandStats } from '@shared/types/brand';
+import KpiMetricsGrid from '@shared/ui/KpiMetricsGrid';
 
 export interface BrandMetricsCardsProps {
   stats: BrandStats | null;
@@ -35,29 +36,7 @@ export const BrandMetricsCards: React.FC<BrandMetricsCardsProps> = ({ stats, isL
     },
   ];
 
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {cards.map((card, idx) => (
-        <div
-          key={idx}
-          className="bg-white border border-slate-200 rounded-md p-4 shadow-none flex items-center justify-between transition-colors hover:border-slate-300"
-        >
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              {card.title}
-            </p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">
-              {isLoading ? '...' : card.value}
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">{card.subtext}</p>
-          </div>
-          <div className="p-2.5 rounded-md bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
-            {card.icon}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  return <KpiMetricsGrid cards={cards} isLoading={isLoading} />;
 };
 
 export default BrandMetricsCards;

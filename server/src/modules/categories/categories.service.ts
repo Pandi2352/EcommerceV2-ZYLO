@@ -13,6 +13,8 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
 import { ReorderCategoriesDto } from './dto/reorder-categories.dto';
 
+import { generateUniqueSlug } from '../../common/utils/slug.util';
+
 export interface CategoryTreeNode extends Omit<Category, 'ancestors'> {
   _id: string;
   ancestors: CategoryAncestor[];
@@ -36,28 +38,7 @@ export class CategoriesService {
     customSlug?: string,
     excludeId?: string,
   ): Promise<string> {
-    const baseSlug = (customSlug || name)
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    const slugToUse = baseSlug || 'category';
-    let candidate = slugToUse;
-    let counter = 1;
-
-    while (true) {
-      const query: any = { slug: candidate };
-      if (excludeId) {
-        query._id = { $ne: new Types.ObjectId(excludeId) };
-      }
-      const existing = await this.categoryModel.findOne(query).select('_id').lean();
-      if (!existing) {
-        return candidate;
-      }
-      candidate = `${slugToUse}-${counter}`;
-      counter++;
-    }
+    return generateUniqueSlug(this.categoryModel, name, customSlug, excludeId, 'category');
   }
 
   /**

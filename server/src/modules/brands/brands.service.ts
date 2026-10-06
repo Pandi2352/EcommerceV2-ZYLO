@@ -10,6 +10,7 @@ import { Brand, BrandDocument } from './schemas/brand.schema';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { QueryBrandDto } from './dto/query-brand.dto';
+import { generateUniqueSlug } from '../../common/utils/slug.util';
 
 @Injectable()
 export class BrandsService {
@@ -25,28 +26,7 @@ export class BrandsService {
     customSlug?: string,
     excludeId?: string,
   ): Promise<string> {
-    const baseSlug = (customSlug || name)
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    const slugToUse = baseSlug || 'brand';
-    let candidate = slugToUse;
-    let counter = 1;
-
-    while (true) {
-      const query: any = { slug: candidate };
-      if (excludeId && Types.ObjectId.isValid(excludeId)) {
-        query._id = { $ne: new Types.ObjectId(excludeId) };
-      }
-      const existing = await this.brandModel.findOne(query).select('_id').lean();
-      if (!existing) {
-        return candidate;
-      }
-      candidate = `${slugToUse}-${counter}`;
-      counter++;
-    }
+    return generateUniqueSlug(this.brandModel, name, customSlug, excludeId, 'brand');
   }
 
   /**

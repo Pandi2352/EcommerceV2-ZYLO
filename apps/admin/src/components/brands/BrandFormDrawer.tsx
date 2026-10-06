@@ -9,7 +9,6 @@ import {
   Lock,
   Unlock,
   Check,
-  X,
   Star,
 } from 'lucide-react';
 import Drawer from '@shared/ui/Drawer';
@@ -18,6 +17,8 @@ import Button from '@shared/ui/Button';
 import InputField from '@shared/ui/InputField';
 import Dropdown, { type DropdownOption } from '@shared/ui/Dropdown';
 import Alert from '@shared/ui/Alert';
+import TagInput from '@shared/ui/TagInput';
+import SeoSnippetPreview from '@shared/ui/SeoSnippetPreview';
 import type {
   BrandItem,
   CreateBrandPayload,
@@ -89,7 +90,6 @@ export const BrandFormDrawer: React.FC<BrandFormDrawerProps> = ({
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [keywords, setKeywords] = useState<string[]>([]);
-  const [keywordInput, setKeywordInput] = useState('');
   const [canonicalUrl, setCanonicalUrl] = useState('');
 
   // Reset or populate form
@@ -144,19 +144,6 @@ export const BrandFormDrawer: React.FC<BrandFormDrawerProps> = ({
     }
   };
 
-  // Keywords handling
-  const addKeyword = (tag: string) => {
-    const trimmed = tag.trim().toLowerCase();
-    if (trimmed && !keywords.includes(trimmed)) {
-      setKeywords([...keywords, trimmed]);
-      setKeywordInput('');
-    }
-  };
-
-  const removeKeyword = (tag: string) => {
-    setKeywords(keywords.filter((k) => k !== tag));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -205,19 +192,11 @@ export const BrandFormDrawer: React.FC<BrandFormDrawerProps> = ({
       onClose={onClose}
       title={isEditing ? `Edit Brand: ${initialData?.name}` : 'Create Brand Partner'}
       size="lg"
-    >
-      <form onSubmit={handleSubmit} className="flex flex-col h-full space-y-4">
-        {errorMsg && (
-          <Alert tone="error" onDismiss={() => setErrorMsg(null)} className="shrink-0">
-            {errorMsg}
-          </Alert>
-        )}
-
-        {/* Form Tabs - Single Line Clean Layout */}
+      headerExtra={
         <Tabs<TabKey>
           value={activeTab}
           onChange={setActiveTab}
-          className="pb-1"
+          className="pb-0"
           items={[
             { key: 'general', label: 'General', icon: <Layers /> },
             { key: 'media', label: 'Media & Assets', icon: <ImageIcon /> },
@@ -225,6 +204,37 @@ export const BrandFormDrawer: React.FC<BrandFormDrawerProps> = ({
             { key: 'seo', label: 'SEO & Search', icon: <Search /> },
           ]}
         />
+      }
+      onSubmit={handleSubmit}
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="rounded-md shadow-none"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            isLoading={isSubmitting}
+            className="rounded-md shadow-none"
+          >
+            <Check className="w-4 h-4 mr-1.5" />
+            {isEditing ? 'Save Changes' : 'Create Brand'}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        {errorMsg && (
+          <Alert tone="error" onDismiss={() => setErrorMsg(null)} className="shrink-0">
+            {errorMsg}
+          </Alert>
+        )}
 
         {/* ─── TAB 1: General ─────────────────────────────────────────────────── */}
         {activeTab === 'general' && (
@@ -524,54 +534,14 @@ export const BrandFormDrawer: React.FC<BrandFormDrawerProps> = ({
               />
             </div>
 
-            {/* Keywords */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Keywords & Search Tags
-              </label>
-              <div className="flex gap-2 mb-2">
-                <InputField
-                  value={keywordInput}
-                  onChange={(e) => setKeywordInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addKeyword(keywordInput);
-                    }
-                  }}
-                  placeholder="Type keyword and press Enter..."
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addKeyword(keywordInput)}
-                  className="rounded-md"
-                >
-                  Add
-                </Button>
-              </div>
-
-              {keywords.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-md min-h-[40px]">
-                  {keywords.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => removeKeyword(tag)}
-                        className="text-slate-400 hover:text-rose-500"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Keywords Tag Manager */}
+            <TagInput
+              label="Keywords & Search Tags"
+              tags={keywords}
+              onChange={setKeywords}
+              placeholder="Type keyword and press Enter..."
+              helperText="Press Enter or click Add to append search tags."
+            />
 
             {/* Canonical URL */}
             <div>
@@ -586,53 +556,19 @@ export const BrandFormDrawer: React.FC<BrandFormDrawerProps> = ({
             </div>
 
             {/* Google Search Live Preview */}
-            <div className="p-3.5 border border-slate-200 rounded-md bg-white">
-              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                Search Engine Listing Preview
-              </p>
-              <div className="space-y-0.5">
-                <div className="text-xs text-slate-500 font-mono flex items-center gap-1">
-                  <span>zylo.com</span>
-                  <span>›</span>
-                  <span>brands</span>
-                  <span>›</span>
-                  <span className="text-slate-800">{slug || 'brand'}</span>
-                </div>
-                <h4 className="text-sm font-semibold text-blue-600 hover:underline cursor-pointer truncate">
-                  {metaTitle || `${name || 'Brand Name'} Products & Official Store | ZYLO`}
-                </h4>
-                <p className="text-xs text-slate-600 line-clamp-2">
-                  {metaDescription ||
-                    description ||
-                    `Explore premier products from ${name || 'this brand'} with express shipping and genuine manufacturer warranties at ZYLO.`}
-                </p>
-              </div>
-            </div>
+            <SeoSnippetPreview
+              title={metaTitle || `${name || 'Brand Name'} Products & Official Store | ZYLO`}
+              description={
+                metaDescription ||
+                description ||
+                `Explore premier products from ${name || 'this brand'} with express shipping and genuine manufacturer warranties at ZYLO.`
+              }
+              slug={slug}
+              modulePath="brands"
+            />
           </div>
         )}
-
-        {/* Footer Actions */}
-        <div className="mt-auto pt-4 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="rounded-md shadow-none"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            isLoading={isSubmitting}
-            className="rounded-md shadow-none"
-          >
-            <Check className="w-4 h-4 mr-1.5" />
-            {isEditing ? 'Save Changes' : 'Create Brand'}
-          </Button>
-        </div>
-      </form>
+      </div>
     </Drawer>
   );
 };

@@ -62,7 +62,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         type={type}
         disabled={isDisabled}
         aria-busy={isLoading}
-        className={`inline-flex items-center justify-center transition-all duration-150 select-none ${
+        className={`inline-flex items-center justify-center whitespace-nowrap shrink-0 transition-all duration-150 select-none ${
           fullWidth ? 'w-full' : ''
         } ${variantStyles[variant]} ${sizeStyles[size]} ${
           isDisabled ? 'opacity-60 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
@@ -70,16 +70,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <>
+          <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
             <Loader2 className="w-4 h-4 animate-spin shrink-0" />
             <span>{children}</span>
-          </>
+          </span>
         ) : (
-          <>
+          <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap leading-none">
             {leftIcon && <span className="shrink-0 flex items-center">{leftIcon}</span>}
-            <span>{children}</span>
+            {children}
             {rightIcon && <span className="shrink-0 flex items-center">{rightIcon}</span>}
-          </>
+          </span>
         )}
       </button>
     );

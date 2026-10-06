@@ -8,8 +8,10 @@ export interface DrawerProps {
   onClose: () => void;
   title?: React.ReactNode;
   description?: React.ReactNode;
+  headerExtra?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  onSubmit?: (e: React.FormEvent) => void;
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   className?: string;
 }
@@ -28,8 +30,10 @@ export const Drawer: React.FC<DrawerProps> = ({
   onClose,
   title,
   description,
+  headerExtra,
   children,
   footer,
+  onSubmit,
   size = 'md',
   className,
 }) => {
@@ -54,12 +58,13 @@ export const Drawer: React.FC<DrawerProps> = ({
       <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
         <div
           className={cn(
-            'flex w-screen animate-slide-in-right flex-col border-l border-zinc-200 bg-white shadow-2xl shadow-zinc-900/10',
+            'flex w-screen h-full animate-slide-in-right flex-col border-l border-zinc-200 bg-white shadow-2xl shadow-zinc-900/10',
             SIZE_CLASSES[size],
             className,
           )}
         >
-          <div className="flex items-start justify-between gap-4 border-b border-zinc-200 px-5 py-4">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-4 border-b border-zinc-200 px-5 py-4 shrink-0 bg-white">
             <div className="min-w-0">
               {title && <h2 className="text-[15px] font-semibold text-zinc-900">{title}</h2>}
               {description && <p className="mt-0.5 text-xs text-zinc-500">{description}</p>}
@@ -74,10 +79,32 @@ export const Drawer: React.FC<DrawerProps> = ({
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-5 py-5 custom-scrollbar">{children}</div>
+          {/* Subheader / Pinned Tabs */}
+          {headerExtra && (
+            <div className="border-b border-zinc-200 px-5 pt-3 pb-0 bg-white shrink-0 z-10">
+              {headerExtra}
+            </div>
+          )}
 
-          {footer && (
-            <div className="flex items-center justify-end gap-2 border-t border-zinc-200 bg-zinc-50/60 px-5 py-3">{footer}</div>
+          {/* Form / Scrollable Body / Sticky Footer */}
+          {onSubmit ? (
+            <form onSubmit={onSubmit} className="flex flex-1 flex-col min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto px-5 py-5 custom-scrollbar">{children}</div>
+              {footer && (
+                <div className="flex items-center justify-end gap-2 border-t border-zinc-200 bg-white px-5 py-3 shrink-0">
+                  {footer}
+                </div>
+              )}
+            </form>
+          ) : (
+            <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto px-5 py-5 custom-scrollbar">{children}</div>
+              {footer && (
+                <div className="flex items-center justify-end gap-2 border-t border-zinc-200 bg-white px-5 py-3 shrink-0">
+                  {footer}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

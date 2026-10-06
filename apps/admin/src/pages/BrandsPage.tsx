@@ -202,20 +202,20 @@ export const BrandsPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={reloadData}
-              className="rounded-md shadow-none flex items-center gap-1.5"
+              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+              className="rounded-md shadow-none"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Refresh</span>
+              Refresh
             </Button>
             <Button
               type="button"
               variant="primary"
               size="sm"
               onClick={handleOpenCreate}
-              className="rounded-md shadow-none flex items-center gap-1.5"
+              leftIcon={<Plus className="w-4 h-4" />}
+              className="rounded-md shadow-none"
             >
-              <Plus className="w-4 h-4" />
-              <span>New Brand</span>
+              New Brand
             </Button>
           </div>
         }
