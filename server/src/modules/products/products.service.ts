@@ -440,12 +440,18 @@ export class ProductsService {
    * Get comprehensive aggregated overview data for Products Overview page.
    */
   async getOverview() {
-    const products: any[] = await this.productModel
-      .find()
-      .populate('categoryId', 'name slug')
-      .populate('brandId', 'name slug logoUrl')
-      .lean()
-      .exec();
+    let products: any[] = [];
+    try {
+      products = await this.productModel
+        .find({ name: { $exists: true, $ne: null } })
+        .populate('categoryId', 'name slug')
+        .populate('brandId', 'name slug logoUrl')
+        .lean()
+        .exec();
+    } catch (err: any) {
+      this.logger.warn(`Populate failed during getOverview, falling back: ${err?.message || err}`);
+      products = await this.productModel.find({ name: { $exists: true, $ne: null } }).lean().exec();
+    }
 
     const totalProducts = products.length;
     let published = 0;
