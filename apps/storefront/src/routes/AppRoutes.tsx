@@ -14,6 +14,7 @@ import { CUSTOMER_ACCOUNT_PLANNED, CUSTOMER_PUBLIC_PLANNED, type PlannedRoute } 
 
 import CustomerLayout from '../components/layout/CustomerLayout';
 import CustomerHomePage from '../pages/customer/HomePage';
+import ShopPage from '../pages/customer/ShopPage';
 import CustomerRegisterPage from '../pages/customer/RegisterPage';
 import CustomerLoginPage from '../pages/customer/LoginPage';
 import AccountSecurityPage from '../pages/account/AccountSecurityPage';
@@ -45,6 +46,7 @@ export const AppRoutes: React.FC = () => {
 
       {/* 2. INNER PAGES (no category rail) + 404 */}
       <Route element={<CustomerLayout showRail={false} />}>
+        <Route path={ROUTES.CUSTOMER.SHOP} element={<ShopPage />} />
         {renderPlanned(CUSTOMER_PUBLIC_PLANNED)}
 
         <Route element={<ProtectedRoute />}>

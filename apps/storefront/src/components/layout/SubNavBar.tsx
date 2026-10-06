@@ -14,12 +14,12 @@ import {
 } from 'lucide-react';
 
 const CATEGORIES = [
-  { name: 'Electronics & Gadgets', icon: Laptop, count: '120+ items', link: '/category/electronics' },
-  { name: 'Audio & Acoustics', icon: Headphones, count: '45+ items', link: '/category/audio' },
-  { name: 'Apparel & Streetwear', icon: Shirt, count: '85+ items', link: '/category/apparel' },
-  { name: 'Wearables & Watches', icon: Watch, count: '30+ items', link: '/category/wearables' },
-  { name: 'Home & Workspace', icon: Home, count: '60+ items', link: '/category/home-workspace' },
-  { name: 'Gaming & Virtual Reality', icon: Gamepad2, count: '55+ items', link: '/category/gaming' },
+  { name: 'Electronics & Gadgets', icon: Laptop, count: '120+ items', link: '/shop?categoryName=Electronics' },
+  { name: 'Audio & Acoustics', icon: Headphones, count: '45+ items', link: '/shop?categoryName=Audio%20%26%20Acoustics' },
+  { name: 'Apparel & Streetwear', icon: Shirt, count: '85+ items', link: '/shop?categoryName=Apparel%20%26%20Streetwear' },
+  { name: 'Wearables & Watches', icon: Watch, count: '30+ items', link: '/shop?categoryName=Wearables%20%26%20Watches' },
+  { name: 'Home & Workspace', icon: Home, count: '60+ items', link: '/shop?categoryName=Home%20%26%20Workspace' },
+  { name: 'Gaming & Virtual Reality', icon: Gamepad2, count: '55+ items', link: '/shop?categoryName=Gaming%20%26%20Virtual%20Reality' },
 ];
 
 export const SubNavBar: React.FC = () => {

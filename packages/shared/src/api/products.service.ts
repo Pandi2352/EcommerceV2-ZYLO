@@ -8,6 +8,8 @@ import type {
   QueryProductParams,
   PaginatedProducts,
   ProductStatus,
+  ProductFacets,
+  SearchSuggestion,
 } from '../types/product';
 
 export const productsService = {
@@ -48,4 +50,10 @@ export const productsService = {
 
   getBySlug: (slug: string) =>
     unwrap<ProductItem>(api.get(`/products/${slug}`)),
+
+  getFacets: () =>
+    unwrap<ProductFacets>(api.get('/products/facets')),
+
+  getSuggestions: (q: string) =>
+    unwrap<SearchSuggestion[]>(api.get('/products/suggestions', { params: { q } })),
 };

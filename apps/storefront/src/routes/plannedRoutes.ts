@@ -9,7 +9,6 @@ export interface PlannedRoute {
 // "coming soon" placeholder; move an entry to a real <Route> once built.
 
 export const CUSTOMER_PUBLIC_PLANNED: PlannedRoute[] = [
-  { path: ROUTES.CUSTOMER.SHOP, title: 'Shop' },
   { path: ROUTES.CUSTOMER.PRODUCT_DETAILS, title: 'Product Details' },
   { path: ROUTES.CUSTOMER.VENDORS, title: 'Vendors' },
   { path: ROUTES.CUSTOMER.PAGES, title: 'Pages' },

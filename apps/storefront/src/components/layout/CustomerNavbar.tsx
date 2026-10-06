@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../routes/routePaths';
 import AccountMenu from '../../features/auth/components/AccountMenu';
 import MiniCartDropdown from './MiniCartDropdown';
@@ -7,26 +7,45 @@ import {
   ChevronDown,
   Menu,
   X,
+  Search,
+  ArrowRight,
+  Loader2,
+  Package,
 } from 'lucide-react';
 import ZyloLogo from '@shared/ui/ZyloLogo';
+import { productsService } from '@shared/api/products.service';
+import type { SearchSuggestion } from '@shared/types/product';
 
 export const CustomerNavbar: React.FC = () => {
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All categories');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const cartRef = React.useRef<HTMLDivElement>(null);
+  const cartRef = useRef<HTMLDivElement>(null);
 
-  // Close cart dropdown on click outside or escape
-  React.useEffect(() => {
-    if (!cartOpen) return;
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close suggestions or cart on click outside
+  useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (!cartRef.current?.contains(e.target as Node)) {
+      if (cartOpen && !cartRef.current?.contains(e.target as Node)) {
         setCartOpen(false);
+      }
+      if (showSuggestions && !searchContainerRef.current?.contains(e.target as Node)) {
+        setShowSuggestions(false);
       }
     };
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setCartOpen(false);
+      if (e.key === 'Escape') {
+        setCartOpen(false);
+        setShowSuggestions(false);
+      }
     };
     document.addEventListener('mousedown', handleClick);
     document.addEventListener('keydown', handleKey);
@@ -34,7 +53,46 @@ export const CustomerNavbar: React.FC = () => {
       document.removeEventListener('mousedown', handleClick);
       document.removeEventListener('keydown', handleKey);
     };
-  }, [cartOpen]);
+  }, [cartOpen, showSuggestions]);
+
+  // Debounced search suggestions fetcher
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (trimmed.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearching(true);
+        const results = await productsService.getSuggestions(trimmed);
+        setSuggestions(results);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error('Failed to load search suggestions:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 220);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    setShowSuggestions(false);
+    const catParam =
+      selectedCategory !== 'All categories'
+        ? `&categoryName=${encodeURIComponent(selectedCategory)}`
+        : '';
+    navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}${catParam}`);
+  };
+
+  const handleSelectSuggestion = (item: SearchSuggestion) => {
+    setShowSuggestions(false);
+    navigate(`/shop?search=${encodeURIComponent(item.name)}`);
+  };
 
   const categories = [
     'All categories',
@@ -56,7 +114,10 @@ export const CustomerNavbar: React.FC = () => {
 
         {/* Center: Search Box with Category Selector & Quick Deal Links */}
         <div className="hidden lg:flex items-center flex-1 max-w-xl mx-2 gap-4">
-          <div className="relative flex items-center flex-1 border border-slate-200 hover:border-slate-300 rounded-md bg-white transition-colors h-10">
+          <div
+            ref={searchContainerRef}
+            className="relative flex items-center flex-1 border border-slate-200 hover:border-slate-300 focus-within:border-amber-500 rounded-md bg-white transition-colors h-10 shadow-none"
+          >
             {/* Category Dropdown */}
             <div className="relative shrink-0">
               <button
@@ -74,7 +135,7 @@ export const CustomerNavbar: React.FC = () => {
                     className="fixed inset-0 z-40"
                     onClick={() => setCategoryDropdownOpen(false)}
                   />
-                  <div className="absolute left-0 mt-1 w-48 bg-white border border-slate-200 rounded-md py-1 z-50 animate-in fade-in duration-100">
+                  <div className="absolute left-0 mt-1 w-48 bg-white border border-slate-200 rounded-md py-1 z-50 animate-in fade-in duration-100 shadow-none">
                     {categories.map((cat) => (
                       <button
                         key={cat}
@@ -97,12 +158,90 @@ export const CustomerNavbar: React.FC = () => {
               )}
             </div>
 
-            {/* Search Input */}
-            <input
-              type="text"
-              placeholder="Search for items"
-              className="w-full py-1.5 px-3 text-[13.5px] text-slate-700 placeholder:text-slate-400 focus:outline-none"
-            />
+            {/* Search Input Form */}
+            <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center h-full">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (suggestions.length > 0) setShowSuggestions(true);
+                }}
+                placeholder="Search products, brands, or tech specifications..."
+                className="w-full py-1.5 px-3 text-[13.5px] text-slate-700 placeholder:text-slate-400 focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="pr-3 pl-1 text-slate-400 hover:text-amber-600 transition-colors"
+                title="Search"
+              >
+                {isSearching ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+              </button>
+            </form>
+
+            {/* Autocomplete Typeahead Popover */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border border-slate-200 rounded-md z-50 overflow-hidden shadow-none animate-in fade-in duration-100">
+                <div className="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <span>Product Suggestions</span>
+                  <span>{suggestions.length} items found</span>
+                </div>
+                <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                  {suggestions.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(item)}
+                      className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-amber-50/40 transition-colors text-left group"
+                    >
+                      <div className="w-10 h-10 rounded border border-slate-200 bg-white flex items-center justify-center overflow-hidden shrink-0">
+                        {item.thumbnailUrl ? (
+                          <img
+                            src={item.thumbnailUrl}
+                            alt={item.name}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <Package className="w-5 h-5 text-slate-300" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-900 group-hover:text-amber-700 truncate">
+                          {item.name}
+                        </p>
+                        <p className="text-[11px] text-slate-500 flex items-center gap-2">
+                          <span>{item.brandName}</span>
+                          <span>·</span>
+                          <span className="text-slate-400">{item.categoryName}</span>
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-xs font-bold text-slate-900 block">
+                          ${item.basePrice.toFixed(2)}
+                        </span>
+                        {item.salePrice && item.salePrice < item.basePrice && (
+                          <span className="text-[10px] text-rose-600 block line-through">
+                            ${item.salePrice.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 border-t border-slate-200 text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center justify-between transition-colors cursor-pointer"
+                >
+                  <span>See all catalog results for "{searchQuery}"</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-blue-600" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Quick Deal Tags next to Search Bar (matches screenshot) */}

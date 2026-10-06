@@ -121,10 +121,14 @@ export type UpdateProductPayload = Partial<CreateProductPayload>;
 export interface QueryProductParams {
   search?: string;
   categoryId?: string;
+  categoryIds?: string;
   brandId?: string;
+  brandIds?: string;
   status?: ProductStatus;
   isFeatured?: boolean;
   isNewArrival?: boolean;
+  inStockOnly?: boolean;
+  minRating?: number;
   stockStatus?: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
   minPrice?: number;
   maxPrice?: number;
@@ -139,6 +143,41 @@ export interface PaginatedProducts {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface ProductFacets {
+  total: number;
+  inStockCount: number;
+  priceRange: {
+    min: number;
+    max: number;
+  };
+  categories: {
+    id: string;
+    name: string;
+    slug: string;
+    parentId?: string;
+    count: number;
+  }[];
+  brands: {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl?: string;
+    count: number;
+  }[];
+}
+
+export interface SearchSuggestion {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  thumbnailUrl: string | null;
+  basePrice: number;
+  salePrice: number | null;
+  categoryName: string;
+  brandName: string;
 }
 
 export interface ProductOverviewData {

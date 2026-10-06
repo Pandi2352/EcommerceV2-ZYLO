@@ -13,10 +13,20 @@ export class QueryProductDto {
   @IsString()
   categoryId?: string;
 
+  @ApiPropertyOptional({ description: 'Filter by multiple category ObjectIds (comma-separated)' })
+  @IsOptional()
+  @IsString()
+  categoryIds?: string;
+
   @ApiPropertyOptional({ description: 'Filter by brand ObjectId' })
   @IsOptional()
   @IsString()
   brandId?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by multiple brand ObjectIds (comma-separated)' })
+  @IsOptional()
+  @IsString()
+  brandIds?: string;
 
   @ApiPropertyOptional({ enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'] })
   @IsOptional()
@@ -34,6 +44,19 @@ export class QueryProductDto {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isNewArrival?: boolean;
+
+  @ApiPropertyOptional({ description: 'Filter for items currently in stock' })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  inStockOnly?: boolean;
+
+  @ApiPropertyOptional({ description: 'Filter by minimum customer star rating (e.g. 4.0)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  minRating?: number;
 
   @ApiPropertyOptional({ enum: ['IN_STOCK', 'LOW_STOCK', 'OUT_OF_STOCK'] })
   @IsOptional()

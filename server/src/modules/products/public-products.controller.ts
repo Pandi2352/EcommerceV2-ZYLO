@@ -22,6 +22,18 @@ export class PublicProductsController {
     return this.productsService.findAll({ isFeatured: true, limit: limit || 8 }, false);
   }
 
+  @Get('facets')
+  @ApiOperation({ summary: 'Get catalog discovery facets: categories, brands, price boundaries' })
+  async getFacets() {
+    return this.productsService.getFacets();
+  }
+
+  @Get('suggestions')
+  @ApiOperation({ summary: 'Autocomplete typeahead search suggestions for header search bar' })
+  async getSuggestions(@Query('q') query: string) {
+    return this.productsService.getSuggestions(query || '');
+  }
+
   @Get(':slug')
   @ApiOperation({ summary: 'Get single published product by URL slug' })
   async findBySlug(@Param('slug') slug: string) {

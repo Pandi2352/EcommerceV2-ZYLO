@@ -132,15 +132,33 @@ export class ProductsService {
       ];
     }
 
-    // Category filter
-    if (query.categoryId?.trim()) {
+    // Category filter (single or multi-select)
+    if (query.categoryIds?.trim()) {
+      const ids = query.categoryIds
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => Types.ObjectId.isValid(s))
+        .map((s) => new Types.ObjectId(s));
+      if (ids.length > 0) {
+        filter.categoryId = { $in: ids };
+      }
+    } else if (query.categoryId?.trim()) {
       if (Types.ObjectId.isValid(query.categoryId)) {
         filter.categoryId = new Types.ObjectId(query.categoryId);
       }
     }
 
-    // Brand filter
-    if (query.brandId?.trim()) {
+    // Brand filter (single or multi-select)
+    if (query.brandIds?.trim()) {
+      const ids = query.brandIds
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => Types.ObjectId.isValid(s))
+        .map((s) => new Types.ObjectId(s));
+      if (ids.length > 0) {
+        filter.brandId = { $in: ids };
+      }
+    } else if (query.brandId?.trim()) {
       if (Types.ObjectId.isValid(query.brandId)) {
         filter.brandId = new Types.ObjectId(query.brandId);
       }
@@ -154,6 +172,16 @@ export class ProductsService {
     // New Arrival filter
     if (query.isNewArrival !== undefined) {
       filter.isNewArrival = query.isNewArrival;
+    }
+
+    // In-Stock Only filter
+    if (query.inStockOnly === true) {
+      filter.stockQuantity = { $gt: 0 };
+    }
+
+    // Minimum Rating filter
+    if (query.minRating !== undefined && query.minRating > 0) {
+      filter.ratingAverage = { $gte: Number(query.minRating) };
     }
 
     // Price range
@@ -610,5 +638,100 @@ export class ProductsService {
       brandDistribution,
       recentProducts,
     };
+  }
+
+  /**
+   * Dynamic facet counts for storefront filtering (categories with counts, brands with counts, price min/max)
+   */
+  async getFacets() {
+    const products: any[] = await this.productModel
+      .find({ status: 'PUBLISHED' })
+      .select('categoryId brandId basePrice stockQuantity ratingAverage')
+      .populate('categoryId', 'name slug parentId')
+      .populate('brandId', 'name slug logoUrl')
+      .lean()
+      .exec();
+
+    const categoryMap = new Map<string, { id: string; name: string; slug: string; parentId?: string; count: number }>();
+    const brandMap = new Map<string, { id: string; name: string; slug: string; logoUrl?: string; count: number }>();
+
+    let minPrice = Infinity;
+    let maxPrice = 0;
+    let inStockCount = 0;
+
+    for (const p of products) {
+      const price = Number(p.basePrice) || 0;
+      if (price < minPrice) minPrice = price;
+      if (price > maxPrice) maxPrice = price;
+      if ((p.stockQuantity || 0) > 0) inStockCount++;
+
+      if (p.categoryId) {
+        const catId = p.categoryId._id ? p.categoryId._id.toString() : p.categoryId.toString();
+        const catName = p.categoryId.name || 'Uncategorized';
+        const catSlug = p.categoryId.slug || '';
+        const parentId = p.categoryId.parentId ? p.categoryId.parentId.toString() : undefined;
+        const curr = categoryMap.get(catId) || { id: catId, name: catName, slug: catSlug, parentId, count: 0 };
+        curr.count++;
+        categoryMap.set(catId, curr);
+      }
+
+      if (p.brandId) {
+        const bId = p.brandId._id ? p.brandId._id.toString() : p.brandId.toString();
+        const bName = p.brandId.name || 'Generic';
+        const bSlug = p.brandId.slug || '';
+        const logoUrl = p.brandId.logoUrl;
+        const curr = brandMap.get(bId) || { id: bId, name: bName, slug: bSlug, logoUrl, count: 0 };
+        curr.count++;
+        brandMap.set(bId, curr);
+      }
+    }
+
+    return {
+      total: products.length,
+      inStockCount,
+      priceRange: {
+        min: minPrice === Infinity ? 0 : Math.floor(minPrice),
+        max: maxPrice === 0 ? 1000 : Math.ceil(maxPrice),
+      },
+      categories: Array.from(categoryMap.values()).sort((a, b) => b.count - a.count),
+      brands: Array.from(brandMap.values()).sort((a, b) => b.count - a.count),
+    };
+  }
+
+  /**
+   * Fast autocomplete search suggestions for navbar typeahead
+   */
+  async getSuggestions(keyword: string) {
+    if (!keyword || !keyword.trim()) return [];
+    const term = keyword.trim();
+    const regex = new RegExp(term, 'i');
+
+    const products = await this.productModel
+      .find({
+        status: 'PUBLISHED',
+        $or: [
+          { name: regex },
+          { sku: regex },
+          { tags: regex },
+        ],
+      })
+      .select('name slug sku thumbnailUrl basePrice salePrice categoryId brandId')
+      .populate('categoryId', 'name slug')
+      .populate('brandId', 'name slug')
+      .limit(6)
+      .lean()
+      .exec();
+
+    return products.map((p) => ({
+      id: p._id.toString(),
+      name: p.name,
+      slug: p.slug,
+      sku: p.sku,
+      thumbnailUrl: p.thumbnailUrl || null,
+      basePrice: p.basePrice,
+      salePrice: p.salePrice || null,
+      categoryName: (p.categoryId as any)?.name || 'Product',
+      brandName: (p.brandId as any)?.name || 'Brand',
+    }));
   }
 }
