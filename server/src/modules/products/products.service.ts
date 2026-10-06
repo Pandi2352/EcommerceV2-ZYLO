@@ -1,0 +1,608 @@
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+  Logger,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import { Product, ProductDocument, ProductStatus } from './schemas/product.schema';
+import { Brand, BrandDocument } from '../brands/schemas/brand.schema';
+import { Category, CategoryDocument } from '../categories/schemas/category.schema';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { QueryProductDto } from './dto/query-product.dto';
+import { generateUniqueSlug } from '../../common/utils/slug.util';
+
+@Injectable()
+export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
+
+  constructor(
+    @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
+    @InjectModel(Brand.name) private readonly brandModel: Model<BrandDocument>,
+    @InjectModel(Category.name) private readonly categoryModel: Model<CategoryDocument>,
+  ) {}
+
+  /**
+   * Helper to generate a collision-proof SKU
+   */
+  async generateUniqueSku(brandName?: string): Promise<string> {
+    const prefix = brandName
+      ? brandName.replace(/[^A-Za-z0-9]/g, '').slice(0, 3).toUpperCase()
+      : 'ZY';
+    for (let attempts = 0; attempts < 10; attempts++) {
+      const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const sku = `ZY-${prefix}-${randomPart}`;
+      const exists = await this.productModel.exists({ sku });
+      if (!exists) return sku;
+    }
+    return `ZY-${prefix}-${Date.now().toString(36).toUpperCase()}`;
+  }
+
+  /**
+   * Create a new catalog product
+   */
+  async create(dto: CreateProductDto): Promise<ProductDocument> {
+    // 1. Verify Category exists
+    if (!Types.ObjectId.isValid(dto.categoryId)) {
+      throw new BadRequestException('Invalid category ID format');
+    }
+    const categoryExists = await this.categoryModel.exists({ _id: new Types.ObjectId(dto.categoryId) });
+    if (!categoryExists) {
+      throw new NotFoundException(`Category with ID "${dto.categoryId}" not found`);
+    }
+
+    // 2. Verify Brand exists
+    if (!Types.ObjectId.isValid(dto.brandId)) {
+      throw new BadRequestException('Invalid brand ID format');
+    }
+    const brand = await this.brandModel.findById(new Types.ObjectId(dto.brandId));
+    if (!brand) {
+      throw new NotFoundException(`Brand with ID "${dto.brandId}" not found`);
+    }
+
+    // 3. Generate collision-proof slug
+    const finalSlug = await generateUniqueSlug(this.productModel, dto.name, dto.slug);
+
+    // 4. Generate or validate SKU
+    let finalSku = dto.sku ? dto.sku.trim().toUpperCase() : '';
+    if (!finalSku) {
+      finalSku = await this.generateUniqueSku(brand.name);
+    } else {
+      const skuExists = await this.productModel.exists({ sku: finalSku });
+      if (skuExists) {
+        throw new ConflictException(`SKU "${finalSku}" is already in use by another product`);
+      }
+    }
+
+    // 5. Determine primary thumbnail
+    let thumbnail = dto.thumbnailUrl?.trim() || null;
+    if (!thumbnail && dto.images && dto.images.length > 0) {
+      const primaryImg = dto.images.find((img) => img.isPrimary) || dto.images[0];
+      thumbnail = primaryImg.url;
+    }
+
+    // 6. Build document
+    const product = new this.productModel({
+      ...dto,
+      categoryId: new Types.ObjectId(dto.categoryId),
+      brandId: new Types.ObjectId(dto.brandId),
+      slug: finalSlug,
+      sku: finalSku,
+      thumbnailUrl: thumbnail,
+      status: dto.status || 'DRAFT',
+    });
+
+    const saved = await product.save();
+
+    // 7. Increment Brand productCount
+    await this.brandModel.findByIdAndUpdate(brand._id, { $inc: { productCount: 1 } });
+
+    this.logger.log(`Created product "${saved.name}" (SKU: ${saved.sku})`);
+    return this.findById(saved._id.toString());
+  }
+
+  /**
+   * Query products with multi-facet filters, search, and pagination
+   */
+  async findAll(query: QueryProductDto, isAdmin = false) {
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.max(1, Math.min(100, Number(query.limit) || 10));
+    const skip = (page - 1) * limit;
+
+    const filter: Record<string, any> = {};
+
+    // Customer view can only see PUBLISHED products
+    if (!isAdmin) {
+      filter.status = 'PUBLISHED';
+    } else if (query.status) {
+      filter.status = query.status;
+    }
+
+    // Search
+    if (query.search?.trim()) {
+      const term = query.search.trim();
+      filter.$or = [
+        { name: { $regex: term, $options: 'i' } },
+        { sku: { $regex: term, $options: 'i' } },
+        { tags: { $regex: term, $options: 'i' } },
+        { description: { $regex: term, $options: 'i' } },
+      ];
+    }
+
+    // Category filter
+    if (query.categoryId?.trim()) {
+      if (Types.ObjectId.isValid(query.categoryId)) {
+        filter.categoryId = new Types.ObjectId(query.categoryId);
+      }
+    }
+
+    // Brand filter
+    if (query.brandId?.trim()) {
+      if (Types.ObjectId.isValid(query.brandId)) {
+        filter.brandId = new Types.ObjectId(query.brandId);
+      }
+    }
+
+    // Featured filter
+    if (query.isFeatured !== undefined) {
+      filter.isFeatured = query.isFeatured;
+    }
+
+    // New Arrival filter
+    if (query.isNewArrival !== undefined) {
+      filter.isNewArrival = query.isNewArrival;
+    }
+
+    // Price range
+    if (query.minPrice !== undefined || query.maxPrice !== undefined) {
+      filter.basePrice = {};
+      if (query.minPrice !== undefined) filter.basePrice.$gte = Number(query.minPrice);
+      if (query.maxPrice !== undefined) filter.basePrice.$lte = Number(query.maxPrice);
+    }
+
+    // Stock Status
+    if (query.stockStatus) {
+      if (query.stockStatus === 'OUT_OF_STOCK') {
+        filter.stockQuantity = { $lte: 0 };
+      } else if (query.stockStatus === 'LOW_STOCK') {
+        filter.$expr = {
+          $and: [
+            { $gt: ['$stockQuantity', 0] },
+            { $lte: ['$stockQuantity', '$lowStockThreshold'] },
+          ],
+        };
+      } else if (query.stockStatus === 'IN_STOCK') {
+        filter.stockQuantity = { $gt: 0 };
+      }
+    }
+
+    // Sorting
+    let sortOptions: Record<string, 1 | -1> = { createdAt: -1 };
+    switch (query.sortBy) {
+      case 'price_asc':
+        sortOptions = { basePrice: 1 };
+        break;
+      case 'price_desc':
+        sortOptions = { basePrice: -1 };
+        break;
+      case 'name_asc':
+        sortOptions = { name: 1 };
+        break;
+      case 'rating':
+        sortOptions = { ratingAverage: -1, ratingCount: -1 };
+        break;
+      case 'stock':
+        sortOptions = { stockQuantity: -1 };
+        break;
+      case 'newest':
+      default:
+        sortOptions = { createdAt: -1 };
+        break;
+    }
+
+    const [items, total] = await Promise.all([
+      this.productModel
+        .find(filter)
+        .populate('categoryId', 'name slug iconUrl')
+        .populate('brandId', 'name slug logoUrl')
+        .sort(sortOptions as any)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.productModel.countDocuments(filter).exec(),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
+  }
+
+  /**
+   * Find a single product by ObjectId
+   */
+  async findById(id: string): Promise<ProductDocument> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Invalid product ID');
+    }
+    const product = await this.productModel
+      .findById(new Types.ObjectId(id))
+      .populate('categoryId', 'name slug iconUrl')
+      .populate('brandId', 'name slug logoUrl')
+      .exec();
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID "${id}" not found`);
+    }
+    return product;
+  }
+
+  /**
+   * Find product by unique slug
+   */
+  async findBySlug(slug: string): Promise<ProductDocument> {
+    const product = await this.productModel
+      .findOne({ slug: slug.toLowerCase().trim() })
+      .populate('categoryId', 'name slug iconUrl')
+      .populate('brandId', 'name slug logoUrl')
+      .exec();
+
+    if (!product) {
+      throw new NotFoundException(`Product with slug "${slug}" not found`);
+    }
+    return product;
+  }
+
+  /**
+   * Update an existing product
+   */
+  async update(id: string, dto: UpdateProductDto): Promise<ProductDocument> {
+    const product = await this.findById(id);
+
+    // If category changed, verify new one exists
+    if (dto.categoryId && dto.categoryId !== product.categoryId?.toString()) {
+      if (!Types.ObjectId.isValid(dto.categoryId)) {
+        throw new BadRequestException('Invalid category ID');
+      }
+      const categoryExists = await this.categoryModel.exists({ _id: new Types.ObjectId(dto.categoryId) });
+      if (!categoryExists) {
+        throw new NotFoundException(`Category "${dto.categoryId}" not found`);
+      }
+      product.categoryId = new Types.ObjectId(dto.categoryId) as any;
+    }
+
+    // If brand changed, verify new one exists and update counts
+    if (dto.brandId && dto.brandId !== product.brandId?.toString()) {
+      if (!Types.ObjectId.isValid(dto.brandId)) {
+        throw new BadRequestException('Invalid brand ID');
+      }
+      const newBrand = await this.brandModel.findById(new Types.ObjectId(dto.brandId));
+      if (!newBrand) {
+        throw new NotFoundException(`Brand "${dto.brandId}" not found`);
+      }
+      const oldBrandId = product.brandId;
+      product.brandId = new Types.ObjectId(dto.brandId) as any;
+
+      // Update brand product counts
+      if (oldBrandId) {
+        await this.brandModel.findByIdAndUpdate(oldBrandId, { $inc: { productCount: -1 } });
+      }
+      await this.brandModel.findByIdAndUpdate(newBrand._id, { $inc: { productCount: 1 } });
+    }
+
+    // If name changed, handle slug
+    if (dto.name && dto.name.trim() !== product.name) {
+      product.name = dto.name.trim();
+      if (!dto.slug) {
+        product.slug = await generateUniqueSlug(this.productModel, dto.name, undefined, product._id.toString());
+      }
+    }
+    if (dto.slug && dto.slug.trim() !== product.slug) {
+      product.slug = await generateUniqueSlug(this.productModel, dto.name || product.name, dto.slug, product._id.toString());
+    }
+
+    // If SKU changed, verify uniqueness
+    if (dto.sku && dto.sku.trim().toUpperCase() !== product.sku) {
+      const newSku = dto.sku.trim().toUpperCase();
+      const existingSku = await this.productModel.findOne({ sku: newSku, _id: { $ne: product._id } });
+      if (existingSku) {
+        throw new ConflictException(`SKU "${newSku}" is already taken by another product`);
+      }
+      product.sku = newSku;
+    }
+
+    // Thumbnail updates
+    if (dto.thumbnailUrl !== undefined) {
+      product.thumbnailUrl = dto.thumbnailUrl?.trim() || null;
+    } else if (dto.images && dto.images.length > 0) {
+      const primary = dto.images.find((img) => img.isPrimary) || dto.images[0];
+      product.thumbnailUrl = primary.url;
+    }
+
+    // Assign other scalar & array fields
+    if (dto.description !== undefined) product.description = dto.description;
+    if (dto.shortDescription !== undefined) product.shortDescription = dto.shortDescription;
+    if (dto.barcode !== undefined) product.barcode = dto.barcode;
+    if (dto.tags !== undefined) product.tags = dto.tags;
+    if (dto.basePrice !== undefined) product.basePrice = dto.basePrice;
+    if (dto.salePrice !== undefined) product.salePrice = dto.salePrice;
+    if (dto.costPrice !== undefined) product.costPrice = dto.costPrice;
+    if (dto.currency !== undefined) product.currency = dto.currency;
+    if (dto.trackInventory !== undefined) product.trackInventory = dto.trackInventory;
+    if (dto.stockQuantity !== undefined) product.stockQuantity = dto.stockQuantity;
+    if (dto.lowStockThreshold !== undefined) product.lowStockThreshold = dto.lowStockThreshold;
+    if (dto.allowBackorders !== undefined) product.allowBackorders = dto.allowBackorders;
+    if (dto.images !== undefined) product.images = dto.images as any;
+    if (dto.specifications !== undefined) product.specifications = dto.specifications;
+    if (dto.hasVariants !== undefined) product.hasVariants = dto.hasVariants;
+    if (dto.variants !== undefined) product.variants = dto.variants as any;
+    if (dto.status !== undefined) product.status = dto.status;
+    if (dto.isFeatured !== undefined) product.isFeatured = dto.isFeatured;
+    if (dto.isNewArrival !== undefined) product.isNewArrival = dto.isNewArrival;
+    if (dto.seo !== undefined) product.seo = dto.seo as any;
+
+    await product.save();
+    return this.findById(product._id.toString());
+  }
+
+  /**
+   * Delete or archive product
+   */
+  async delete(id: string): Promise<{ success: boolean; message: string }> {
+    const product = await this.findById(id);
+
+    // If currently PUBLISHED or DRAFT, soft-archive it first
+    if (product.status !== 'ARCHIVED') {
+      product.status = 'ARCHIVED';
+      await product.save();
+      return { success: true, message: `Product "${product.name}" moved to archives.` };
+    }
+
+    // If already ARCHIVED, delete permanently
+    await this.productModel.findByIdAndDelete(product._id);
+    if (product.brandId) {
+      await this.brandModel.findByIdAndUpdate(product.brandId, { $inc: { productCount: -1 } });
+    }
+    return { success: true, message: `Product "${product.name}" permanently deleted.` };
+  }
+
+  /**
+   * Quick status change
+   */
+  async updateStatus(id: string, status: ProductStatus): Promise<ProductDocument> {
+    const product = await this.findById(id);
+    product.status = status;
+    await product.save();
+    return product;
+  }
+
+  /**
+   * Quick featured toggle
+   */
+  async toggleFeatured(id: string): Promise<ProductDocument> {
+    const product = await this.findById(id);
+    product.isFeatured = !product.isFeatured;
+    await product.save();
+    return product;
+  }
+
+  /**
+   * Get KPI Metrics for admin dashboard
+   */
+  async getMetrics() {
+    const [
+      totalProducts,
+      publishedProducts,
+      draftProducts,
+      archivedProducts,
+      featuredProducts,
+      lowStockProducts,
+      outOfStockProducts,
+      uniqueBrandsCount,
+    ] = await Promise.all([
+      this.productModel.countDocuments({ status: { $ne: 'ARCHIVED' } }),
+      this.productModel.countDocuments({ status: 'PUBLISHED' }),
+      this.productModel.countDocuments({ status: 'DRAFT' }),
+      this.productModel.countDocuments({ status: 'ARCHIVED' }),
+      this.productModel.countDocuments({ isFeatured: true, status: 'PUBLISHED' }),
+      this.productModel.countDocuments({
+        status: { $ne: 'ARCHIVED' },
+        $expr: {
+          $and: [
+            { $gt: ['$stockQuantity', 0] },
+            { $lte: ['$stockQuantity', '$lowStockThreshold'] },
+          ],
+        },
+      }),
+      this.productModel.countDocuments({ status: { $ne: 'ARCHIVED' }, stockQuantity: 0 }),
+      this.productModel.distinct('brandId', { status: { $ne: 'ARCHIVED' } }).then((b) => b.length),
+    ]);
+
+    return {
+      totalProducts,
+      publishedProducts,
+      draftProducts,
+      archivedProducts,
+      featuredProducts,
+      lowStockProducts,
+      outOfStockProducts,
+      uniqueBrandsCount,
+    };
+  }
+
+  /**
+   * Get comprehensive aggregated overview data for Products Overview page.
+   */
+  async getOverview() {
+    const products: any[] = await this.productModel
+      .find()
+      .populate('categoryId', 'name slug')
+      .populate('brandId', 'name slug logoUrl')
+      .lean()
+      .exec();
+
+    const totalProducts = products.length;
+    let published = 0;
+    let draft = 0;
+    let archived = 0;
+    let inStock = 0;
+    let lowStock = 0;
+    let outOfStock = 0;
+    let featured = 0;
+    let newArrivals = 0;
+    let withDiscount = 0;
+    let withVariants = 0;
+    let totalInventoryValue = 0;
+    let totalStockUnits = 0;
+    let totalPriceSum = 0;
+
+    const categoryMap = new Map<string, { id: string; name: string; count: number }>();
+    const brandMap = new Map<string, { id: string; name: string; logoUrl?: string; count: number }>();
+
+    let budgetCount = 0;
+    let midRangeCount = 0;
+    let premiumCount = 0;
+    let luxuryCount = 0;
+
+    for (const p of products) {
+      if (p.status === 'PUBLISHED') published++;
+      else if (p.status === 'DRAFT') draft++;
+      else if (p.status === 'ARCHIVED') archived++;
+
+      const stock = Number(p.stockQuantity) || 0;
+      const threshold = Number(p.lowStockThreshold) || 5;
+      totalStockUnits += stock;
+
+      const price = Number(p.basePrice) || 0;
+      totalPriceSum += price;
+      totalInventoryValue += price * stock;
+
+      if (stock === 0) {
+        outOfStock++;
+      } else if (stock <= threshold) {
+        lowStock++;
+      } else {
+        inStock++;
+      }
+
+      if (p.isFeatured) featured++;
+      if (p.isNewArrival) newArrivals++;
+      if (p.salePrice && Number(p.salePrice) < price) withDiscount++;
+      if (p.hasVariants && p.variants && p.variants.length > 0) withVariants++;
+
+      // Price tiers
+      if (price < 100) budgetCount++;
+      else if (price <= 300) midRangeCount++;
+      else if (price <= 700) premiumCount++;
+      else luxuryCount++;
+
+      // Category attribution
+      if (p.categoryId) {
+        const catId = p.categoryId._id ? p.categoryId._id.toString() : p.categoryId.toString();
+        const catName = p.categoryId.name || 'Uncategorized';
+        const curr = categoryMap.get(catId) || { id: catId, name: catName, count: 0 };
+        curr.count++;
+        categoryMap.set(catId, curr);
+      }
+
+      // Brand attribution
+      if (p.brandId) {
+        const bId = p.brandId._id ? p.brandId._id.toString() : p.brandId.toString();
+        const bName = p.brandId.name || 'Generic';
+        const bLogo = p.brandId.logoUrl;
+        const curr = brandMap.get(bId) || { id: bId, name: bName, logoUrl: bLogo, count: 0 };
+        curr.count++;
+        brandMap.set(bId, curr);
+      }
+    }
+
+    const categoryDistribution = Array.from(categoryMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+      .map((c) => ({
+        ...c,
+        percentage: totalProducts > 0 ? Math.round((c.count / totalProducts) * 100) : 0,
+      }));
+
+    const brandDistribution = Array.from(brandMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+      .map((b) => ({
+        ...b,
+        percentage: totalProducts > 0 ? Math.round((b.count / totalProducts) * 100) : 0,
+      }));
+
+    const averagePrice = totalProducts > 0 ? Math.round((totalPriceSum / totalProducts) * 100) / 100 : 0;
+
+    // Recent 6 products
+    const recentProducts = [...products]
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      .slice(0, 6)
+      .map((p) => ({
+        id: p._id.toString(),
+        name: p.name,
+        slug: p.slug,
+        sku: p.sku,
+        thumbnailUrl: p.thumbnailUrl || (p.images && p.images[0]?.url) || null,
+        basePrice: p.basePrice,
+        salePrice: p.salePrice,
+        stockQuantity: p.stockQuantity,
+        status: p.status,
+        isFeatured: Boolean(p.isFeatured),
+        isNewArrival: Boolean(p.isNewArrival),
+        categoryName: p.categoryId?.name || 'Uncategorized',
+        brandName: p.brandId?.name || 'Generic',
+        createdAt: p.createdAt,
+      }));
+
+    return {
+      generatedAt: new Date().toISOString(),
+      summary: {
+        totalProducts,
+        published,
+        draft,
+        archived,
+        inStock,
+        lowStock,
+        outOfStock,
+        featured,
+        newArrivals,
+        withDiscount,
+        withVariants,
+        totalInventoryValue: Math.round(totalInventoryValue * 100) / 100,
+        averagePrice,
+        totalStockUnits,
+      },
+      stockStatusBreakdown: [
+        { key: 'inStock', label: 'Healthy Stock', value: inStock, color: '#10b981' },
+        { key: 'lowStock', label: 'Low Stock Alert', value: lowStock, color: '#f59e0b' },
+        { key: 'outOfStock', label: 'Out of Stock', value: outOfStock, color: '#f43f5e' },
+      ],
+      priceTierBreakdown: [
+        { key: 'budget', label: 'Entry (< $100)', value: budgetCount, color: '#3b82f6' },
+        { key: 'mid', label: 'Mid-Range ($100–$300)', value: midRangeCount, color: '#6366f1' },
+        { key: 'premium', label: 'Premium ($300–$700)', value: premiumCount, color: '#8b5cf6' },
+        { key: 'luxury', label: 'Flagship & Luxury ($700+)', value: luxuryCount, color: '#ec4899' },
+      ],
+      merchandising: {
+        featured,
+        standard: totalProducts - featured,
+        newArrivals,
+        standardArrivals: totalProducts - newArrivals,
+        withDiscount,
+        fullPrice: totalProducts - withDiscount,
+        withVariants,
+        singleSku: totalProducts - withVariants,
+      },
+      categoryDistribution,
+      brandDistribution,
+      recentProducts,
+    };
+  }
+}

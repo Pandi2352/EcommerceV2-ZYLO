@@ -37,9 +37,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
       : { message: errorResponse };
     const { message, error: _error, statusCode: _statusCode, ...extra } = body;
 
-    this.logger.error(
-      `[${request.method}] ${request.url} - Status: ${status} - Error: ${JSON.stringify(message)}`
-    );
+    if (status >= 500) {
+      this.logger.error(
+        `[${request.method}] ${request.url} - Status: ${status} - Error: ${JSON.stringify(message)}`
+      );
+    } else {
+      this.logger.warn(
+        `[${request.method}] ${request.url} - Status: ${status} - Message: ${JSON.stringify(message)}`
+      );
+    }
 
     response.status(status).json({
       success: false,

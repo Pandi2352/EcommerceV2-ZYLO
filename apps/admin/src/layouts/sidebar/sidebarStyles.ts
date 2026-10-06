@@ -123,8 +123,8 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         label: 'Product Catalog',
         icon: Package,
         pages: [
+          { label: 'Overview', to: ROUTES.PRODUCTS_OVERVIEW },
           { label: 'All Products', to: ROUTES.PRODUCTS },
-          { label: 'Inventory & Stock', to: ROUTES.INVENTORY },
         ],
       },
       {

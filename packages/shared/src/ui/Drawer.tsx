@@ -81,7 +81,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
           {/* Subheader / Pinned Tabs */}
           {headerExtra && (
-            <div className="border-b border-zinc-200 px-5 pt-3 pb-0 bg-white shrink-0 z-10">
+            <div className="px-5 pt-2 pb-0 bg-white shrink-0 z-10">
               {headerExtra}
             </div>
           )}

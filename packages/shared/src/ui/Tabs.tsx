@@ -26,7 +26,13 @@ export function Tabs<K extends string = string>({ items, value, onChange, classN
   };
 
   return (
-    <div role="tablist" className={cn('flex items-center gap-4 border-b border-zinc-200 overflow-x-auto no-scrollbar', className)}>
+    <div
+      role="tablist"
+      className={cn(
+        'flex items-center gap-4 border-b border-zinc-200 overflow-x-auto overflow-y-hidden no-scrollbar',
+        className,
+      )}
+    >
       {items.map((item, index) => {
         const selected = item.key === value;
         return (

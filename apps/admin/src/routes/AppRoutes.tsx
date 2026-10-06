@@ -30,6 +30,8 @@ import LoginActivityPage from '../pages/LoginActivityPage';
 import CategoriesPage from '../pages/CategoriesPage';
 import CategoriesOverviewPage from '../pages/CategoriesOverviewPage';
 import BrandsPage from '../pages/BrandsPage';
+import ProductsOverviewPage from '../pages/ProductsOverviewPage';
+import ProductsPage from '../pages/ProductsPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -92,6 +94,12 @@ export const AppRoutes: React.FC = () => {
             <Route path={ROUTES.ROLE_DETAILS} element={<RoleDetailsPage />} />
             <Route path={ROUTES.USERS_ROLES} element={<RolesPage />} />
             <Route path={ROUTES.USERS_PERMISSIONS} element={<RolesPage />} />
+          </Route>
+
+          {/* Catalog: Products */}
+          <Route element={<ProtectedRoute permission="products.view" />}>
+            <Route path={ROUTES.PRODUCTS_OVERVIEW} element={<ProductsOverviewPage />} />
+            <Route path={ROUTES.PRODUCTS} element={<ProductsPage />} />
           </Route>
 
           {/* Catalog: Categories */}

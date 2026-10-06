@@ -17,6 +17,7 @@ export const ROUTES = {
   DASHBOARDS_ANALYTICS: '/dashboard/analytics',
 
   // Catalog
+  PRODUCTS_OVERVIEW: '/products/overview',
   PRODUCTS: '/products',
   CATEGORIES_OVERVIEW: '/categories/overview',
   CATEGORIES: '/categories',

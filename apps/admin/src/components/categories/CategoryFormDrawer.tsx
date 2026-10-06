@@ -287,35 +287,10 @@ export const CategoryFormDrawer: React.FC<CategoryFormDrawerProps> = ({
       size="xl"
       title={isEditing ? `Edit Category: ${initialData?.name}` : 'Create Catalog Category'}
       description="Define category taxonomy, multimedia assets, storefront badges, and faceted filter attributes."
-      footer={
-        <div className="flex items-center justify-between w-full">
-          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={handleSubmit}
-            isLoading={isSubmitting}
-          >
-            {isEditing ? 'Save Changes' : 'Create Category'}
-          </Button>
-        </div>
-      }
-    >
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {errorMsg && (
-          <Alert tone="error" title="Validation Error">
-            {errorMsg}
-          </Alert>
-        )}
-
-        {/* Form Tabs - Single Line Clean Layout */}
+      headerExtra={
         <Tabs<TabKey>
           value={activeTab}
           onChange={setActiveTab}
-          className="pb-1"
           items={[
             { key: 'general', label: 'General', icon: <Layers /> },
             { key: 'media', label: 'Media & Assets', icon: <ImageIcon /> },
@@ -324,6 +299,30 @@ export const CategoryFormDrawer: React.FC<CategoryFormDrawerProps> = ({
             { key: 'facets', label: 'Filter Facets', icon: <Filter />, count: facets.length },
           ]}
         />
+      }
+      onSubmit={handleSubmit}
+      footer={
+        <div className="flex items-center justify-between w-full">
+          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
+          >
+            {isEditing ? 'Save Changes' : 'Create Category'}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-5">
+        {errorMsg && (
+          <Alert tone="error" title="Validation Error">
+            {errorMsg}
+          </Alert>
+        )}
 
         {/* ─── TAB 1: General & Taxonomy ────────────────────────────────────── */}
         {activeTab === 'general' && (
@@ -1004,7 +1003,7 @@ export const CategoryFormDrawer: React.FC<CategoryFormDrawerProps> = ({
             </div>
           </div>
         )}
-      </form>
+      </div>
     </Drawer>
   );
 };

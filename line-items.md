@@ -130,22 +130,22 @@
 ---
 
 ## 4. Product Catalog Management (Admin)
-- [ ] Create new product
-- [ ] Edit existing product
-- [ ] Soft-delete / Unpublish product
-- [ ] Product title, description, rich text specs
-- [ ] Auto-generate unique product slug
-- [ ] Assign category and brand
-- [ ] SKU generation and assignment
-- [ ] Base price and discount price setup
-- [ ] Stock quantity tracking
-- [ ] Multiple product image upload
-- [ ] Set primary/thumbnail image
-- [ ] Image reordering and deletion
-- [ ] Product attribute setup (Color, Size, Material)
-- [ ] Variant matrix creation (SKU, title, price, stock per variant)
-- [ ] Featured product flag toggle
-- [ ] Publish / Draft status toggle
+- [x] Create new product
+- [x] Edit existing product
+- [x] Soft-delete / Unpublish product
+- [x] Product title, description, rich text specs
+- [x] Auto-generate unique product slug
+- [x] Assign category and brand
+- [x] SKU generation and assignment
+- [x] Base price and discount price setup
+- [x] Stock quantity tracking
+- [x] Multiple product image upload
+- [x] Set primary/thumbnail image
+- [x] Image reordering and deletion
+- [x] Product attribute setup (Color, Size, Material)
+- [x] Variant matrix creation (SKU, title, price, stock per variant)
+- [x] Featured product flag toggle
+- [x] Publish / Draft status toggle
 
 ---
 
