@@ -50,6 +50,8 @@
 - [x] Admin protected route wrapper (`AdminRoute`)
 - [x] Admin login audit log (Records timestamp, IP address, and user-agent)
 - [x] Force password reset on first initial admin login
+- [x] Dual-portal session isolation safeguards preventing customer cookies from overriding admin access
+- [x] Super Admin credential sync & verified bcrypt access (`admin@zylo.internal` & `mvp.bose23@gmail.com`)
 
 ### Staff User Management & Granular RBAC (Admin)
 - [x] Staff Directory with search, status filter, role filter, and server-side pagination (`/users`)
