@@ -10,10 +10,12 @@ import {
   ShieldCheck,
   Truck,
   RotateCcw,
+  Heart,
 } from 'lucide-react';
 import type { ProductItem } from '@shared/types/product';
 import Button from '@shared/ui/Button';
 import { useCart } from '../../cart/context/CartContext';
+import { useWishlist } from '../../wishlist/context/WishlistContext';
 
 interface ProductQuickViewModalProps {
   product: ProductItem | null;
@@ -27,8 +29,12 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   onClose,
 }) => {
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+
+  const productId = product ? product._id : '';
+  const isWishlisted = isInWishlist(productId);
 
   useEffect(() => {
     if (product) {
@@ -292,6 +298,21 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                 >
                   {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                 </Button>
+
+                {/* Wishlist toggle */}
+                <button
+                  type="button"
+                  onClick={() => toggleWishlist(product)}
+                  aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                  title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                  className={`h-9 w-9 shrink-0 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
+                    isWishlisted
+                      ? 'border-rose-200 bg-rose-50 text-rose-500'
+                      : 'border-slate-200 bg-white text-slate-500 hover:text-rose-500 hover:border-slate-300'
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500 stroke-rose-500' : ''}`} />
+                </button>
               </div>
 
               {/* View Full Details Link */}

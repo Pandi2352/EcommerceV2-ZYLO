@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { productsService } from '@shared/api/products.service';
 import type { ProductItem, ProductVariant } from '@shared/types/product';
-import { toast } from '@shared/ui/toastStore';
+import { toast } from '@shared/ui/Toast';
 import { ROUTES } from '../../../routes/routePaths';
 import { useCart } from '../../cart/context/CartContext';
+import { useWishlist } from '../../wishlist/context/WishlistContext';
 
 export type ProductTabId = 'overview' | 'specs' | 'shipping' | 'reviews';
 
@@ -12,6 +13,7 @@ export function useProductDetails() {
   const { slug, id } = useParams<{ slug?: string; id?: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist: contextToggleWishlist } = useWishlist();
 
   const productIdentifier = slug || id;
 
@@ -24,7 +26,8 @@ export function useProductDetails() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<ProductTabId>('overview');
-  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const isWishlisted = product ? isInWishlist(product._id) : false;
 
   // Fetch Product & Related
   const fetchProductData = useCallback(async () => {
@@ -144,16 +147,9 @@ export function useProductDetails() {
     }
   };
 
-  const toggleWishlist = () => {
-    setIsWishlisted((prev) => {
-      const next = !prev;
-      if (next) {
-        toast.success(`Saved "${product?.name}" to your wishlist!`);
-      } else {
-        toast.info(`Removed from your wishlist.`);
-      }
-      return next;
-    });
+  const toggleWishlist = async () => {
+    if (!product) return;
+    await contextToggleWishlist(product, selectedVariant?.sku);
   };
 
   const handleAddToCart = async () => {

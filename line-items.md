@@ -214,12 +214,12 @@
 ---
 
 ## 8. Wishlist
-- [ ] Add item to wishlist
-- [ ] Remove item from wishlist
-- [ ] View all wishlist items
-- [ ] Move single item from wishlist to cart
-- [ ] Move all wishlist items to cart
-- [ ] Empty wishlist state
+- [x] Add item to wishlist
+- [x] Remove item from wishlist
+- [x] View all wishlist items
+- [x] Move single item from wishlist to cart
+- [x] Move all wishlist items to cart
+- [x] Empty wishlist state
 
 ---
 

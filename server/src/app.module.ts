@@ -17,6 +17,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { ProductsModule } from './modules/products/products.module';
 import { CartModule } from './modules/cart/cart.module';
+import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { mongooseAsyncConfig } from './config/database.config';
 import { appConfig } from './config/app.config';
 import { authConfig } from './config/auth.config';
@@ -52,6 +53,7 @@ import { PermissionsGuard } from './common/authorization/permissions.guard';
     BrandsModule,
     ProductsModule,
     CartModule,
+    WishlistModule,
   ],
   providers: [
     // Guards run in registration order: rate limit → authenticate → forced password change → account type → permissions → roles.

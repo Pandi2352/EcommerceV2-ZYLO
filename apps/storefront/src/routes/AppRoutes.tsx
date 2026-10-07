@@ -22,6 +22,7 @@ import AccountSecurityPage from '../pages/account/AccountSecurityPage';
 import CustomerProfilePage from '../pages/account/CustomerProfilePage';
 import CustomerAddressesPage from '../pages/account/CustomerAddressesPage';
 import CartPage from '../pages/customer/CartPage';
+import WishlistPage from '../pages/customer/WishlistPage';
 import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
@@ -52,6 +53,7 @@ export const AppRoutes: React.FC = () => {
       <Route element={<CustomerLayout showRail={false} />}>
         <Route path={ROUTES.CUSTOMER.SHOP} element={<ShopPage />} />
         <Route path={ROUTES.CUSTOMER.CART} element={<CartPage />} />
+        <Route path={ROUTES.CUSTOMER.WISHLIST} element={<WishlistPage />} />
         <Route path={ROUTES.CUSTOMER.PRODUCT_DETAILS} element={<ProductDetailsPage />} />
         <Route path="/product/:slug" element={<ProductDetailsPage />} />
         <Route path="/product/:id" element={<ProductDetailsPage />} />

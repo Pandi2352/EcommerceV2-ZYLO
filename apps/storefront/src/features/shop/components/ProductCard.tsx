@@ -4,10 +4,12 @@ import {
   Star,
   ShoppingBag,
   Eye,
+  Heart,
 } from 'lucide-react';
 import type { ProductItem } from '@shared/types/product';
 import Button from '@shared/ui/Button';
 import { useCart } from '../../cart/context/CartContext';
+import { useWishlist } from '../../wishlist/context/WishlistContext';
 
 interface ProductCardProps {
   product: ProductItem;
@@ -21,7 +23,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onQuickView,
 }) => {
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const [isHovered, setIsHovered] = useState(false);
+
+  const productId = product._id;
+  const isWishlisted = isInWishlist(productId);
 
   const primaryImage =
     product.images?.find((img) => img.isPrimary)?.url ||
@@ -49,6 +55,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     e.stopPropagation();
     if (isOutOfStock) return;
     await addToCart(product, undefined, 1);
+  };
+
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await toggleWishlist(product);
   };
 
   const handleQuickViewClick = (e: React.MouseEvent) => {
@@ -89,6 +101,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </span>
             )}
           </div>
+
+          {/* Wishlist Button */}
+          <button
+            type="button"
+            onClick={handleToggleWishlist}
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            className={`absolute top-2 right-2 p-1.5 rounded-full z-10 transition-colors cursor-pointer ${
+              isWishlisted
+                ? 'bg-rose-50 text-rose-500'
+                : 'bg-white/90 hover:bg-white text-slate-400 hover:text-rose-500'
+            }`}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
+          </button>
         </div>
 
         {/* Content */}
@@ -208,6 +235,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </span>
           )}
         </div>
+
+        {/* Wishlist Button */}
+        <button
+          type="button"
+          onClick={handleToggleWishlist}
+          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          className={`absolute top-2 right-2 p-1.5 rounded-full z-10 transition-colors cursor-pointer ${
+            isWishlisted
+              ? 'bg-rose-50 text-rose-500'
+              : 'bg-white/90 hover:bg-white text-slate-400 hover:text-rose-500'
+          }`}
+        >
+          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
+        </button>
 
         {/* Quick View Button on Hover */}
         <div className="absolute inset-x-2 bottom-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex justify-center z-10">
