@@ -412,8 +412,8 @@
 - [x] MongoDB compound and unique indexing scripts
 - [x] Seed script: Super Admin user initialization
 - [x] Seed script: Default sample categories & subcategories
-- [ ] Seed script: Demo products with variants and images
-- [ ] Seed script: Demo customer account with sample orders
+- [x] Seed script: Demo products with variants and images
+- [x] Seed script: Demo customer account with sample orders
 
 ---
 

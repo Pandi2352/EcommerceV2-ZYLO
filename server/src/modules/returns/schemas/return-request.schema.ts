@@ -144,4 +144,3 @@ export const ReturnRequestSchema = SchemaFactory.createForClass(ReturnRequest);
 
 ReturnRequestSchema.index({ userId: 1, createdAt: -1 });
 ReturnRequestSchema.index({ status: 1, createdAt: -1 });
-ReturnRequestSchema.index({ orderId: 1 });

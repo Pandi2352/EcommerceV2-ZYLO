@@ -8,7 +8,10 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "start:dev": "ts-node-dev --respawn --transpile-only --exit-child src/main.ts",
-    "start:prod": "node dist/main.js"
+    "start:prod": "node dist/main.js",
+    "seed": "ts-node src/database/seeds/run-seed.ts",
+    "seed:demo": "ts-node src/database/seeds/run-seed.ts",
+    "seed:products": "ts-node src/database/seeds/seed-products-cli.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.1.2",
