@@ -36,6 +36,8 @@ import BusinessSettingsPage from '../pages/BusinessSettingsPage';
 import OrdersPage from '../pages/OrdersPage';
 import CouponsPage from '../pages/CouponsPage';
 import ReviewsPage from '../pages/ReviewsPage';
+import CustomersPage from '../pages/CustomersPage';
+import InventoryPage from '../pages/InventoryPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -100,10 +102,11 @@ export const AppRoutes: React.FC = () => {
             <Route path={ROUTES.USERS_PERMISSIONS} element={<RolesPage />} />
           </Route>
 
-          {/* Catalog: Products */}
+          {/* Catalog: Products & Inventory */}
           <Route element={<ProtectedRoute permission="products.view" />}>
             <Route path={ROUTES.PRODUCTS_OVERVIEW} element={<ProductsOverviewPage />} />
             <Route path={ROUTES.PRODUCTS} element={<ProductsPage />} />
+            <Route path={ROUTES.INVENTORY} element={<InventoryPage />} />
           </Route>
 
           {/* Catalog: Categories */}
@@ -125,6 +128,11 @@ export const AppRoutes: React.FC = () => {
           {/* Marketing & Discounts: Coupons */}
           <Route element={<ProtectedRoute permission="coupons.view" />}>
             <Route path={ROUTES.COUPONS} element={<CouponsPage />} />
+          </Route>
+
+          {/* Customers & Community: Customers */}
+          <Route element={<ProtectedRoute permission="customers.view" />}>
+            <Route path={ROUTES.CUSTOMERS} element={<CustomersPage />} />
           </Route>
 
           {/* Customers & Community: Reviews */}

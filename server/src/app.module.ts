@@ -22,6 +22,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { mongooseAsyncConfig } from './config/database.config';
 import { appConfig } from './config/app.config';
 import { authConfig } from './config/auth.config';
@@ -62,6 +63,7 @@ import { PermissionsGuard } from './common/authorization/permissions.guard';
     ReviewsModule,
     SettingsModule,
     CouponsModule,
+    AnalyticsModule,
   ],
   providers: [
     // Guards run in registration order: rate limit → authenticate → forced password change → account type → permissions → roles.

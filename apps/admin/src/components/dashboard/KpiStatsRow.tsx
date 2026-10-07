@@ -1,116 +1,144 @@
 import React from 'react';
-import { DollarSign, ShoppingBag, Users, Wallet } from 'lucide-react';
+import { DollarSign, ShoppingBag, Users, Package, TrendingUp, TrendingDown, Layers } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../routes/routePaths';
+import { formatPrice } from '@shared/utils/currency';
+import type { DashboardSummaryResponse } from '@shared/types/analytics';
 
-interface KpiCardData {
-  id: string;
-  title: string;
-  value: string;
-  change: string;
-  isPositive: boolean | null; // true = green, false = red, null = neutral
-  linkText: string;
-  linkTo: string;
-  icon: typeof DollarSign;
-  iconBg: string;
+interface Props {
+  kpis: DashboardSummaryResponse['kpis'] | null;
+  currencySymbol: string;
+  loading: boolean;
 }
 
-const KPI_METRICS: KpiCardData[] = [
-  {
-    id: 'earnings',
-    title: 'TOTAL EARNINGS',
-    value: '$559.25k',
-    change: '+16.24 %',
-    isPositive: true,
-    linkText: 'View net earnings',
-    linkTo: ROUTES.DASHBOARDS_ANALYTICS,
-    icon: DollarSign,
-    iconBg: 'bg-[#0ab39c] text-white',
-  },
-  {
-    id: 'orders',
-    title: 'ORDERS',
-    value: '36,894',
-    change: '-3.57 %',
-    isPositive: false,
-    linkText: 'View all orders',
-    linkTo: ROUTES.ORDERS,
-    icon: ShoppingBag,
-    iconBg: 'bg-[#299cdb] text-white',
-  },
-  {
-    id: 'customers',
-    title: 'CUSTOMERS',
-    value: '183.35M',
-    change: '+29.08 %',
-    isPositive: true,
-    linkText: 'See details',
-    linkTo: ROUTES.CUSTOMERS,
-    icon: Users,
-    iconBg: 'bg-[#f7b84b] text-white',
-  },
-  {
-    id: 'balance',
-    title: 'MY BALANCE',
-    value: '$165.89k',
-    change: '+0.00 %',
-    isPositive: null,
-    linkText: 'Withdraw money',
-    linkTo: ROUTES.SETTINGS,
-    icon: Wallet,
-    iconBg: 'bg-[#f06548] text-white',
-  },
-];
+export const KpiStatsRow: React.FC<Props> = ({ kpis, currencySymbol, loading }) => {
+  const cards = [
+    {
+      id: 'revenue',
+      title: 'TOTAL GROSS REVENUE',
+      value: kpis ? formatPrice(kpis.revenue.value, { currencySymbol }) : '$0.00',
+      periodText: kpis ? `${formatPrice(kpis.revenue.periodValue, { currencySymbol })} in period` : '',
+      growth: kpis?.revenue.changePercentage ?? null,
+      isPositive: kpis?.revenue.isPositive ?? null,
+      linkText: 'View sales orders',
+      linkTo: ROUTES.ORDERS,
+      icon: DollarSign,
+      colorText: 'text-indigo-600',
+      badgeBg: 'bg-indigo-50 border-indigo-100',
+    },
+    {
+      id: 'orders',
+      title: 'TOTAL ORDERS',
+      value: kpis ? kpis.orders.value.toLocaleString() : '0',
+      periodText: kpis ? `${kpis.orders.periodValue.toLocaleString()} in period` : '',
+      growth: kpis?.orders.changePercentage ?? null,
+      isPositive: kpis?.orders.isPositive ?? null,
+      linkText: 'Manage customer orders',
+      linkTo: ROUTES.ORDERS,
+      icon: ShoppingBag,
+      colorText: 'text-sky-600',
+      badgeBg: 'bg-sky-50 border-sky-100',
+    },
+    {
+      id: 'customers',
+      title: 'CUSTOMERS DIRECTORY',
+      value: kpis ? kpis.customers.value.toLocaleString() : '0',
+      periodText: kpis ? `${kpis.customers.periodValue.toLocaleString()} new in period` : '',
+      growth: kpis?.customers.changePercentage ?? null,
+      isPositive: kpis?.customers.isPositive ?? null,
+      linkText: 'View customer accounts',
+      linkTo: ROUTES.CUSTOMERS,
+      icon: Users,
+      colorText: 'text-emerald-600',
+      badgeBg: 'bg-emerald-50 border-emerald-100',
+    },
+    {
+      id: 'products',
+      title: 'PUBLISHED PRODUCTS',
+      value: kpis ? kpis.products.value.toLocaleString() : '0',
+      periodText: kpis ? `${kpis.products.totalCatalog} total items in catalog` : '',
+      growth: null,
+      isPositive: null,
+      linkText: 'Manage store catalog',
+      linkTo: ROUTES.PRODUCTS,
+      icon: Package,
+      colorText: 'text-amber-600',
+      badgeBg: 'bg-amber-50 border-amber-100',
+    },
+    {
+      id: 'aov',
+      title: 'AVG ORDER VALUE (AOV)',
+      value: kpis ? formatPrice(kpis.aov.value || kpis.aov.totalAov, { currencySymbol }) : '$0.00',
+      periodText: 'Avg spend per transaction',
+      growth: null,
+      isPositive: null,
+      linkText: 'Explore order metrics',
+      linkTo: ROUTES.ORDERS,
+      icon: Layers,
+      colorText: 'text-purple-600',
+      badgeBg: 'bg-purple-50 border-purple-100',
+    },
+  ];
 
-export const KpiStatsRow: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 select-none">
-      {KPI_METRICS.map((kpi) => {
-        const Icon = kpi.icon;
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 select-none">
+      {cards.map((card) => {
+        const Icon = card.icon;
         return (
           <div
-            key={kpi.id}
-            className="bg-white border border-slate-200 rounded-md p-4 transition-colors hover:border-slate-300"
+            key={card.id}
+            className="bg-white border border-slate-200 rounded-md p-4 flex flex-col justify-between transition-colors hover:border-slate-300"
           >
-            {/* Top Row: Title & Percentage Badge */}
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                {kpi.title}
-              </span>
-              <span
-                className={`text-[11px] font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-0.5 ${
-                  kpi.isPositive === true
-                    ? 'text-emerald-600 bg-emerald-50'
-                    : kpi.isPositive === false
-                    ? 'text-rose-600 bg-rose-50'
-                    : 'text-slate-500 bg-slate-50'
-                }`}
-              >
-                {kpi.isPositive === true && '↗ '}
-                {kpi.isPositive === false && '↘ '}
-                {kpi.change}
-              </span>
-            </div>
+            {/* Header: Title + Icon */}
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">
+                  {card.title}
+                </span>
+                <div className={`p-2 rounded-md border ${card.badgeBg}`}>
+                  <Icon className={`w-4 h-4 ${card.colorText}`} />
+                </div>
+              </div>
 
-            {/* Middle Row: Large Value + Icon Badge */}
-            <div className="mt-3.5 flex items-center justify-between">
-              <h3 className="text-2xl font-bold text-slate-800 tracking-tight">
-                {kpi.value}
-              </h3>
-              <div
-                className={`w-10 h-10 rounded-md flex items-center justify-center shrink-0 ${kpi.iconBg}`}
-              >
-                <Icon className="w-5 h-5 stroke-[2.2]" />
+              {/* Metric Value */}
+              <div className="mt-2.5">
+                {loading ? (
+                  <div className="h-7 w-24 bg-slate-100 animate-pulse rounded-md" />
+                ) : (
+                  <h3 className={`text-xl font-bold tracking-tight text-slate-900 ${card.id === 'revenue' || card.id === 'aov' ? 'font-mono' : ''}`}>
+                    {card.value}
+                  </h3>
+                )}
+              </div>
+
+              {/* Subtext & Growth Pill */}
+              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                {card.growth !== null && (
+                  <span
+                    className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      card.isPositive === true
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : card.isPositive === false
+                        ? 'bg-rose-50 text-rose-700'
+                        : 'bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    {card.isPositive === true && <TrendingUp className="w-2.5 h-2.5" />}
+                    {card.isPositive === false && <TrendingDown className="w-2.5 h-2.5" />}
+                    {card.growth > 0 ? `+${card.growth}%` : `${card.growth}%`}
+                  </span>
+                )}
+                <span className="text-[11px] text-slate-400 truncate">{card.periodText}</span>
               </div>
             </div>
 
-            {/* Bottom Row: Detail Action Link */}
-            <div className="mt-3 pt-2.5 border-t border-slate-100">
+            {/* Bottom Nav Link */}
+            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
               <Link
-                to={kpi.linkTo}
-                className="text-xs font-medium text-slate-500 hover:text-indigo-600 underline transition-colors"
+                to={card.linkTo}
+                className="text-[11px] font-medium text-slate-500 hover:text-indigo-600 transition-colors"
               >
-                {kpi.linkText}
+                {card.linkText}
               </Link>
             </div>
           </div>

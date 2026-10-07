@@ -13,6 +13,8 @@ import { Category, CategoryDocument } from '../categories/schemas/category.schem
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
+import { AdminInventoryQueryDto } from './dto/admin-inventory-query.dto';
+import { AdjustStockDto } from './dto/adjust-stock.dto';
 import { generateUniqueSlug } from '../../common/utils/slug.util';
 
 @Injectable()
@@ -779,5 +781,244 @@ export class ProductsService {
       categoryName: (p.categoryId as any)?.name || 'Product',
       brandName: (p.brandId as any)?.name || 'Brand',
     }));
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ADMIN INVENTORY & STOCK CONTROL
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  async getInventorySummary() {
+    const products = await this.productModel
+      .find({}, 'stockQuantity lowStockThreshold basePrice status')
+      .lean()
+      .exec();
+
+    const totalProducts = products.length;
+    let totalStockUnits = 0;
+    let inStockCount = 0;
+    let lowStockCount = 0;
+    let outOfStockCount = 0;
+    let totalValuation = 0;
+
+    for (const p of products) {
+      const stock = p.stockQuantity ?? 0;
+      const threshold = p.lowStockThreshold ?? 5;
+      const price = p.basePrice ?? 0;
+
+      totalStockUnits += stock;
+      totalValuation += stock * price;
+
+      if (stock <= 0) {
+        outOfStockCount++;
+      } else if (stock <= threshold) {
+        lowStockCount++;
+      } else {
+        inStockCount++;
+      }
+    }
+
+    return {
+      totalProducts,
+      totalStockUnits,
+      inStockCount,
+      lowStockCount,
+      outOfStockCount,
+      totalValuation: Math.round(totalValuation * 100) / 100,
+    };
+  }
+
+  async getInventoryList(query: AdminInventoryQueryDto) {
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.max(1, Math.min(100, Number(query.limit) || 10));
+    const skip = (page - 1) * limit;
+
+    const filter: Record<string, any> = {};
+
+    if (query.status && query.status !== 'ALL') {
+      if (query.status === 'OUT_OF_STOCK') {
+        filter.stockQuantity = { $lte: 0 };
+      } else if (query.status === 'LOW_STOCK') {
+        filter.stockQuantity = { $gt: 0, $lte: 5 };
+      } else if (query.status === 'IN_STOCK') {
+        filter.stockQuantity = { $gt: 5 };
+      }
+    }
+
+    if (query.categoryId && Types.ObjectId.isValid(query.categoryId)) {
+      filter.categoryId = new Types.ObjectId(query.categoryId);
+    }
+
+    if (query.brandId && Types.ObjectId.isValid(query.brandId)) {
+      filter.brandId = new Types.ObjectId(query.brandId);
+    }
+
+    if (query.search?.trim()) {
+      const term = query.search.trim();
+      const regex = new RegExp(term, 'i');
+      filter.$or = [
+        { name: regex },
+        { sku: regex },
+        { 'variants.sku': regex },
+        { 'variants.title': regex },
+      ];
+    }
+
+    const sortObj: Record<string, 1 | -1> = {};
+    if (query.sortBy === 'stock_desc') {
+      sortObj.stockQuantity = -1;
+    } else if (query.sortBy === 'name') {
+      sortObj.name = 1;
+    } else if (query.sortBy === 'recent') {
+      sortObj.createdAt = -1;
+    } else if (query.sortBy === 'price_desc') {
+      sortObj.basePrice = -1;
+    } else {
+      // Default: lowest stock first (urgent items at top)
+      sortObj.stockQuantity = 1;
+    }
+
+    const [items, total] = await Promise.all([
+      this.productModel
+        .find(filter)
+        .populate('categoryId', 'name slug')
+        .populate('brandId', 'name slug')
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec(),
+      this.productModel.countDocuments(filter).exec(),
+    ]);
+
+    const formatted = items.map((p: any) => {
+      const stock = p.stockQuantity ?? 0;
+      const threshold = p.lowStockThreshold ?? 5;
+      let stockStatus = 'IN_STOCK';
+      if (stock <= 0) stockStatus = 'OUT_OF_STOCK';
+      else if (stock <= threshold) stockStatus = 'LOW_STOCK';
+
+      return {
+        _id: p._id.toString(),
+        name: p.name,
+        slug: p.slug,
+        sku: p.sku,
+        thumbnailUrl: p.thumbnailUrl || (p.images && p.images[0]?.url) || null,
+        category: p.categoryId
+          ? { _id: p.categoryId._id.toString(), name: p.categoryId.name, slug: p.categoryId.slug }
+          : null,
+        brand: p.brandId
+          ? { _id: p.brandId._id.toString(), name: p.brandId.name, slug: p.brandId.slug }
+          : null,
+        basePrice: p.basePrice,
+        salePrice: p.salePrice || null,
+        stockQuantity: stock,
+        lowStockThreshold: threshold,
+        trackInventory: p.trackInventory !== false,
+        allowBackorders: Boolean(p.allowBackorders),
+        status: p.status,
+        stockStatus,
+        inventoryValuation: Math.round(stock * p.basePrice * 100) / 100,
+        variants: (p.variants || []).map((v: any) => ({
+          sku: v.sku,
+          title: v.title,
+          price: v.price,
+          salePrice: v.salePrice || null,
+          stockQuantity: v.stockQuantity ?? 0,
+          isActive: v.isActive !== false,
+        })),
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      };
+    });
+
+    return {
+      items: formatted,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
+  }
+
+  async adjustInventoryStock(productId: string, dto: AdjustStockDto) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('Invalid product ID');
+    }
+
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new NotFoundException(`Product with ID "${productId}" not found`);
+    }
+
+    if (dto.variantSku && product.variants?.length) {
+      const variantIndex = product.variants.findIndex((v) => v.sku === dto.variantSku);
+      if (variantIndex === -1) {
+        throw new NotFoundException(
+          `Variant with SKU "${dto.variantSku}" not found on product "${product.name}"`,
+        );
+      }
+
+      const currentVariantStock = product.variants[variantIndex].stockQuantity ?? 0;
+      let newVariantStock = currentVariantStock;
+
+      if (dto.type === 'SET') {
+        newVariantStock = dto.quantity;
+      } else if (dto.type === 'INCREMENT') {
+        newVariantStock = currentVariantStock + dto.quantity;
+      } else if (dto.type === 'DECREMENT') {
+        newVariantStock = Math.max(0, currentVariantStock - dto.quantity);
+      }
+
+      product.variants[variantIndex].stockQuantity = newVariantStock;
+
+      // Recalculate total stock from variants
+      product.stockQuantity = product.variants.reduce((sum, v) => sum + (v.stockQuantity ?? 0), 0);
+    } else {
+      const currentStock = product.stockQuantity ?? 0;
+      let newStock = currentStock;
+
+      if (dto.type === 'SET') {
+        newStock = dto.quantity;
+      } else if (dto.type === 'INCREMENT') {
+        newStock = currentStock + dto.quantity;
+      } else if (dto.type === 'DECREMENT') {
+        newStock = Math.max(0, currentStock - dto.quantity);
+      }
+
+      product.stockQuantity = newStock;
+
+      // If exactly 1 variant exists, sync it
+      if (product.variants?.length === 1) {
+        product.variants[0].stockQuantity = newStock;
+      }
+    }
+
+    if (dto.lowStockThreshold !== undefined) {
+      product.lowStockThreshold = dto.lowStockThreshold;
+    }
+    if (dto.trackInventory !== undefined) {
+      product.trackInventory = dto.trackInventory;
+    }
+    if (dto.allowBackorders !== undefined) {
+      product.allowBackorders = dto.allowBackorders;
+    }
+
+    await product.save();
+
+    this.logger.log(
+      `Adjusted inventory for "${product.name}" (SKU: ${product.sku}) - New stock: ${product.stockQuantity}${
+        dto.variantSku ? ` (Variant ${dto.variantSku})` : ''
+      }`,
+    );
+
+    return {
+      message: 'Inventory updated successfully',
+      productId: product._id.toString(),
+      stockQuantity: product.stockQuantity,
+      lowStockThreshold: product.lowStockThreshold,
+      trackInventory: product.trackInventory,
+      allowBackorders: product.allowBackorders,
+      variants: product.variants,
+    };
   }
 }

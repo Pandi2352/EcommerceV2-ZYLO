@@ -1,8 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { QueryFilter, Model, UpdateQuery } from 'mongoose';
-import { User, UserDocument } from './schemas/user.schema';
+import { User, UserDocument, UserStatus } from './schemas/user.schema';
 import { Address } from './schemas/address.schema';
+import { UserRole } from '../../common/enums/user-role.enum';
+import { AccountType } from '../../common/enums/account-type.enum';
+import { Order, OrderDocument } from '../orders/schemas/order.schema';
+import { AdminCustomerQueryDto } from './dto/admin-customer-query.dto';
 import { v4 as uuidv4 } from 'uuid';
 
 /** Hidden (select: false) fields callers can opt into, e.g. '+passwordHash'. */
@@ -24,6 +28,7 @@ const toSelect = (fields: UserSecretField[]) => fields.map((field) => `+${field}
 export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
   ) {}
 
   async findByEmail(email: string, secrets: UserSecretField[] = []): Promise<UserDocument | null> {
@@ -203,5 +208,241 @@ export class UsersService {
 
     await user.save();
     return { addresses: user.addresses };
+  }
+
+  // ─── Admin Customer Oversight ───────────────────────────────────────────────
+
+  /**
+   * Search and list customers with lifetime spend and order metrics
+   */
+  async findCustomersAdmin(query: AdminCustomerQueryDto) {
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.max(1, Math.min(100, Number(query.limit) || 10));
+    const skip = (page - 1) * limit;
+
+    const filter: any = {
+      $or: [
+        { role: UserRole.CUSTOMER },
+        { accountType: AccountType.CUSTOMER },
+      ],
+    };
+
+    if (query.search && query.search.trim()) {
+      const regex = new RegExp(query.search.trim(), 'i');
+      filter.$and = [
+        ...(filter.$and || []),
+        {
+          $or: [
+            { name: regex },
+            { email: regex },
+            { phone: regex },
+          ],
+        },
+      ];
+    }
+
+    if (query.status && query.status !== 'ALL') {
+      if (query.status === 'ACTIVE') {
+        filter.isActive = true;
+      } else if (query.status === 'SUSPENDED') {
+        filter.$or = [{ isActive: false }, { status: UserStatus.INACTIVE }];
+      }
+    }
+
+    const [customers, total] = await Promise.all([
+      this.userModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      this.userModel.countDocuments(filter),
+    ]);
+
+    // Aggregate orders for these customers to get lifetime spend and order counts
+    const customerIds = customers.map((c) => c._id.toString());
+    const orderStats = await this.orderModel.aggregate([
+      { $match: { userId: { $in: customerIds } } },
+      {
+        $group: {
+          _id: '$userId',
+          totalOrders: { $sum: 1 },
+          lifetimeSpend: { $sum: '$grandTotal' },
+          lastOrderDate: { $max: '$createdAt' },
+        },
+      },
+    ]);
+
+    const statsMap = new Map<string, any>(
+      orderStats.map((s) => [s._id.toString(), s]),
+    );
+
+    let items = customers.map((c) => {
+      const s = statsMap.get(c._id.toString());
+      return {
+        ...c,
+        totalOrders: s?.totalOrders || 0,
+        lifetimeSpend: s ? Math.round(s.lifetimeSpend * 100) / 100 : 0,
+        lastOrderDate: s?.lastOrderDate || null,
+      };
+    });
+
+    if (query.sortBy === 'spend') {
+      items.sort((a, b) => b.lifetimeSpend - a.lifetimeSpend);
+    } else if (query.sortBy === 'orders') {
+      items.sort((a, b) => b.totalOrders - a.totalOrders);
+    } else if (query.sortBy === 'name') {
+      items.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  /**
+   * Admin: Get summary statistics for customer directory
+   */
+  async getCustomerStatsAdmin() {
+    const customerFilter = {
+      $or: [
+        { role: UserRole.CUSTOMER },
+        { accountType: AccountType.CUSTOMER },
+      ],
+    };
+
+    const [total, active, suspended, orderAgg] = await Promise.all([
+      this.userModel.countDocuments(customerFilter),
+      this.userModel.countDocuments({ ...customerFilter, isActive: true }),
+      this.userModel.countDocuments({ ...customerFilter, isActive: false }),
+      this.orderModel.aggregate([
+        {
+          $group: {
+            _id: '$userId',
+            spend: { $sum: '$grandTotal' },
+            orders: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+
+    const totalCustomerSpend = orderAgg.reduce((sum, item) => sum + (item.spend || 0), 0);
+    const customersWithOrders = orderAgg.length;
+
+    return {
+      totalCustomers: total,
+      activeCustomers: active,
+      suspendedCustomers: suspended,
+      customersWithOrders,
+      totalCustomerSpend: Math.round(totalCustomerSpend * 100) / 100,
+    };
+  }
+
+  /**
+   * Admin: Get full customer details with recent order history
+   */
+  async getCustomerDetailsAdmin(id: string) {
+    const user = await this.userModel.findById(id).lean();
+    if (!user) {
+      throw new NotFoundException(`Customer #${id} not found`);
+    }
+
+    const orders = await this.orderModel
+      .find({ userId: id })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    const lifetimeSpend = orders.reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+    const totalOrders = orders.length;
+    const averageOrderValue =
+      totalOrders > 0 ? Math.round((lifetimeSpend / totalOrders) * 100) / 100 : 0;
+
+    return {
+      customer: {
+        ...user,
+        totalOrders,
+        lifetimeSpend: Math.round(lifetimeSpend * 100) / 100,
+      },
+      orders,
+      stats: {
+        totalOrders,
+        lifetimeSpend: Math.round(lifetimeSpend * 100) / 100,
+        averageOrderValue,
+      },
+    };
+  }
+
+  /**
+   * Admin: Toggle customer account active or suspended status
+   */
+  async toggleCustomerStatusAdmin(id: string, explicitStatus?: boolean) {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException(`Customer #${id} not found`);
+    }
+
+    const newActive = explicitStatus !== undefined ? explicitStatus : !user.isActive;
+    user.isActive = newActive;
+    user.status = newActive ? UserStatus.ACTIVE : UserStatus.INACTIVE;
+    await user.save();
+
+    return {
+      customer: user,
+      message: `Customer account is now ${newActive ? 'Active' : 'Suspended'}`,
+    };
+  }
+
+  /**
+   * Admin: Export customers directory to CSV or JSON
+   */
+  async exportCustomersAdmin(format: 'csv' | 'json' = 'csv') {
+    const res = await this.findCustomersAdmin({ limit: 1000 });
+    const items = res.items;
+
+    if (format === 'json') {
+      return {
+        data: JSON.stringify(items, null, 2),
+        filename: `customers-export-${Date.now()}.json`,
+        contentType: 'application/json',
+      };
+    }
+
+    const headers = [
+      'Customer ID',
+      'Name',
+      'Email',
+      'Phone',
+      'Status',
+      'Total Orders',
+      'Lifetime Spend',
+      'Addresses Count',
+      'Joined Date',
+      'Last Login',
+    ];
+
+    const rows = items.map((c: any) => [
+      c._id,
+      `"${(c.name || '').replace(/"/g, '""')}"`,
+      c.email || '',
+      c.phone || '',
+      c.isActive ? 'ACTIVE' : 'SUSPENDED',
+      c.totalOrders || 0,
+      c.lifetimeSpend || 0,
+      c.addresses?.length || 0,
+      c.createdAt ? new Date(c.createdAt).toISOString() : '',
+      c.lastLoginAt ? new Date(c.lastLoginAt).toISOString() : '',
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    return {
+      data: csvContent,
+      filename: `customers-export-${Date.now()}.csv`,
+      contentType: 'text/csv',
+    };
   }
 }

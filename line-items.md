@@ -287,15 +287,15 @@
 ---
 
 ## 13. Inventory & Stock Control
-- [ ] Real-time product stock quantity tracking
-- [ ] Variant-level stock quantity tracking
-- [ ] Stock decrement on successful order
-- [ ] Stock increment on cancelled or returned order
-- [ ] Low-stock threshold detection (e.g. stock <= 5)
-- [ ] Out-of-stock automatic status update
-- [ ] Admin: Manual stock adjustment / restock
-- [ ] Admin: Low-stock warning list on dashboard
-- [ ] Pessimistic row locking during checkout to prevent overselling
+- [x] Real-time product stock quantity tracking
+- [x] Variant-level stock quantity tracking
+- [x] Stock decrement on successful order
+- [x] Stock increment on cancelled or returned order
+- [x] Low-stock threshold detection (e.g. stock <= 5)
+- [x] Out-of-stock automatic status update
+- [x] Admin: Manual stock adjustment / restock
+- [x] Admin: Low-stock warning list on dashboard
+- [x] Pessimistic row locking during checkout to prevent overselling
 
 ---
 
@@ -330,16 +330,16 @@
 ---
 
 ## 16. Admin Dashboard & Analytics
-- [ ] Total Gross Revenue (GMV) metric card
-- [ ] Total Orders count metric card
-- [ ] Total Customers count metric card
-- [ ] Total Products count metric card
-- [ ] Pending orders count alert
-- [ ] Low-stock & Out-of-stock products alert
-- [ ] Pending return/refund requests count alert
-- [ ] Recent 10 orders table with quick view
-- [ ] Recent registered customers table
-- [ ] Sales volume / revenue chart (Daily/Weekly)
+- [x] Total Gross Revenue (GMV) metric card
+- [x] Total Orders count metric card
+- [x] Total Customers count metric card
+- [x] Total Products count metric card
+- [x] Pending orders count alert
+- [x] Low-stock & Out-of-stock products alert
+- [x] Pending return/refund requests count alert
+- [x] Recent 10 orders table with quick view
+- [x] Recent registered customers table
+- [x] Sales volume / revenue chart (Daily/Weekly)
 
 ---
 
@@ -360,12 +360,12 @@
 ---
 
 ## 18. Admin Customer Oversight
-- [ ] Searchable customer directory
-- [ ] View customer profile details
-- [ ] View customer lifetime spend and total order count
-- [ ] View customer order history
-- [ ] View customer saved addresses
-- [ ] Toggle customer account active / suspended status
+- [x] Searchable customer directory
+- [x] View customer profile details
+- [x] View customer lifetime spend and total order count
+- [x] View customer order history
+- [x] View customer saved addresses
+- [x] Toggle customer account active / suspended status
 
 ---
 

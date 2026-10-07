@@ -6,6 +6,7 @@ import { Category, CategorySchema } from '../categories/schemas/category.schema'
 import { ProductsService } from './products.service';
 import { ProductsSeedService } from './products-seed.service';
 import { AdminProductsController } from './admin-products.controller';
+import { AdminInventoryController } from './admin-inventory.controller';
 import { PublicProductsController } from './public-products.controller';
 
 @Module({
@@ -16,7 +17,7 @@ import { PublicProductsController } from './public-products.controller';
       { name: Category.name, schema: CategorySchema },
     ]),
   ],
-  controllers: [AdminProductsController, PublicProductsController],
+  controllers: [AdminProductsController, AdminInventoryController, PublicProductsController],
   providers: [ProductsService, ProductsSeedService],
   exports: [ProductsService, ProductsSeedService, MongooseModule],
 })

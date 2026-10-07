@@ -13,14 +13,12 @@ export const STAFF_PLANNED: PlannedRoute[] = [
   { path: ROUTES.SHIPMENTS, title: 'Shipments & Fulfillment' },
   { path: ROUTES.RETURNS, title: 'Returns & Refunds' },
   { path: ROUTES.INVOICES, title: 'Invoices & Receipts' },
-  { path: ROUTES.CUSTOMERS, title: 'Customer Directory' },
   { path: ROUTES.PROMOTIONS, title: 'Promotions & Flash Deals' },
   { path: ROUTES.DASHBOARDS_ANALYTICS, title: 'Sales Analytics & Reports' },
 ];
 
 /** Requires ADMIN or above */
 export const MANAGER_PLANNED: PlannedRoute[] = [
-  { path: ROUTES.INVENTORY, title: 'Inventory & Stock Control' },
   { path: ROUTES.SETTINGS_PAYMENTS, title: 'Payment Gateways Setup' },
   { path: ROUTES.SETTINGS_SHIPPING, title: 'Shipping Methods & Rates' },
 ];
