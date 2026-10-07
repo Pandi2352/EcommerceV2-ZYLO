@@ -11,6 +11,7 @@ import {
   AlertCircle,
   X,
   RotateCcw,
+  CreditCard,
 } from 'lucide-react';
 import { ordersService } from '@shared/api/orders.service';
 import { returnsService } from '@shared/api/returns.service';
@@ -25,6 +26,7 @@ import { toast } from '@shared/ui/Toast';
 import { useCart } from '../../features/cart/context/CartContext';
 import { useSettings } from '../../features/settings/context/SettingsContext';
 import { RequestReturnModal } from '../../features/account/components/RequestReturnModal';
+import { PaymentGatewayModal } from '../../features/checkout/components/PaymentGatewayModal';
 
 type FilterTab = 'ALL' | 'ACTIVE' | 'DELIVERED' | 'RETURNS' | 'CANCELLED';
 
@@ -41,6 +43,9 @@ export const CustomerOrdersPage: React.FC = () => {
   // Returns state
   const [returningOrder, setReturningOrder] = useState<Order | null>(null);
   const [returnsList, setReturnsList] = useState<ReturnRequest[]>([]);
+
+  // Paying Order (Stripe Modal) state
+  const [payingOrder, setPayingOrder] = useState<Order | null>(null);
 
   // Cancellation Modal state
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
@@ -503,7 +508,22 @@ export const CustomerOrdersPage: React.FC = () => {
                         <span className="text-slate-400 text-[11px] block text-right">Order Number</span>
                         <span className="font-mono font-bold text-slate-900">{order.orderNumber}</span>
                       </div>
-                      <div>{getStatusBadge(order.orderStatus)}</div>
+                      <div className="flex flex-col items-end gap-1">
+                        {getStatusBadge(order.orderStatus)}
+                        {order.paymentStatus === 'PAID' ? (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Paid
+                          </span>
+                        ) : order.paymentStatus === 'FAILED' ? (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                            Payment Failed
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            Payment Pending
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -546,6 +566,19 @@ export const CustomerOrdersPage: React.FC = () => {
 
                     {/* Actions Right */}
                     <div className="flex md:flex-col gap-2 shrink-0 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6 justify-end">
+                      {(order.paymentStatus === 'FAILED' ||
+                        (order.paymentStatus === 'PENDING' && order.paymentMethod === 'ONLINE')) &&
+                        order.orderStatus !== OrderStatus.CANCELLED && (
+                          <button
+                            type="button"
+                            onClick={() => setPayingOrder(order)}
+                            className="py-1.5 px-3 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <CreditCard className="w-3.5 h-3.5" />
+                            <span>{order.paymentStatus === 'FAILED' ? 'Retry Payment' : 'Pay with Stripe'}</span>
+                          </button>
+                        )}
+
                       <Button
                         variant="primary"
                         size="sm"
@@ -656,6 +689,23 @@ export const CustomerOrdersPage: React.FC = () => {
             onSuccess={async () => {
               await fetchOrders();
               setActiveTab('RETURNS');
+            }}
+          />
+        )}
+
+        {/* Stripe Payment Gateway Modal */}
+        {payingOrder && (
+          <PaymentGatewayModal
+            isOpen={Boolean(payingOrder)}
+            onClose={() => setPayingOrder(null)}
+            orderId={payingOrder._id}
+            orderNumber={payingOrder.orderNumber}
+            amount={payingOrder.grandTotal}
+            customerName={payingOrder.customerName}
+            onSuccess={async () => {
+              setPayingOrder(null);
+              await fetchOrders();
+              toast.success('Payment completed successfully!');
             }}
           />
         )}

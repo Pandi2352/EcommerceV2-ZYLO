@@ -95,6 +95,24 @@ export class SettingsService {
       youtube: s.youtube,
       enableCod: s.enableCod,
       enableMaintenanceMode: s.enableMaintenanceMode,
+      defaultOnlineProvider: s.defaultOnlineProvider || 'stripe',
+      paymentProviders: {
+        stripe: {
+          enabled: s.stripeEnabled ?? true,
+          mode: s.stripeMode || 'test',
+          publishableKey: s.stripePublishableKey || process.env.STRIPE_PUBLISHABLE_KEY || '',
+        },
+        razorpay: {
+          enabled: s.razorpayEnabled ?? false,
+          mode: s.razorpayMode || 'test',
+          keyId: s.razorpayKeyId || '',
+        },
+        paypal: {
+          enabled: s.paypalEnabled ?? false,
+          mode: s.paypalMode || 'sandbox',
+          clientId: s.paypalClientId || '',
+        },
+      },
     };
   }
 

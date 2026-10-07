@@ -129,7 +129,11 @@ export const OrderSuccessPage: React.FC = () => {
                 <div>
                   <span className="text-slate-500 block text-[11px]">Payment Method</span>
                   <span className="font-bold text-slate-900">
-                    {order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Paid Online'}
+                    {order.paymentMethod === 'COD'
+                      ? 'Cash on Delivery'
+                      : order.paymentStatus === 'PAID'
+                      ? 'Paid with Stripe'
+                      : 'Stripe (Pending Payment)'}
                   </span>
                 </div>
               </div>

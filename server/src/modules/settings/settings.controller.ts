@@ -61,6 +61,7 @@ export class AdminSettingsController {
   }
 
   @Put()
+  @Patch()
   @ApiOperation({ summary: 'Admin: Update store and business settings' })
   @ApiResponse({ status: 200, description: 'Updated store settings' })
   async updateSettings(@Body() dto: UpdateSettingsDto) {

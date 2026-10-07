@@ -242,14 +242,14 @@
 
 ## 10. Payment Processing
 - [x] Cash on Delivery (COD) order placement
-- [ ] Online payment intent creation (Stripe / Razorpay)
-- [ ] Payment gateway client modal / redirect
-- [ ] Payment signature verification on backend
-- [ ] Payment success webhook listener
-- [ ] Payment failure handling & retry option
+- [x] Online payment intent creation (Stripe / Razorpay)
+- [x] Payment gateway client modal / redirect
+- [x] Payment signature verification on backend
+- [x] Payment success webhook listener
+- [x] Payment failure handling & retry option
 - [x] Transaction record creation in database
 - [x] Payment status tracking: `PENDING`, `PAID`, `FAILED`, `REFUNDED`
-- [ ] Online refund processing integration
+- [x] Online refund processing integration
 
 ---
 

@@ -30,6 +30,7 @@ import {
 import { ROUTES } from '../../routes/routePaths';
 import Button from '@shared/ui/Button';
 import { toast } from '@shared/ui/Toast';
+import { PaymentGatewayModal } from '../../features/checkout/components/PaymentGatewayModal';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -71,6 +72,14 @@ export const CheckoutPage: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Stripe Online Payment modal state
+  const [pendingOnlineOrder, setPendingOnlineOrder] = useState<{
+    orderId: string;
+    orderNumber: string;
+    amount: number;
+  } | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   // Coupon state
   const [couponInput, setCouponInput] = useState('');
@@ -211,11 +220,19 @@ export const CheckoutPage: React.FC = () => {
         termsAccepted,
       });
 
-      // Refresh cart context (will clear purchased items)
-      await refreshCart();
-
-      toast.success(`Order placed successfully! Order #${res.order.orderNumber}`);
-      navigate(`/checkout/success/${res.order.orderNumber}`);
+      if (paymentMethod === PaymentMethod.ONLINE) {
+        setPendingOnlineOrder({
+          orderId: res.order._id,
+          orderNumber: res.order.orderNumber,
+          amount: res.order.grandTotal,
+        });
+        setIsPaymentModalOpen(true);
+      } else {
+        // Cash on Delivery
+        await refreshCart();
+        toast.success(`Order placed successfully! Order #${res.order.orderNumber}`);
+        navigate(`/checkout/success/${res.order.orderNumber}`);
+      }
     } catch (err: any) {
       toast.error(err?.message || 'Failed to place order. Please review your details.');
     } finally {
@@ -588,11 +605,11 @@ export const CheckoutPage: React.FC = () => {
                   )}
                 </label>
 
-                {/* Online Payment (Mock Gateway) */}
+                {/* Online Payment (Stripe Gateway) */}
                 <label
                   className={`p-3.5 rounded-md border text-xs cursor-pointer transition-all flex items-start justify-between gap-3 ${
                     paymentMethod === PaymentMethod.ONLINE
-                      ? 'border-amber-500 bg-amber-50/40 ring-1 ring-amber-500'
+                      ? 'border-indigo-500 bg-indigo-50/40 ring-1 ring-indigo-500'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
@@ -603,15 +620,18 @@ export const CheckoutPage: React.FC = () => {
                       value={PaymentMethod.ONLINE}
                       checked={paymentMethod === PaymentMethod.ONLINE}
                       onChange={() => setPaymentMethod(PaymentMethod.ONLINE)}
-                      className="mt-0.5 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                      className="mt-0.5 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                     />
                     <div>
                       <div className="flex items-center gap-2 font-bold text-slate-900">
                         <CreditCard className="w-4 h-4 text-indigo-600" />
-                        <span>Credit / Debit Card & UPI Gateway</span>
+                        <span>Stripe Online Payment (Cards & Apple Pay)</span>
+                        <span className="px-1.5 py-0.2 rounded text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold">
+                          Stripe Test Sandbox
+                        </span>
                       </div>
                       <p className="text-slate-500 text-[11px] mt-0.5">
-                        Instant 256-bit automated simulated payment gateway checkout.
+                        Secure 256-bit encrypted checkout with Stripe sandbox cards and instant authorization.
                       </p>
                     </div>
                   </div>
@@ -803,6 +823,35 @@ export const CheckoutPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Stripe Payment Gateway Modal */}
+      {pendingOnlineOrder && (
+        <PaymentGatewayModal
+          isOpen={isPaymentModalOpen}
+          onClose={async () => {
+            setIsPaymentModalOpen(false);
+            await refreshCart();
+            toast.info(
+              'Order created with pending payment. You can pay anytime from your Orders page.',
+            );
+            navigate(`/checkout/success/${pendingOnlineOrder.orderNumber}`);
+          }}
+          orderId={pendingOnlineOrder.orderId}
+          orderNumber={pendingOnlineOrder.orderNumber}
+          amount={pendingOnlineOrder.amount}
+          customerName={
+            user?.firstName
+              ? `${user.firstName} ${user.lastName || ''}`.trim()
+              : 'Valued Customer'
+          }
+          customerEmail={user?.email || 'customer@zylo.com'}
+          onSuccess={async () => {
+            setIsPaymentModalOpen(false);
+            await refreshCart();
+            navigate(`/checkout/success/${pendingOnlineOrder.orderNumber}`);
+          }}
+        />
+      )}
     </div>
   );
 };

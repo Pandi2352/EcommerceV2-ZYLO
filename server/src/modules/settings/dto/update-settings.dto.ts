@@ -178,4 +178,83 @@ export class UpdateSettingsDto {
   @IsOptional()
   @IsBoolean()
   enableMaintenanceMode?: boolean;
+
+  // Multi Payment Providers
+  @ApiPropertyOptional({ enum: ['stripe', 'razorpay', 'paypal'] })
+  @IsOptional()
+  @IsIn(['stripe', 'razorpay', 'paypal'])
+  defaultOnlineProvider?: 'stripe' | 'razorpay' | 'paypal';
+
+  // Stripe
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  stripeEnabled?: boolean;
+
+  @ApiPropertyOptional({ enum: ['test', 'live'] })
+  @IsOptional()
+  @IsIn(['test', 'live'])
+  stripeMode?: 'test' | 'live';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  stripePublishableKey?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  stripeSecretKey?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  stripeWebhookSecret?: string;
+
+  // Razorpay
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  razorpayEnabled?: boolean;
+
+  @ApiPropertyOptional({ enum: ['test', 'live'] })
+  @IsOptional()
+  @IsIn(['test', 'live'])
+  razorpayMode?: 'test' | 'live';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  razorpayKeyId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  razorpayKeySecret?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  razorpayWebhookSecret?: string;
+
+  // PayPal
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  paypalEnabled?: boolean;
+
+  @ApiPropertyOptional({ enum: ['sandbox', 'live'] })
+  @IsOptional()
+  @IsIn(['sandbox', 'live'])
+  paypalMode?: 'sandbox' | 'live';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  paypalClientId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  paypalClientSecret?: string;
 }

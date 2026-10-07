@@ -28,6 +28,7 @@ import { toast } from '@shared/ui/Toast';
 import { useCart } from '../../features/cart/context/CartContext';
 import { useSettings } from '../../features/settings/context/SettingsContext';
 import { RequestReturnModal } from '../../features/account/components/RequestReturnModal';
+import { PaymentGatewayModal } from '../../features/checkout/components/PaymentGatewayModal';
 
 export const CustomerOrderDetailPage: React.FC = () => {
   const { formatPrice } = useSettings();
@@ -43,6 +44,9 @@ export const CustomerOrderDetailPage: React.FC = () => {
 
   // Return Modal state
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+
+  // Stripe Payment Modal state
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const fetchOrder = async () => {
     if (!orderNumber) return;
@@ -228,6 +232,19 @@ export const CustomerOrderDetailPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {(order.paymentStatus === 'FAILED' ||
+              (order.paymentStatus === 'PENDING' && order.paymentMethod === 'ONLINE')) &&
+              order.orderStatus !== OrderStatus.CANCELLED && (
+                <button
+                  type="button"
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="py-1.5 px-3 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>{order.paymentStatus === 'FAILED' ? 'Retry Stripe Payment' : 'Pay with Stripe'}</span>
+                </button>
+              )}
+
             <Button
               variant="outline"
               size="sm"
@@ -417,6 +434,24 @@ export const CustomerOrderDetailPage: React.FC = () => {
                 <ShieldCheck className="w-3.5 h-3.5" /> 100% Buyer Protected
               </span>
             </div>
+
+            {(order.paymentStatus === 'FAILED' ||
+              (order.paymentStatus === 'PENDING' && order.paymentMethod === 'ONLINE')) &&
+              order.orderStatus !== OrderStatus.CANCELLED && (
+                <div className="pt-2 mt-1 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-500">
+                    {order.paymentStatus === 'FAILED' ? 'Payment declined' : 'Pending payment'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsPaymentModalOpen(true)}
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700 underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <CreditCard className="w-3 h-3" />
+                    <span>Pay with Stripe Now</span>
+                  </button>
+                </div>
+              )}
           </div>
         </div>
 
@@ -576,6 +611,23 @@ export const CustomerOrderDetailPage: React.FC = () => {
             isOpen={isReturnModalOpen}
             onClose={() => setIsReturnModalOpen(false)}
             onSuccess={fetchOrder}
+          />
+        )}
+
+        {/* Stripe Payment Gateway Modal */}
+        {order && (
+          <PaymentGatewayModal
+            isOpen={isPaymentModalOpen}
+            onClose={() => setIsPaymentModalOpen(false)}
+            orderId={order._id}
+            orderNumber={order.orderNumber}
+            amount={order.grandTotal}
+            customerName={order.customerName}
+            onSuccess={async () => {
+              setIsPaymentModalOpen(false);
+              await fetchOrder();
+              toast.success('Payment completed successfully!');
+            }}
           />
         )}
       </div>

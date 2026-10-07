@@ -102,6 +102,55 @@ export class Setting {
 
   @Prop({ default: false })
   enableMaintenanceMode: boolean;
+
+  // Multi Payment Providers Configuration
+  @Prop({ default: 'stripe', enum: ['stripe', 'razorpay', 'paypal'] })
+  defaultOnlineProvider: 'stripe' | 'razorpay' | 'paypal';
+
+  // Stripe Credentials
+  @Prop({ default: true })
+  stripeEnabled: boolean;
+
+  @Prop({ default: 'test', enum: ['test', 'live'] })
+  stripeMode: 'test' | 'live';
+
+  @Prop({ default: '', trim: true })
+  stripePublishableKey: string;
+
+  @Prop({ default: '', trim: true })
+  stripeSecretKey: string;
+
+  @Prop({ default: '', trim: true })
+  stripeWebhookSecret: string;
+
+  // Razorpay Credentials (Multi-Provider Future Ready)
+  @Prop({ default: false })
+  razorpayEnabled: boolean;
+
+  @Prop({ default: 'test', enum: ['test', 'live'] })
+  razorpayMode: 'test' | 'live';
+
+  @Prop({ default: '', trim: true })
+  razorpayKeyId: string;
+
+  @Prop({ default: '', trim: true })
+  razorpayKeySecret: string;
+
+  @Prop({ default: '', trim: true })
+  razorpayWebhookSecret: string;
+
+  // PayPal Credentials (Multi-Provider Future Ready)
+  @Prop({ default: false })
+  paypalEnabled: boolean;
+
+  @Prop({ default: 'sandbox', enum: ['sandbox', 'live'] })
+  paypalMode: 'sandbox' | 'live';
+
+  @Prop({ default: '', trim: true })
+  paypalClientId: string;
+
+  @Prop({ default: '', trim: true })
+  paypalClientSecret: string;
 }
 
 export const SettingSchema = SchemaFactory.createForClass(Setting);

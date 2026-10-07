@@ -31,11 +31,31 @@ export interface PublicBusinessSettings {
   youtube: string;
   enableCod: boolean;
   enableMaintenanceMode: boolean;
+  defaultOnlineProvider?: 'stripe' | 'razorpay' | 'paypal';
+  paymentProviders?: {
+    stripe?: { enabled: boolean; mode: string; publishableKey: string };
+    razorpay?: { enabled: boolean; mode: string; keyId: string };
+    paypal?: { enabled: boolean; mode: string; clientId: string };
+  };
 }
 
 export interface BusinessSettings extends PublicBusinessSettings {
   _id?: string;
   orderNumberPrefix: string;
+  stripeEnabled?: boolean;
+  stripeMode?: 'test' | 'live';
+  stripePublishableKey?: string;
+  stripeSecretKey?: string;
+  stripeWebhookSecret?: string;
+  razorpayEnabled?: boolean;
+  razorpayMode?: 'test' | 'live';
+  razorpayKeyId?: string;
+  razorpayKeySecret?: string;
+  razorpayWebhookSecret?: string;
+  paypalEnabled?: boolean;
+  paypalMode?: 'sandbox' | 'live';
+  paypalClientId?: string;
+  paypalClientSecret?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -72,6 +92,21 @@ export interface UpdateBusinessSettingsPayload {
   orderNumberPrefix?: string;
   enableCod?: boolean;
   enableMaintenanceMode?: boolean;
+  defaultOnlineProvider?: 'stripe' | 'razorpay' | 'paypal';
+  stripeEnabled?: boolean;
+  stripeMode?: 'test' | 'live';
+  stripePublishableKey?: string;
+  stripeSecretKey?: string;
+  stripeWebhookSecret?: string;
+  razorpayEnabled?: boolean;
+  razorpayMode?: 'test' | 'live';
+  razorpayKeyId?: string;
+  razorpayKeySecret?: string;
+  razorpayWebhookSecret?: string;
+  paypalEnabled?: boolean;
+  paypalMode?: 'sandbox' | 'live';
+  paypalClientId?: string;
+  paypalClientSecret?: string;
 }
 
 export interface ContactInquiryPayload {

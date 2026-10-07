@@ -18,19 +18,36 @@ import {
   Calendar,
   CheckCheck,
   Tag,
+  CreditCard,
+  Eye,
+  EyeOff,
+  Key,
+  Copy,
+  Check,
+  ExternalLink,
+  ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 import PageHeader from '@shared/ui/PageHeader';
 import InputField from '@shared/ui/InputField';
 import { Button } from '@shared/ui/Button';
 import { toast } from '@shared/ui/Toast';
 import { settingsService } from '@shared/api/settings.service';
+import { paymentsService } from '@shared/api/payments.service';
 import type {
   ContactInquiryItem,
   UpdateBusinessSettingsPayload,
 } from '@shared/types/settings';
 import { POPULAR_CURRENCIES, formatPrice } from '@shared/utils/currency';
 
-type TabId = 'currency' | 'branding' | 'contact' | 'social' | 'policies' | 'inquiries';
+type TabId =
+  | 'currency'
+  | 'branding'
+  | 'contact'
+  | 'social'
+  | 'policies'
+  | 'payments'
+  | 'inquiries';
 
 export const BusinessSettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('currency');
@@ -70,7 +87,30 @@ export const BusinessSettingsPage: React.FC = () => {
     orderNumberPrefix: 'ZYLO-',
     enableCod: true,
     enableMaintenanceMode: false,
+    defaultOnlineProvider: 'stripe',
+    stripeEnabled: true,
+    stripeMode: 'test',
+    stripePublishableKey: '',
+    stripeSecretKey: '',
+    stripeWebhookSecret: '',
+    razorpayEnabled: false,
+    razorpayMode: 'test',
+    razorpayKeyId: '',
+    razorpayKeySecret: '',
+    razorpayWebhookSecret: '',
+    paypalEnabled: false,
+    paypalMode: 'sandbox',
+    paypalClientId: '',
+    paypalClientSecret: '',
   });
+
+  // Secret toggles & Test Connection State
+  const [showStripeSecret, setShowStripeSecret] = useState(false);
+  const [showStripeWebhook, setShowStripeWebhook] = useState(false);
+  const [showRazorpaySecret, setShowRazorpaySecret] = useState(false);
+  const [showPaypalSecret, setShowPaypalSecret] = useState(false);
+  const [isTestingProvider, setIsTestingProvider] = useState<string | null>(null);
+  const [copiedWebhook, setCopiedWebhook] = useState(false);
 
   // Inquiries State
   const [inquiries, setInquiries] = useState<ContactInquiryItem[]>([]);
@@ -115,6 +155,21 @@ export const BusinessSettingsPage: React.FC = () => {
         orderNumberPrefix: data.orderNumberPrefix || 'ZYLO-',
         enableCod: data.enableCod ?? true,
         enableMaintenanceMode: data.enableMaintenanceMode ?? false,
+        defaultOnlineProvider: data.defaultOnlineProvider || 'stripe',
+        stripeEnabled: data.stripeEnabled ?? true,
+        stripeMode: data.stripeMode || 'test',
+        stripePublishableKey: data.stripePublishableKey || '',
+        stripeSecretKey: data.stripeSecretKey || '',
+        stripeWebhookSecret: data.stripeWebhookSecret || '',
+        razorpayEnabled: data.razorpayEnabled ?? false,
+        razorpayMode: data.razorpayMode || 'test',
+        razorpayKeyId: data.razorpayKeyId || '',
+        razorpayKeySecret: data.razorpayKeySecret || '',
+        razorpayWebhookSecret: data.razorpayWebhookSecret || '',
+        paypalEnabled: data.paypalEnabled ?? false,
+        paypalMode: data.paypalMode || 'sandbox',
+        paypalClientId: data.paypalClientId || '',
+        paypalClientSecret: data.paypalClientSecret || '',
       });
     } catch {
       toast.error('Failed to load store settings');
@@ -176,6 +231,50 @@ export const BusinessSettingsPage: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Test Payment Provider Connection
+  const handleTestProvider = async (provider: 'stripe' | 'razorpay' | 'paypal') => {
+    try {
+      setIsTestingProvider(provider);
+      const res = await paymentsService.testProviderConnection({
+        provider,
+        secretKey: provider === 'stripe' ? formData.stripeSecretKey : undefined,
+        publishableKey: provider === 'stripe' ? formData.stripePublishableKey : undefined,
+      });
+      if (res.success) {
+        toast.success(res.message);
+      } else {
+        toast.error(res.message);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || `Failed to test ${provider} connection`);
+    } finally {
+      setIsTestingProvider(null);
+    }
+  };
+
+  // Quick fill Stripe Demo Sandbox Keys
+  const handleAutofillStripeTestKeys = () => {
+    setFormData((prev) => ({
+      ...prev,
+      stripePublishableKey: 'pk_test_51MockZyloStripePublishableKeySandbox2026',
+      stripeSecretKey: 'sk_test_51MockZyloStripeSecretKeySandbox2026',
+      stripeWebhookSecret: 'whsec_MockZyloWebhookSecretSigningKey2026',
+      stripeMode: 'test',
+      stripeEnabled: true,
+    }));
+    toast.success('Populated Stripe sandbox developer credentials');
+  };
+
+  // Copy Webhook URL
+  const handleCopyWebhookUrl = () => {
+    const origin = window.location.origin.replace(':5174', ':5000').replace(':5173', ':5000');
+    const webhookUrl = `${origin}/api/payments/webhook`;
+    navigator.clipboard.writeText(webhookUrl);
+    setCopiedWebhook(true);
+    toast.success('Webhook endpoint URL copied to clipboard');
+    setTimeout(() => setCopiedWebhook(false), 2000);
   };
 
   // Update Inquiry Status
@@ -310,6 +409,7 @@ export const BusinessSettingsPage: React.FC = () => {
             { id: 'contact', label: 'Contact Us & Support', icon: Phone, activeColor: 'text-sky-600 border-sky-600' },
             { id: 'social', label: 'Social Networks', icon: Share2, activeColor: 'text-pink-600 border-pink-600' },
             { id: 'policies', label: 'Orders & Policies', icon: Sliders, activeColor: 'text-amber-600 border-amber-600' },
+            { id: 'payments', label: 'Payment Providers', icon: CreditCard, activeColor: 'text-indigo-600 border-indigo-600' },
             { id: 'inquiries', label: `Customer Inquiries (${inquiries.length})`, icon: MessageSquare, activeColor: 'text-violet-600 border-violet-600', badge: inquiryCounts.new },
           ].map((t) => {
             const Icon = t.icon;
@@ -817,6 +917,567 @@ export const BusinessSettingsPage: React.FC = () => {
                   onChange={(e) => handleChange('enableMaintenanceMode', e.target.checked)}
                   className="w-4 h-4 text-rose-600 rounded-md cursor-pointer border-slate-300"
                 />
+              </div>
+
+              {/* Stripe Payment Gateway Overview */}
+              <div className="p-4 rounded-md border border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-800">Payment Gateway Credentials</span>
+                    <span className="text-[11px] text-slate-500 block">Manage Stripe, Razorpay, and PayPal API keys in the dedicated tab</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('payments')}
+                  className="py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-bold transition-colors cursor-pointer self-start sm:self-auto"
+                >
+                  Configure Payment Gateways
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 6: MULTI-PAYMENT PROVIDERS & GATEWAY CONFIGURATION */}
+        {activeTab === 'payments' && (
+          <div className="space-y-5">
+            {/* Overview & Live Sync Banner */}
+            <div className="p-5 rounded-md bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-lg bg-indigo-600/30 border border-indigo-400/40 flex items-center justify-center text-white shrink-0">
+                  <CreditCard className="w-6 h-6 text-indigo-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold tracking-wide">Multi-Payment Gateway Providers</h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Live In-Memory Database Synced
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    Configure online payment credentials directly through the UI. No server restart or .env edits required.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAutofillStripeTestKeys}
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs"
+                  leftIcon={<Sparkles className="w-3.5 h-3.5 text-indigo-300" />}
+                >
+                  Fill Sandbox Demo Keys
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleSave()}
+                  isLoading={isSaving}
+                  leftIcon={<Save className="w-3.5 h-3.5" />}
+                >
+                  Save Credentials
+                </Button>
+              </div>
+            </div>
+
+            {/* Default Online Provider Selection */}
+            <div className="bg-white p-5 rounded-md border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div>
+                  <span className="text-xs font-bold text-slate-900 block">Default Checkout Gateway</span>
+                  <span className="text-[11px] text-slate-500">
+                    Primary gateway used for customer credit/debit card and online payments at checkout.
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded font-bold">
+                  Active: {(formData.defaultOnlineProvider || 'stripe').toUpperCase()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                {/* Stripe Option */}
+                <label
+                  className={`p-3.5 rounded-lg border text-xs cursor-pointer transition-all flex items-start gap-3 ${
+                    formData.defaultOnlineProvider === 'stripe'
+                      ? 'border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-600'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="defaultOnlineProvider"
+                    value="stripe"
+                    checked={formData.defaultOnlineProvider === 'stripe'}
+                    onChange={() => handleChange('defaultOnlineProvider', 'stripe')}
+                    className="mt-0.5 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                      <span>Stripe</span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] bg-indigo-100 text-indigo-700 font-bold">
+                        Primary
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Global cards, Apple Pay, Google Pay & 3D Secure
+                    </p>
+                  </div>
+                </label>
+
+                {/* Razorpay Option */}
+                <label
+                  className={`p-3.5 rounded-lg border text-xs cursor-pointer transition-all flex items-start gap-3 ${
+                    formData.defaultOnlineProvider === 'razorpay'
+                      ? 'border-blue-600 bg-blue-50/40 ring-1 ring-blue-600'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="defaultOnlineProvider"
+                    value="razorpay"
+                    checked={formData.defaultOnlineProvider === 'razorpay'}
+                    onChange={() => handleChange('defaultOnlineProvider', 'razorpay')}
+                    className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div>
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                      <span>Razorpay</span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] bg-blue-100 text-blue-700 font-bold">
+                        Multi-Provider
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      UPI, Net Banking, Indian cards & domestic wallets
+                    </p>
+                  </div>
+                </label>
+
+                {/* PayPal Option */}
+                <label
+                  className={`p-3.5 rounded-lg border text-xs cursor-pointer transition-all flex items-start gap-3 ${
+                    formData.defaultOnlineProvider === 'paypal'
+                      ? 'border-amber-600 bg-amber-50/40 ring-1 ring-amber-600'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="defaultOnlineProvider"
+                    value="paypal"
+                    checked={formData.defaultOnlineProvider === 'paypal'}
+                    onChange={() => handleChange('defaultOnlineProvider', 'paypal')}
+                    className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                  />
+                  <div>
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                      <span>PayPal</span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] bg-amber-100 text-amber-700 font-bold">
+                        Multi-Provider
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      PayPal Wallet, Pay in 4, & international buyer network
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* PROVIDER 1: STRIPE CONFIGURATION */}
+            <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-none">
+              {/* Stripe Header */}
+              <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-md bg-indigo-600 text-white flex items-center justify-center font-black text-sm">
+                    S
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-slate-900">Stripe Payment Gateway</h4>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          formData.stripeMode === 'live'
+                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                            : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                        }`}
+                      >
+                        {formData.stripeMode === 'live' ? 'Live Production' : 'Test Sandbox'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Credit / Debit Cards, Apple Pay, Google Pay & 256-bit automated encryption
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <a
+                    href="https://dashboard.stripe.com/test/apikeys"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hidden sm:flex items-center gap-1 text-[11px] text-indigo-600 hover:text-indigo-800 font-medium"
+                  >
+                    <span>Stripe Dashboard</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                  <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <span>Enable Provider</span>
+                    <input
+                      type="checkbox"
+                      checked={formData.stripeEnabled}
+                      onChange={(e) => handleChange('stripeEnabled', e.target.checked)}
+                      className="w-4 h-4 text-indigo-600 rounded cursor-pointer border-slate-300"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Stripe Body Form */}
+              <div className="p-5 space-y-4">
+                {/* Environment Mode Selector */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Stripe Environment Mode
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="stripeMode"
+                        value="test"
+                        checked={formData.stripeMode === 'test'}
+                        onChange={() => handleChange('stripeMode', 'test')}
+                        className="text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span>Test / Sandbox Mode (Safe for local testing)</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer ml-4">
+                      <input
+                        type="radio"
+                        name="stripeMode"
+                        value="live"
+                        checked={formData.stripeMode === 'live'}
+                        onChange={() => handleChange('stripeMode', 'live')}
+                        className="text-rose-600 focus:ring-rose-500"
+                      />
+                      <span className="text-rose-700 font-semibold">Live Production Mode</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Publishable Key */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Stripe Publishable Key
+                    </label>
+                    <InputField
+                      type="text"
+                      value={formData.stripePublishableKey || ''}
+                      onChange={(e) => handleChange('stripePublishableKey', e.target.value)}
+                      placeholder="pk_test_..."
+                      helperText="Public client key safely distributed to the customer storefront"
+                      fieldSize="sm"
+                      className="font-mono"
+                    />
+                  </div>
+
+                  {/* Secret Key with Show/Hide */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Stripe Secret Key *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowStripeSecret(!showStripeSecret)}
+                        className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                      >
+                        {showStripeSecret ? (
+                          <>
+                            <EyeOff className="w-3 h-3" /> Hide
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3 h-3" /> Show
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showStripeSecret ? 'text' : 'password'}
+                        value={formData.stripeSecretKey || ''}
+                        onChange={(e) => handleChange('stripeSecretKey', e.target.value)}
+                        placeholder="sk_test_..."
+                        className="w-full text-xs py-2 px-3 pr-9 border border-slate-300 rounded-md font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <Key className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Confidential server secret key used to initialize charges and capture payments
+                    </span>
+                  </div>
+                </div>
+
+                {/* Webhook Signing Secret */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Stripe Webhook Signing Secret (Optional for local test)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowStripeWebhook(!showStripeWebhook)}
+                      className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                    >
+                      {showStripeWebhook ? (
+                        <>
+                          <EyeOff className="w-3 h-3" /> Hide
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="w-3 h-3" /> Show
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showStripeWebhook ? 'text' : 'password'}
+                      value={formData.stripeWebhookSecret || ''}
+                      onChange={(e) => handleChange('stripeWebhookSecret', e.target.value)}
+                      placeholder="whsec_..."
+                      className="w-full text-xs py-2 px-3 pr-9 border border-slate-300 rounded-md font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <Key className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Webhook URL Helper */}
+                <div className="p-3 rounded-md bg-slate-50 border border-slate-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="font-bold text-slate-800 block">Stripe Dashboard Webhook Endpoint</span>
+                    <span className="text-[11px] text-slate-500">
+                      Listen for <code className="text-indigo-600 font-mono">payment_intent.succeeded</code> and <code className="text-indigo-600 font-mono">payment_intent.payment_failed</code>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyWebhookUrl}
+                    className="py-1.5 px-2.5 bg-white border border-slate-300 hover:border-slate-400 rounded text-slate-700 text-xs font-medium flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors"
+                  >
+                    {copiedWebhook ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-emerald-700">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Copy Webhook URL</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Test Connection Button */}
+                <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100">
+                  <span className="text-[11px] text-slate-500">
+                    Verify that your credentials can connect to Stripe before saving.
+                  </span>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isTestingProvider === 'stripe'}
+                    isLoading={isTestingProvider === 'stripe'}
+                    onClick={() => handleTestProvider('stripe')}
+                    leftIcon={<ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />}
+                  >
+                    Test Stripe Connection
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* PROVIDER 2: RAZORPAY CONFIGURATION (MULTI-PROVIDER READY) */}
+            <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-none">
+              <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-md bg-blue-600 text-white flex items-center justify-center font-black text-sm">
+                    R
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-slate-900">Razorpay Payment Gateway</h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        Multi-Provider Ready
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      UPI, Google Pay, Paytm, Net Banking & Indian Domestic Cards
+                    </p>
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                  <span>Enable Provider</span>
+                  <input
+                    type="checkbox"
+                    checked={formData.razorpayEnabled}
+                    onChange={(e) => handleChange('razorpayEnabled', e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded cursor-pointer border-slate-300"
+                  />
+                </label>
+              </div>
+
+              <div className="p-5 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Razorpay Key ID
+                    </label>
+                    <InputField
+                      type="text"
+                      value={formData.razorpayKeyId || ''}
+                      onChange={(e) => handleChange('razorpayKeyId', e.target.value)}
+                      placeholder="rzp_test_..."
+                      fieldSize="sm"
+                      className="font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Razorpay Key Secret
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowRazorpaySecret(!showRazorpaySecret)}
+                        className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                      >
+                        {showRazorpaySecret ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      </button>
+                    </div>
+                    <input
+                      type={showRazorpaySecret ? 'text' : 'password'}
+                      value={formData.razorpayKeySecret || ''}
+                      onChange={(e) => handleChange('razorpayKeySecret', e.target.value)}
+                      placeholder="Key Secret..."
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-md font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isTestingProvider === 'razorpay'}
+                    isLoading={isTestingProvider === 'razorpay'}
+                    onClick={() => handleTestProvider('razorpay')}
+                  >
+                    Test Razorpay Connection
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* PROVIDER 3: PAYPAL CONFIGURATION (MULTI-PROVIDER READY) */}
+            <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-none">
+              <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-md bg-amber-500 text-white flex items-center justify-center font-black text-sm">
+                    P
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-slate-900">PayPal Gateway</h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        Multi-Provider Ready
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      PayPal Wallet, Pay in 4, Venmo & Global checkout
+                    </p>
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                  <span>Enable Provider</span>
+                  <input
+                    type="checkbox"
+                    checked={formData.paypalEnabled}
+                    onChange={(e) => handleChange('paypalEnabled', e.target.checked)}
+                    className="w-4 h-4 text-amber-600 rounded cursor-pointer border-slate-300"
+                  />
+                </label>
+              </div>
+
+              <div className="p-5 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      PayPal Client ID
+                    </label>
+                    <InputField
+                      type="text"
+                      value={formData.paypalClientId || ''}
+                      onChange={(e) => handleChange('paypalClientId', e.target.value)}
+                      placeholder="Client ID..."
+                      fieldSize="sm"
+                      className="font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        PayPal Secret
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowPaypalSecret(!showPaypalSecret)}
+                        className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                      >
+                        {showPaypalSecret ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      </button>
+                    </div>
+                    <input
+                      type={showPaypalSecret ? 'text' : 'password'}
+                      value={formData.paypalClientSecret || ''}
+                      onChange={(e) => handleChange('paypalClientSecret', e.target.value)}
+                      placeholder="Secret..."
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-md font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isTestingProvider === 'paypal'}
+                    isLoading={isTestingProvider === 'paypal'}
+                    onClick={() => handleTestProvider('paypal')}
+                  >
+                    Test PayPal Connection
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
