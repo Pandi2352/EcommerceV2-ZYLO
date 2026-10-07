@@ -10,6 +10,7 @@ import type { ProductItem } from '@shared/types/product';
 import Button from '@shared/ui/Button';
 import { useCart } from '../../cart/context/CartContext';
 import { useWishlist } from '../../wishlist/context/WishlistContext';
+import { useSettings } from '../../settings/context/SettingsContext';
 
 interface ProductCardProps {
   product: ProductItem;
@@ -24,6 +25,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { formatPrice } = useSettings();
   const [isHovered, setIsHovered] = useState(false);
 
   const productId = product._id;
@@ -165,11 +167,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div className="flex items-center justify-between pt-3 border-t border-slate-100">
             <div className="flex items-baseline gap-2">
               <span className="text-lg font-bold text-slate-900">
-                ${effectivePrice.toFixed(2)}
+                {formatPrice(effectivePrice)}
               </span>
               {hasDiscount && (
                 <span className="text-xs text-slate-400 line-through">
-                  ${product.basePrice.toFixed(2)}
+                  {formatPrice(product.basePrice)}
                 </span>
               )}
             </div>
@@ -314,11 +316,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="flex flex-col">
           <div className="flex items-baseline gap-1.5">
             <span className="text-base font-bold text-slate-900">
-              ${effectivePrice.toFixed(2)}
+              {formatPrice(effectivePrice)}
             </span>
             {hasDiscount && (
               <span className="text-xs text-slate-400 line-through">
-                ${product.basePrice.toFixed(2)}
+                {formatPrice(product.basePrice)}
               </span>
             )}
           </div>

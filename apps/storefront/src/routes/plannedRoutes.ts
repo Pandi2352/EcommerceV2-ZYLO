@@ -12,7 +12,6 @@ export const CUSTOMER_PUBLIC_PLANNED: PlannedRoute[] = [
   { path: ROUTES.CUSTOMER.VENDORS, title: 'Vendors' },
   { path: ROUTES.CUSTOMER.PAGES, title: 'Pages' },
   { path: ROUTES.CUSTOMER.BLOG, title: 'Blog' },
-  { path: ROUTES.CUSTOMER.CONTACT, title: 'Contact Us' },
   { path: ROUTES.CUSTOMER.ABOUT, title: 'About Us' },
   { path: ROUTES.CUSTOMER.CAREERS, title: 'Careers' },
   { path: ROUTES.CUSTOMER.TERMS, title: 'Terms & Conditions' },

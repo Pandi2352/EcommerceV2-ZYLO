@@ -17,10 +17,12 @@ import {
   Share2,
 } from 'lucide-react';
 import { useCart } from '../../features/cart/context/CartContext';
+import { useSettings } from '../../features/settings/context/SettingsContext';
 import { ROUTES } from '../../routes/routePaths';
 import { toast } from '@shared/ui/Toast';
 
 export const CartPage: React.FC = () => {
+  const { formatPrice, settings } = useSettings();
   const {
     items,
     savedForLater,
@@ -193,16 +195,16 @@ export const CartPage: React.FC = () => {
                             {/* Price */}
                             <div className="text-left sm:text-right shrink-0">
                               <p className="text-base sm:text-lg font-black text-slate-900">
-                                ${(item.price * item.quantity).toFixed(2)}
+                                {formatPrice(item.price * item.quantity)}
                               </p>
                               {item.originalPrice > item.price && (
                                 <p className="text-xs text-slate-400 line-through">
-                                  ${(item.originalPrice * item.quantity).toFixed(2)}
+                                  {formatPrice(item.originalPrice * item.quantity)}
                                 </p>
                               )}
                               {item.quantity > 1 && (
                                 <p className="text-[11px] text-slate-400">
-                                  (${item.price.toFixed(2)} each)
+                                  ({formatPrice(item.price)} each)
                                 </p>
                               )}
                             </div>
@@ -283,7 +285,7 @@ export const CartPage: React.FC = () => {
                     </button>
                     <div className="text-sm text-slate-700">
                       Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'}):{' '}
-                      <strong className="text-lg font-black text-slate-900">${subtotal.toFixed(2)}</strong>
+                      <strong className="text-lg font-black text-slate-900">{formatPrice(subtotal)}</strong>
                     </div>
                   </div>
                 )}
@@ -327,7 +329,7 @@ export const CartPage: React.FC = () => {
                               <p className="text-xs text-slate-500">{item.variantTitle}</p>
                             )}
                             <p className="text-sm font-black text-slate-900 mt-1">
-                              ${item.price.toFixed(2)}
+                              {formatPrice(item.price)}
                             </p>
                           </div>
                         </div>
@@ -373,12 +375,12 @@ export const CartPage: React.FC = () => {
                       <div className="space-y-1.5">
                         <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
                           <Truck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                          <span>Add <strong>${amountToFreeShipping.toFixed(2)}</strong> of eligible items to get <strong>FREE Shipping</strong>.</span>
+                          <span>Add <strong>{formatPrice(amountToFreeShipping)}</strong> of eligible items to get <strong>FREE Shipping</strong>.</span>
                         </div>
                         <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                           <div
                             className="bg-amber-500 h-full rounded-full transition-all"
-                            style={{ width: `${Math.min(100, Math.round((subtotal / 50) * 100))}%` }}
+                            style={{ width: `${Math.min(100, Math.round((subtotal / (settings?.freeShippingThreshold || 50)) * 100))}%` }}
                           />
                         </div>
                       </div>
@@ -390,11 +392,11 @@ export const CartPage: React.FC = () => {
                 <div>
                   <div className="flex items-baseline justify-between">
                     <span className="text-sm font-bold text-slate-700">Subtotal ({itemCount} items):</span>
-                    <span className="text-xl font-black text-slate-900">${subtotal.toFixed(2)}</span>
+                    <span className="text-xl font-black text-slate-900">{formatPrice(subtotal)}</span>
                   </div>
                   {savings > 0 && (
                     <p className="text-xs font-bold text-emerald-600 mt-1">
-                      You save: ${savings.toFixed(2)}
+                      You save: {formatPrice(savings)}
                     </p>
                   )}
                 </div>
@@ -456,7 +458,7 @@ export const CartPage: React.FC = () => {
                 <div className="pt-3 border-t border-slate-100 space-y-2 text-xs text-slate-600">
                   <div className="flex justify-between">
                     <span>Items Subtotal</span>
-                    <span className="font-semibold text-slate-800">${subtotal.toFixed(2)}</span>
+                    <span className="font-semibold text-slate-800">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Estimated Shipping</span>
@@ -464,23 +466,23 @@ export const CartPage: React.FC = () => {
                       {estimatedShipping === 0 ? (
                         <span className="text-emerald-600 font-bold">FREE</span>
                       ) : (
-                        `$${estimatedShipping.toFixed(2)}`
+                        formatPrice(estimatedShipping)
                       )}
                     </span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-emerald-600 font-bold">
                       <span>Promotional Discount</span>
-                      <span>-${discount.toFixed(2)}</span>
+                      <span>-{formatPrice(discount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span>Estimated Tax (8%)</span>
-                    <span className="font-semibold text-slate-800">${estimatedTax.toFixed(2)}</span>
+                    <span>Estimated Tax ({settings?.taxRate ?? 8}%)</span>
+                    <span className="font-semibold text-slate-800">{formatPrice(estimatedTax)}</span>
                   </div>
                   <div className="pt-2 border-t border-slate-200 flex justify-between text-sm font-black text-slate-900">
                     <span>Estimated Order Total</span>
-                    <span>${grandTotal.toFixed(2)}</span>
+                    <span>{formatPrice(grandTotal)}</span>
                   </div>
                 </div>
               </div>

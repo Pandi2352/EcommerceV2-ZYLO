@@ -364,7 +364,25 @@
 
 ---
 
-## 19. Transactional Notifications & Emails
+## 19. Business Settings & Localization (Admin & Customer Storefront)
+- [x] Backend singleton Business Settings schema and repository (`setting.schema.ts`, `settings.service.ts`)
+- [x] Currency configuration: Preset picker (INR ₹, USD $, EUR €, GBP £, CAD $, AUD $, JPY ¥) with custom symbol, placement (prefix/suffix), and decimal precision
+- [x] Global Tax rate percentage & Free Shipping threshold dynamic parameters
+- [x] Admin Store Identity & Branding configuration (Store name, tagline, legal business name, announcement bar banner)
+- [x] Admin Contact & Support configuration (Support email, sales email, hotline phone, WhatsApp click-to-chat, physical store address, operating hours, Google Maps embed URL)
+- [x] Admin Social Network links management (Facebook, Instagram, Twitter/X, LinkedIn, YouTube)
+- [x] Admin Order & Policy controls (Order number prefix, Cash on Delivery enable/disable, maintenance mode flag)
+- [x] Admin Customer Inquiries inbox & status workflow (`NEW` ➔ `IN_PROGRESS` ➔ `RESOLVED`)
+- [x] Public Settings endpoint (`GET /api/v1/settings/public`) exposing store settings safely to storefront
+- [x] Storefront `SettingsContext` provider delivering dynamic currency formatting and store metadata across all views
+- [x] Storefront TopBar dynamic phone hotline, WhatsApp link, announcement message, and active currency badge
+- [x] Storefront comprehensive Brand Footer (`Footer.tsx`) with live address, phone, email, operating hours, social icons, and copyright
+- [x] Storefront dedicated Contact Us page (`/contact`) with live business contact cards, inquiry submission form, FAQs, and WhatsApp integration
+- [x] Storefront full dynamic currency formatting (`formatPrice`) across Product Cards, PDP, Cart Drawer, Shopping Cart Page, Checkout Page, Order Confirmation, Customer Orders, and Order Tracking
+
+---
+
+## 20. Transactional Notifications & Emails
 - [ ] Order confirmation email to customer
 - [ ] Order status change notification email (Shipped, Out for Delivery, Delivered)
 - [x] Password reset token email
@@ -373,7 +391,7 @@
 
 ---
 
-## 20. File Uploads & Media Management
+## 21. File Uploads & Media Management
 - [ ] Multer multipart file upload handling in NestJS
 - [ ] Strict file MIME type validation (JPEG, PNG, WebP)
 - [ ] File size limit enforcement (Max 5MB per image)
@@ -383,7 +401,7 @@
 
 ---
 
-## 21. Database Schemas, Indexes & Data Seeders
+## 22. Database Schemas, Indexes & Data Seeders
 - [x] Mongoose Schema & Model definitions with strict typing (Users, Roles, StaffInvitations, AuditLogs, MFA)
 - [x] MongoDB compound and unique indexing scripts
 - [x] Seed script: Super Admin user initialization
@@ -393,7 +411,7 @@
 
 ---
 
-## 22. Frontend UI/UX Shell & Feedback Elements
+## 23. Frontend UI/UX Shell & Feedback Elements
 - [x] Toast notification system (Success, Error, Warning, Info)
 - [x] Action confirmation modals (`ConfirmDialog`)
 - [x] Slide-over drawer component (`Drawer`)
@@ -408,7 +426,7 @@
 
 ---
 
-## 23. API, Security & System Foundations
+## 24. API, Security & System Foundations
 - [x] NestJS modular architecture (Modules, Controllers, Services, Schemas/Models)
 - [x] Interactive Swagger UI documentation at `/api/docs`
 - [x] Global request DTO validation pipe with `class-validator`

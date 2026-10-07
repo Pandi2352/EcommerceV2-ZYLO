@@ -4,6 +4,7 @@ import TopBar from './TopBar';
 import CustomerNavbar from './CustomerNavbar';
 import SubNavBar from './SubNavBar';
 import CategoryRail from './CategoryRail';
+import Footer from './Footer';
 import EmailVerificationBanner from '../../features/auth/components/EmailVerificationBanner';
 
 export interface CustomerLayoutProps {
@@ -35,6 +36,9 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           {children || <Outlet />}
         </main>
       </div>
+
+      {/* Global store footer */}
+      <Footer />
     </div>
   );
 };

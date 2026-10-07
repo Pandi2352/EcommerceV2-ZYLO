@@ -28,6 +28,7 @@ import WishlistPage from '../pages/customer/WishlistPage';
 import CheckoutPage from '../pages/customer/CheckoutPage';
 import OrderSuccessPage from '../pages/customer/OrderSuccessPage';
 import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
+import ContactPage from '../pages/customer/ContactPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -61,6 +62,7 @@ export const AppRoutes: React.FC = () => {
         <Route path={ROUTES.CUSTOMER.PRODUCT_DETAILS} element={<ProductDetailsPage />} />
         <Route path="/product/:slug" element={<ProductDetailsPage />} />
         <Route path="/product/:id" element={<ProductDetailsPage />} />
+        <Route path={ROUTES.CUSTOMER.CONTACT} element={<ContactPage />} />
         {renderPlanned(CUSTOMER_PUBLIC_PLANNED)}
 
         <Route element={<ProtectedRoute />}>

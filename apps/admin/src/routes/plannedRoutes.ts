@@ -24,7 +24,6 @@ export const STAFF_PLANNED: PlannedRoute[] = [
 /** Requires ADMIN or above */
 export const MANAGER_PLANNED: PlannedRoute[] = [
   { path: ROUTES.INVENTORY, title: 'Inventory & Stock Control' },
-  { path: ROUTES.SETTINGS, title: 'General Store Settings' },
   { path: ROUTES.SETTINGS_PAYMENTS, title: 'Payment Gateways Setup' },
   { path: ROUTES.SETTINGS_SHIPPING, title: 'Shipping Methods & Rates' },
 ];

@@ -12,6 +12,7 @@ import {
   Minus,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useSettings } from '../../settings/context/SettingsContext';
 import { ROUTES } from '../../../routes/routePaths';
 
 export const CartDrawer: React.FC = () => {
@@ -26,6 +27,7 @@ export const CartDrawer: React.FC = () => {
     updateQuantity,
     removeItem,
   } = useCart();
+  const { formatPrice, settings } = useSettings();
 
   const navigate = useNavigate();
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -49,7 +51,8 @@ export const CartDrawer: React.FC = () => {
 
   if (!isDrawerOpen) return null;
 
-  const freeShippingPercent = Math.min(100, Math.round((subtotal / 50) * 100));
+  const freeShippingThreshold = settings.freeShippingThreshold || 50;
+  const freeShippingPercent = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100));
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -97,7 +100,7 @@ export const CartDrawer: React.FC = () => {
                 <div className="flex items-center justify-between text-xs text-slate-700 font-medium">
                   <span className="flex items-center gap-1.5">
                     <Truck className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Add <strong>${amountToFreeShipping.toFixed(2)}</strong> more for FREE Shipping</span>
+                    <span>Add <strong>{formatPrice(amountToFreeShipping)}</strong> more for FREE Shipping</span>
                   </span>
                   <span className="text-[11px] font-bold text-amber-700">{freeShippingPercent}%</span>
                 </div>
@@ -168,11 +171,11 @@ export const CartDrawer: React.FC = () => {
                       )}
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs sm:text-sm font-bold text-slate-900">
-                          ${item.price.toFixed(2)}
+                          {formatPrice(item.price)}
                         </span>
                         {item.originalPrice > item.price && (
                           <span className="text-[11px] text-slate-400 line-through">
-                            ${item.originalPrice.toFixed(2)}
+                            {formatPrice(item.originalPrice)}
                           </span>
                         )}
                       </div>
@@ -225,7 +228,7 @@ export const CartDrawer: React.FC = () => {
             <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/70 space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-600">
                 <span>Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'}):</span>
-                <span className="text-base font-extrabold text-slate-900">${subtotal.toFixed(2)}</span>
+                <span className="text-base font-extrabold text-slate-900">{formatPrice(subtotal)}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">

@@ -26,8 +26,10 @@ import AccountLayout from '../../features/account/components/AccountLayout';
 import Button from '@shared/ui/Button';
 import { toast } from '@shared/ui/Toast';
 import { useCart } from '../../features/cart/context/CartContext';
+import { useSettings } from '../../features/settings/context/SettingsContext';
 
 export const CustomerOrderDetailPage: React.FC = () => {
+  const { formatPrice } = useSettings();
   const { orderNumber } = useParams<{ orderNumber: string }>();
   const { addToCart } = useCart();
   const [order, setOrder] = useState<Order | null>(null);
@@ -431,14 +433,14 @@ export const CustomerOrderDetailPage: React.FC = () => {
                       <p className="text-[11px] text-slate-400">{item.variantTitle}</p>
                     )}
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Qty: {item.quantity} · ${item.unitPrice.toFixed(2)} each
+                      Qty: {item.quantity} · {formatPrice(item.unitPrice)} each
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
                   <span className="font-bold text-slate-900 text-sm">
-                    ${item.lineTotal.toFixed(2)}
+                    {formatPrice(item.lineTotal)}
                   </span>
                   <button
                     type="button"
@@ -458,7 +460,7 @@ export const CustomerOrderDetailPage: React.FC = () => {
             <div className="w-full sm:w-64 space-y-1.5 text-xs text-slate-600">
               <div className="flex justify-between">
                 <span>Items Subtotal</span>
-                <span>${order.subtotal.toFixed(2)}</span>
+                <span>{formatPrice(order.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping Fee</span>
@@ -466,24 +468,24 @@ export const CustomerOrderDetailPage: React.FC = () => {
                   {order.shippingFee === 0 ? (
                     <span className="text-emerald-600 font-bold">FREE</span>
                   ) : (
-                    `$${order.shippingFee.toFixed(2)}`
+                    formatPrice(order.shippingFee)
                   )}
                 </span>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-emerald-600">
                   <span>Coupon Discount</span>
-                  <span>-${order.discount.toFixed(2)}</span>
+                  <span>-{formatPrice(order.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span>Estimated Tax (8%)</span>
-                <span>${order.tax.toFixed(2)}</span>
+                <span>Estimated Tax ({order.tax > 0 ? 'Tax' : '0%'})</span>
+                <span>{formatPrice(order.tax)}</span>
               </div>
               <div className="flex justify-between items-baseline pt-2 border-t border-slate-200 text-sm font-bold text-slate-900">
                 <span>Grand Total</span>
                 <span className="text-base font-black text-slate-900">
-                  ${order.grandTotal.toFixed(2)}
+                  {formatPrice(order.grandTotal)}
                 </span>
               </div>
             </div>

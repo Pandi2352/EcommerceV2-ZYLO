@@ -1,6 +1,7 @@
 import { BrowserRouter } from 'react-router-dom';
 import { PortalProvider } from '@shared/auth/PortalContext';
 import { AuthProvider } from '@shared/auth/AuthContext';
+import { SettingsProvider } from './features/settings/context/SettingsContext';
 import { CartProvider } from './features/cart/context/CartContext';
 import { WishlistProvider } from './features/wishlist/context/WishlistContext';
 import CartDrawer from './features/cart/components/CartDrawer';
@@ -13,13 +14,15 @@ export default function App() {
     <BrowserRouter>
       <PortalProvider config={storefrontPortal}>
         <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <AppRoutes />
-              <CartDrawer />
-              <Toaster position="top-right" />
-            </WishlistProvider>
-          </CartProvider>
+          <SettingsProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <AppRoutes />
+                <CartDrawer />
+                <Toaster position="top-right" />
+              </WishlistProvider>
+            </CartProvider>
+          </SettingsProvider>
         </AuthProvider>
       </PortalProvider>
     </BrowserRouter>

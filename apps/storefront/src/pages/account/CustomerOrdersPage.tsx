@@ -20,12 +20,14 @@ import AccountLayout from '../../features/account/components/AccountLayout';
 import Button from '@shared/ui/Button';
 import { toast } from '@shared/ui/Toast';
 import { useCart } from '../../features/cart/context/CartContext';
+import { useSettings } from '../../features/settings/context/SettingsContext';
 
 type FilterTab = 'ALL' | 'ACTIVE' | 'DELIVERED' | 'CANCELLED';
 
 export const CustomerOrdersPage: React.FC = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { formatPrice } = useSettings();
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -254,7 +256,7 @@ export const CustomerOrdersPage: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-slate-400 text-[11px] block">Total Amount</span>
-                        <span className="font-bold text-slate-900">${order.grandTotal.toFixed(2)}</span>
+                        <span className="font-bold text-slate-900">{formatPrice(order.grandTotal)}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 text-[11px] block">Ship To</span>
@@ -295,7 +297,7 @@ export const CustomerOrdersPage: React.FC = () => {
                               <p className="text-[11px] text-slate-400">{item.variantTitle}</p>
                             )}
                             <p className="text-[11px] text-slate-500">
-                              Qty: {item.quantity} · ${item.unitPrice.toFixed(2)} each
+                              Qty: {item.quantity} · {formatPrice(item.unitPrice)} each
                             </p>
                           </div>
                           <button

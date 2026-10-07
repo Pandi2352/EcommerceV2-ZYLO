@@ -32,6 +32,7 @@ import CategoriesOverviewPage from '../pages/CategoriesOverviewPage';
 import BrandsPage from '../pages/BrandsPage';
 import ProductsOverviewPage from '../pages/ProductsOverviewPage';
 import ProductsPage from '../pages/ProductsPage';
+import BusinessSettingsPage from '../pages/BusinessSettingsPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -111,6 +112,11 @@ export const AppRoutes: React.FC = () => {
           {/* Catalog: Brands */}
           <Route element={<ProtectedRoute permission="brands.view" />}>
             <Route path={ROUTES.BRANDS} element={<BrandsPage />} />
+          </Route>
+
+          {/* Store & Business Settings */}
+          <Route element={<ProtectedRoute permission="settings.view" />}>
+            <Route path={ROUTES.SETTINGS} element={<BusinessSettingsPage />} />
           </Route>
 
           <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage homeLabel="Back to Dashboard" />} />

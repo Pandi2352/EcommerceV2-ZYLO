@@ -18,8 +18,10 @@ import type { Order } from '@shared/types/order';
 import { ROUTES } from '../../routes/routePaths';
 import Button from '@shared/ui/Button';
 import { toast } from '@shared/ui/Toast';
+import { useSettings } from '../../features/settings/context/SettingsContext';
 
 export const OrderSuccessPage: React.FC = () => {
+  const { formatPrice } = useSettings();
   const { orderNumber } = useParams<{ orderNumber: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -180,7 +182,7 @@ export const OrderSuccessPage: React.FC = () => {
                       </div>
                     </div>
                     <span className="font-bold text-slate-900 shrink-0">
-                      ${item.lineTotal.toFixed(2)}
+                      {formatPrice(item.lineTotal)}
                     </span>
                   </div>
                 ))}
@@ -191,7 +193,7 @@ export const OrderSuccessPage: React.FC = () => {
             <div className="space-y-1.5 pt-3 border-t border-slate-100 text-xs text-slate-600">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${order.subtotal.toFixed(2)}</span>
+                <span>{formatPrice(order.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
@@ -199,23 +201,23 @@ export const OrderSuccessPage: React.FC = () => {
                   {order.shippingFee === 0 ? (
                     <span className="text-emerald-600 font-bold">FREE</span>
                   ) : (
-                    `$${order.shippingFee.toFixed(2)}`
+                    formatPrice(order.shippingFee)
                   )}
                 </span>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-emerald-600">
                   <span>Discount ({order.appliedCoupon || 'Promo'})</span>
-                  <span>-${order.discount.toFixed(2)}</span>
+                  <span>-{formatPrice(order.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>Estimated Tax</span>
-                <span>${order.tax.toFixed(2)}</span>
+                <span>{formatPrice(order.tax)}</span>
               </div>
               <div className="flex justify-between items-baseline pt-2 border-t border-slate-200 text-sm font-bold text-slate-900">
                 <span>Total Paid</span>
-                <span className="text-lg font-black text-slate-900">${order.grandTotal.toFixed(2)}</span>
+                <span className="text-lg font-black text-slate-900">{formatPrice(order.grandTotal)}</span>
               </div>
             </div>
 

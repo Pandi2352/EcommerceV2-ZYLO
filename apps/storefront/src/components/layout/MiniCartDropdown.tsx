@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../routes/routePaths';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
+import { useSettings } from '../../features/settings/context/SettingsContext';
 
 export interface CartItem {
   id: string;
@@ -24,6 +25,8 @@ export const MiniCartDropdown: React.FC<MiniCartDropdownProps> = ({
   items = [],
   total = 0,
 }) => {
+  const { formatPrice } = useSettings();
+
   if (!isOpen) return null;
 
   return (
@@ -75,7 +78,7 @@ export const MiniCartDropdown: React.FC<MiniCartDropdownProps> = ({
                     {item.title}
                   </span>
                   <p className="text-xs font-bold text-amber-600 mt-0.5">
-                    {item.quantity} × ${item.price.toFixed(2)}
+                    {item.quantity} × {formatPrice(item.price)}
                   </p>
                 </div>
               </div>
@@ -86,7 +89,7 @@ export const MiniCartDropdown: React.FC<MiniCartDropdownProps> = ({
           <div className="border-t border-slate-200 pt-3 mt-3 flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700">Subtotal</span>
             <span className="text-sm font-black text-slate-900">
-              ${total.toFixed(2)}
+              {formatPrice(total)}
             </span>
           </div>
 

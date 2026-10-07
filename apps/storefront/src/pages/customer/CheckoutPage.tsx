@@ -17,6 +17,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useCart } from '../../features/cart/context/CartContext';
+import { useSettings } from '../../features/settings/context/SettingsContext';
 import { useAuth } from '@shared/auth/AuthContext';
 import { accountService } from '@shared/api/account.service';
 import { ordersService } from '@shared/api/orders.service';
@@ -33,6 +34,7 @@ import { toast } from '@shared/ui/Toast';
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { formatPrice, settings } = useSettings();
   const {
     items,
     subtotal,
@@ -117,7 +119,8 @@ export const CheckoutPage: React.FC = () => {
     if (appliedCoupon === 'WELCOME5') couponDiscount = Math.min(5, subtotal);
   }
 
-  const estimatedTax = +(subtotal * 0.08).toFixed(2);
+  const taxRate = settings?.taxRate ?? 8;
+  const estimatedTax = +(subtotal * (taxRate / 100)).toFixed(2);
   const grandTotal = +(Math.max(0, subtotal + effectiveShipping + estimatedTax - couponDiscount)).toFixed(2);
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
@@ -510,7 +513,7 @@ export const CheckoutPage: React.FC = () => {
                     {qualifiesForFreeShipping || appliedCoupon === 'FREESHIP' ? (
                       <span className="text-emerald-600 font-bold">FREE</span>
                     ) : (
-                      '$5.99'
+                      formatPrice(5.99)
                     )}
                   </span>
                 </label>
@@ -539,7 +542,7 @@ export const CheckoutPage: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <span className="font-bold text-slate-900 shrink-0">$12.99</span>
+                  <span className="font-bold text-slate-900 shrink-0">{formatPrice(12.99)}</span>
                 </label>
               </div>
             </div>
@@ -662,7 +665,7 @@ export const CheckoutPage: React.FC = () => {
                       <p className="text-[11px] text-slate-500">Qty: {item.quantity}</p>
                     </div>
                     <span className="text-xs font-bold text-slate-900 shrink-0">
-                      ${item.lineTotal.toFixed(2)}
+                      {formatPrice(item.lineTotal)}
                     </span>
                   </div>
                 ))}
@@ -708,7 +711,7 @@ export const CheckoutPage: React.FC = () => {
               <div className="space-y-2 text-xs text-slate-600 border-t border-slate-200 pt-3">
                 <div className="flex justify-between">
                   <span>Items Subtotal</span>
-                  <span className="font-semibold text-slate-900">${subtotal.toFixed(2)}</span>
+                  <span className="font-semibold text-slate-900">{formatPrice(subtotal)}</span>
                 </div>
 
                 <div className="flex justify-between">
@@ -717,7 +720,7 @@ export const CheckoutPage: React.FC = () => {
                     {effectiveShipping === 0 ? (
                       <span className="text-emerald-600 font-bold">FREE</span>
                     ) : (
-                      `$${effectiveShipping.toFixed(2)}`
+                      formatPrice(effectiveShipping)
                     )}
                   </span>
                 </div>
@@ -725,25 +728,25 @@ export const CheckoutPage: React.FC = () => {
                 {couponDiscount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-medium">
                     <span>Coupon Discount</span>
-                    <span>-${couponDiscount.toFixed(2)}</span>
+                    <span>-{formatPrice(couponDiscount)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between">
-                  <span>Estimated Tax (8%)</span>
-                  <span>${estimatedTax.toFixed(2)}</span>
+                  <span>Estimated Tax ({taxRate}%)</span>
+                  <span>{formatPrice(estimatedTax)}</span>
                 </div>
 
                 <div className="border-t border-slate-200 pt-3 flex justify-between items-baseline text-sm">
                   <span className="font-bold text-slate-900">Grand Total</span>
                   <span className="text-xl font-black text-slate-900">
-                    ${grandTotal.toFixed(2)}
+                    {formatPrice(grandTotal)}
                   </span>
                 </div>
 
                 {savings > 0 && (
                   <p className="text-[11px] text-emerald-600 font-semibold text-right pt-0.5">
-                    Total Savings: ${savings.toFixed(2)}
+                    Total Savings: {formatPrice(savings)}
                   </p>
                 )}
               </div>
@@ -783,7 +786,7 @@ export const CheckoutPage: React.FC = () => {
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />
-                      <span>Place Your Order · ${grandTotal.toFixed(2)}</span>
+                      <span>Place Your Order · {formatPrice(grandTotal)}</span>
                     </>
                   )}
                 </button>
