@@ -255,10 +255,10 @@
 - [x] Atomic stock reservation on order creation
 - [x] Automatic inventory decrement upon payment confirmation
 - [x] Order creation confirmation with unique order number
-- [ ] View customer order history (Paginated)
-- [ ] Filter order history by status
-- [ ] View detailed order breakdown (Items, address, payment, pricing)
-- [ ] Visual order progress timeline:
+- [x] View customer order history (Paginated)
+- [x] Filter order history by status
+- [x] View detailed order breakdown (Items, address, payment, pricing)
+- [x] Visual order progress timeline:
   - `PENDING`
   - `CONFIRMED`
   - `PROCESSING`
@@ -267,8 +267,8 @@
   - `OUT_FOR_DELIVERY`
   - `DELIVERED`
   - `CANCELLED`
-- [ ] Cancel order action (Allowed if `PENDING` or `CONFIRMED`)
-- [ ] Downloadable PDF invoice generation
+- [x] Cancel order action (Allowed if `PENDING` or `CONFIRMED`)
+- [x] Downloadable PDF invoice generation
 
 ---
 

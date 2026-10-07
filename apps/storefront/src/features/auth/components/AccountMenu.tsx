@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronDown, LogOut, ShieldCheck, User, MapPin } from 'lucide-react';
+import { ChevronDown, LogOut, ShieldCheck, User, MapPin, Package } from 'lucide-react';
 import { useAuth } from '@shared/auth/AuthContext';
 import { ROUTES } from '../../../routes/routePaths';
 import { toast } from '@shared/ui/Toast';
@@ -110,6 +110,9 @@ export const AccountMenu: React.FC = () => {
             <p className="text-xs font-bold text-slate-800 truncate">{user.name}</p>
             <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
           </div>
+          <Link role="menuitem" to={ROUTES.CUSTOMER.ORDERS} className={getItemClass(ROUTES.CUSTOMER.ORDERS)} onClick={() => setOpen(false)}>
+            <Package className="w-3.5 h-3.5 text-slate-400" /> My Orders
+          </Link>
           <Link role="menuitem" to={ROUTES.CUSTOMER.PROFILE} className={getItemClass(ROUTES.CUSTOMER.PROFILE)} onClick={() => setOpen(false)}>
             <User className="w-3.5 h-3.5 text-slate-400" /> My Profile
           </Link>

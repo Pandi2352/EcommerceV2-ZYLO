@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link, Outlet } from 'react-router-dom';
-import { User, MapPin, ShieldCheck, ChevronRight } from 'lucide-react';
+import { User, MapPin, ShieldCheck, ChevronRight, Package } from 'lucide-react';
 import { useAuth } from '@shared/auth/AuthContext';
 import { ROUTES } from '../../../routes/routePaths';
 
@@ -12,6 +12,12 @@ export const AccountLayout: React.FC<AccountLayoutProps> = ({ children }) => {
   const { user } = useAuth();
 
   const navItems = [
+    {
+      to: ROUTES.CUSTOMER.ORDERS,
+      label: 'My Orders',
+      icon: Package,
+      description: 'Order tracking & purchase history',
+    },
     {
       to: ROUTES.CUSTOMER.PROFILE,
       label: 'My Profile',

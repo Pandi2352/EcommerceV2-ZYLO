@@ -21,6 +21,8 @@ import CustomerLoginPage from '../pages/customer/LoginPage';
 import AccountSecurityPage from '../pages/account/AccountSecurityPage';
 import CustomerProfilePage from '../pages/account/CustomerProfilePage';
 import CustomerAddressesPage from '../pages/account/CustomerAddressesPage';
+import CustomerOrdersPage from '../pages/account/CustomerOrdersPage';
+import CustomerOrderDetailPage from '../pages/account/CustomerOrderDetailPage';
 import CartPage from '../pages/customer/CartPage';
 import WishlistPage from '../pages/customer/WishlistPage';
 import CheckoutPage from '../pages/customer/CheckoutPage';
@@ -64,6 +66,8 @@ export const AppRoutes: React.FC = () => {
         <Route element={<ProtectedRoute />}>
           <Route path={ROUTES.CUSTOMER.CHECKOUT} element={<CheckoutPage />} />
           <Route path="/checkout/success/:orderNumber" element={<OrderSuccessPage />} />
+          <Route path={ROUTES.CUSTOMER.ORDERS} element={<CustomerOrdersPage />} />
+          <Route path="/account/orders/:orderNumber" element={<CustomerOrderDetailPage />} />
           <Route path={ROUTES.CUSTOMER.PROFILE} element={<CustomerProfilePage />} />
           <Route path={ROUTES.CUSTOMER.ADDRESSES} element={<CustomerAddressesPage />} />
           <Route path={ROUTES.CUSTOMER.SECURITY} element={<AccountSecurityPage />} />
