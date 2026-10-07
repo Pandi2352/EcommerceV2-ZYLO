@@ -224,37 +224,37 @@
 ---
 
 ## 9. Checkout Workflow
-- [ ] Select saved shipping address
-- [ ] Add new shipping address inline during checkout
-- [ ] Select shipping delivery method (Standard vs Express)
-- [ ] Free shipping eligibility detection
-- [ ] Coupon code entry & discount re-validation
-- [ ] Full itemized order review summary
-- [ ] Select payment method: Cash on Delivery (COD)
-- [ ] Select payment method: Online Payment Gateway
-- [ ] Terms and conditions acceptance checkbox
-- [ ] Place Order action button with loading state
-- [ ] Order confirmation page with summary receipt
+- [x] Select saved shipping address
+- [x] Add new shipping address inline during checkout
+- [x] Select shipping delivery method (Standard vs Express)
+- [x] Free shipping eligibility detection
+- [x] Coupon code entry & discount re-validation
+- [x] Full itemized order review summary
+- [x] Select payment method: Cash on Delivery (COD)
+- [x] Select payment method: Online Payment Gateway
+- [x] Terms and conditions acceptance checkbox
+- [x] Place Order action button with loading state
+- [x] Order confirmation page with summary receipt
 
 ---
 
 ## 10. Payment Processing
-- [ ] Cash on Delivery (COD) order placement
+- [x] Cash on Delivery (COD) order placement
 - [ ] Online payment intent creation (Stripe / Razorpay)
 - [ ] Payment gateway client modal / redirect
 - [ ] Payment signature verification on backend
 - [ ] Payment success webhook listener
 - [ ] Payment failure handling & retry option
-- [ ] Transaction record creation in database
-- [ ] Payment status tracking: `PENDING`, `PAID`, `FAILED`, `REFUNDED`
+- [x] Transaction record creation in database
+- [x] Payment status tracking: `PENDING`, `PAID`, `FAILED`, `REFUNDED`
 - [ ] Online refund processing integration
 
 ---
 
 ## 11. Customer Orders & Tracking
-- [ ] Atomic stock reservation on order creation
-- [ ] Automatic inventory decrement upon payment confirmation
-- [ ] Order creation confirmation with unique order number
+- [x] Atomic stock reservation on order creation
+- [x] Automatic inventory decrement upon payment confirmation
+- [x] Order creation confirmation with unique order number
 - [ ] View customer order history (Paginated)
 - [ ] Filter order history by status
 - [ ] View detailed order breakdown (Items, address, payment, pricing)

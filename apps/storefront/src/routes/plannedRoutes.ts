@@ -23,5 +23,4 @@ export const CUSTOMER_PUBLIC_PLANNED: PlannedRoute[] = [
 export const CUSTOMER_ACCOUNT_PLANNED: PlannedRoute[] = [
   { path: ROUTES.CUSTOMER.DASHBOARD, title: 'My Account' },
   { path: ROUTES.CUSTOMER.ORDERS, title: 'My Orders' },
-  { path: ROUTES.CUSTOMER.CHECKOUT, title: 'Checkout' },
 ];

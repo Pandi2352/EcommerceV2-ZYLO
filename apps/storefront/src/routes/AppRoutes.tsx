@@ -23,6 +23,8 @@ import CustomerProfilePage from '../pages/account/CustomerProfilePage';
 import CustomerAddressesPage from '../pages/account/CustomerAddressesPage';
 import CartPage from '../pages/customer/CartPage';
 import WishlistPage from '../pages/customer/WishlistPage';
+import CheckoutPage from '../pages/customer/CheckoutPage';
+import OrderSuccessPage from '../pages/customer/OrderSuccessPage';
 import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
@@ -60,6 +62,8 @@ export const AppRoutes: React.FC = () => {
         {renderPlanned(CUSTOMER_PUBLIC_PLANNED)}
 
         <Route element={<ProtectedRoute />}>
+          <Route path={ROUTES.CUSTOMER.CHECKOUT} element={<CheckoutPage />} />
+          <Route path="/checkout/success/:orderNumber" element={<OrderSuccessPage />} />
           <Route path={ROUTES.CUSTOMER.PROFILE} element={<CustomerProfilePage />} />
           <Route path={ROUTES.CUSTOMER.ADDRESSES} element={<CustomerAddressesPage />} />
           <Route path={ROUTES.CUSTOMER.SECURITY} element={<AccountSecurityPage />} />
