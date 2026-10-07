@@ -13,16 +13,20 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { ordersService } from '@shared/api/orders.service';
+import { returnsService } from '@shared/api/returns.service';
 import type { Order } from '@shared/types/order';
 import { OrderStatus } from '@shared/types/order';
+import type { ReturnRequest } from '@shared/types/return';
+import { RETURN_REASON_LABELS, RETURN_STATUS_CONFIG } from '@shared/types/return';
 import { ROUTES } from '../../routes/routePaths';
 import AccountLayout from '../../features/account/components/AccountLayout';
 import Button from '@shared/ui/Button';
 import { toast } from '@shared/ui/Toast';
 import { useCart } from '../../features/cart/context/CartContext';
 import { useSettings } from '../../features/settings/context/SettingsContext';
+import { RequestReturnModal } from '../../features/account/components/RequestReturnModal';
 
-type FilterTab = 'ALL' | 'ACTIVE' | 'DELIVERED' | 'CANCELLED';
+type FilterTab = 'ALL' | 'ACTIVE' | 'DELIVERED' | 'RETURNS' | 'CANCELLED';
 
 export const CustomerOrdersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +38,10 @@ export const CustomerOrdersPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Returns state
+  const [returningOrder, setReturningOrder] = useState<Order | null>(null);
+  const [returnsList, setReturnsList] = useState<ReturnRequest[]>([]);
+
   // Cancellation Modal state
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
   const [cancelReason, setCancelReason] = useState('Found a better price');
@@ -42,9 +50,18 @@ export const CustomerOrdersPage: React.FC = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await ordersService.getOrders({ limit: 50 });
-      setOrders(res.orders || []);
-      setTotal(res.total || 0);
+      const [ordersRes, returnsRes] = await Promise.allSettled([
+        ordersService.getOrders({ limit: 50 }),
+        returnsService.getCustomerReturns(),
+      ]);
+
+      if (ordersRes.status === 'fulfilled') {
+        setOrders(ordersRes.value.orders || []);
+        setTotal(ordersRes.value.total || 0);
+      }
+      if (returnsRes.status === 'fulfilled') {
+        setReturnsList(returnsRes.value.items || []);
+      }
     } catch (err: any) {
       toast.error('Failed to load orders');
     } finally {
@@ -185,18 +202,19 @@ export const CustomerOrdersPage: React.FC = () => {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex border-b border-slate-200 gap-6 text-xs font-semibold">
+        <div className="flex border-b border-slate-200 gap-6 text-xs font-semibold overflow-x-auto no-scrollbar">
           {[
             { id: 'ALL', label: 'All Orders' },
             { id: 'ACTIVE', label: 'In Progress / Active' },
             { id: 'DELIVERED', label: 'Delivered' },
+            { id: 'RETURNS', label: `Returns & Refunds (${returnsList.length})` },
             { id: 'CANCELLED', label: 'Cancelled' },
           ].map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id as FilterTab)}
-              className={`pb-3 relative transition-colors cursor-pointer ${
+              className={`pb-3 relative transition-colors cursor-pointer whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'text-amber-600 font-bold border-b-2 border-amber-500'
                   : 'text-slate-500 hover:text-slate-800'
@@ -207,13 +225,227 @@ export const CustomerOrdersPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Orders List */}
-        {loading ? (
-          <div className="py-16 flex flex-col items-center justify-center text-slate-400 gap-2">
-            <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
-            <span className="text-xs font-medium">Loading your orders...</span>
+        {/* Tab Content: Returns vs Orders */}
+        {activeTab === 'RETURNS' ? (
+          <div>
+            {loading ? (
+              <div className="py-16 flex flex-col items-center justify-center text-slate-400 gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+                <span className="text-xs font-medium">Loading return requests...</span>
+              </div>
+            ) : returnsList.length === 0 ? (
+              <div className="py-16 text-center bg-white border border-slate-200 rounded-md p-6">
+                <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-600">
+                  <RotateCcw className="w-7 h-7" />
+                </div>
+                <h3 className="text-base font-bold text-slate-800 mb-1">No return requests found</h3>
+                <p className="text-xs text-slate-500 mb-5 max-w-sm mx-auto">
+                  You haven't requested any returns yet. You can submit a return or refund request on any delivered order from the "Delivered" tab.
+                </p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setActiveTab('DELIVERED')}
+                >
+                  View Delivered Orders
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {returnsList.map((ret) => {
+                  const statusCfg = RETURN_STATUS_CONFIG[ret.status] || {
+                    label: ret.status,
+                    color: '#64748b',
+                    bg: '#f1f5f9',
+                    border: '#e2e8f0',
+                  };
+
+                  return (
+                    <div
+                      key={ret._id}
+                      className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-none"
+                    >
+                      {/* Header */}
+                      <div className="bg-slate-50/80 px-4 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono font-bold text-xs text-slate-900 bg-white border border-slate-200 px-2.5 py-1 rounded">
+                            {ret.returnNumber}
+                          </span>
+                          <span
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border"
+                            style={{
+                              backgroundColor: statusCfg.bg,
+                              color: statusCfg.color,
+                              borderColor: statusCfg.border,
+                            }}
+                          >
+                            {statusCfg.label}
+                          </span>
+                        </div>
+
+                        <div className="text-xs text-slate-500 flex items-center gap-4">
+                          <span>
+                            Order:{' '}
+                            <Link
+                              to={`/account/orders/${ret.orderNumber}`}
+                              className="font-mono font-bold text-slate-800 hover:text-amber-600 underline"
+                            >
+                              #{ret.orderNumber}
+                            </Link>
+                          </span>
+                          <span>
+                            Requested: {new Date(ret.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Items & details */}
+                      <div className="p-4 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Items */}
+                          <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                              Returned Items
+                            </p>
+                            <div className="space-y-2">
+                              {ret.items.map((item, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center gap-3 p-2 bg-slate-50/60 rounded border border-slate-100"
+                                >
+                                  <img
+                                    src={item.image || 'https://placehold.co/100?text=Item'}
+                                    alt={item.name}
+                                    className="w-10 h-10 rounded object-cover border border-slate-200 shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-semibold text-slate-800 truncate">
+                                      {item.name}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500">
+                                      Qty: {item.quantity} · {formatPrice(item.unitPrice)} each
+                                    </p>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <span className="text-xs font-bold text-slate-900">
+                                      {formatPrice(item.refundAmount)}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Reason & note */}
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                Reason
+                              </p>
+                              <span className="inline-block text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded">
+                                {RETURN_REASON_LABELS[ret.reason] || ret.reason}
+                              </span>
+                            </div>
+
+                            {ret.customerNote && (
+                              <div>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                  Your Details
+                                </p>
+                                <p className="text-xs text-slate-700 bg-slate-50 p-2 rounded border border-slate-100">
+                                  "{ret.customerNote}"
+                                </p>
+                              </div>
+                            )}
+
+                            {ret.proofImages && ret.proofImages.length > 0 && (
+                              <div>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                  Proof Photos ({ret.proofImages.length})
+                                </p>
+                                <div className="flex gap-2">
+                                  {ret.proofImages.map((img, i) => (
+                                    <a
+                                      key={i}
+                                      href={img}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="block w-12 h-12 rounded overflow-hidden border border-slate-200 hover:opacity-80 transition-opacity"
+                                    >
+                                      <img
+                                        src={img}
+                                        alt="Proof"
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Status History Timeline */}
+                        <div className="pt-3 border-t border-slate-100">
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                            Status Timeline
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                            {ret.statusHistory.map((step, sIdx) => (
+                              <div
+                                key={sIdx}
+                                className="bg-slate-50 p-2.5 rounded border border-slate-100"
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="font-bold text-slate-800">
+                                    {step.status}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400">
+                                    {new Date(step.timestamp).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-600 line-clamp-2">
+                                  {step.note}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                          <div className="text-xs text-slate-500">
+                            {ret.status === 'REFUNDED' && ret.refundTransactionId && (
+                              <span>
+                                Refund Ref:{' '}
+                                <strong className="font-mono text-slate-800">
+                                  {ret.refundTransactionId}
+                                </strong>
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-xs font-medium text-slate-500">
+                              Total Refund:
+                            </span>
+                            <span className="text-base font-black text-amber-700">
+                              {formatPrice(ret.totalRefundAmount)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        ) : filteredOrders.length === 0 ? (
+        ) : loading ? (
+          <div className="py-16 flex flex-col items-center justify-center text-slate-400 gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+              <span className="text-xs font-medium">Loading your orders...</span>
+            </div>
+          ) : filteredOrders.length === 0 ? (
           <div className="py-16 text-center bg-white border border-slate-200 rounded-md p-6">
             <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
               <Package className="w-7 h-7" />
@@ -323,6 +555,17 @@ export const CustomerOrdersPage: React.FC = () => {
                         Track Package
                       </Button>
 
+                      {order.orderStatus === OrderStatus.DELIVERED && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setReturningOrder(order)}
+                          leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+                        >
+                          Request Return
+                        </Button>
+                      )}
+
                       {canCancel && (
                         <Button
                           variant="outline"
@@ -402,6 +645,19 @@ export const CustomerOrdersPage: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Request Return / Refund Modal */}
+        {returningOrder && (
+          <RequestReturnModal
+            order={returningOrder}
+            isOpen={Boolean(returningOrder)}
+            onClose={() => setReturningOrder(null)}
+            onSuccess={async () => {
+              await fetchOrders();
+              setActiveTab('RETURNS');
+            }}
+          />
         )}
       </div>
     </AccountLayout>

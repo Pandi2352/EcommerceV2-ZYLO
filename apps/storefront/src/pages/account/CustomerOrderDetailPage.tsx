@@ -27,6 +27,7 @@ import Button from '@shared/ui/Button';
 import { toast } from '@shared/ui/Toast';
 import { useCart } from '../../features/cart/context/CartContext';
 import { useSettings } from '../../features/settings/context/SettingsContext';
+import { RequestReturnModal } from '../../features/account/components/RequestReturnModal';
 
 export const CustomerOrderDetailPage: React.FC = () => {
   const { formatPrice } = useSettings();
@@ -39,6 +40,9 @@ export const CustomerOrderDetailPage: React.FC = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('Found a better price');
   const [submittingCancel, setSubmittingCancel] = useState(false);
+
+  // Return Modal state
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
 
   const fetchOrder = async () => {
     if (!orderNumber) return;
@@ -232,6 +236,17 @@ export const CustomerOrderDetailPage: React.FC = () => {
             >
               Print Receipt
             </Button>
+
+            {order.orderStatus === OrderStatus.DELIVERED && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsReturnModalOpen(true)}
+                leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+              >
+                Request Return
+              </Button>
+            )}
 
             {canCancel && (
               <Button
@@ -552,6 +567,16 @@ export const CustomerOrderDetailPage: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Request Return / Refund Modal */}
+        {order && (
+          <RequestReturnModal
+            order={order}
+            isOpen={isReturnModalOpen}
+            onClose={() => setIsReturnModalOpen(false)}
+            onSuccess={fetchOrder}
+          />
         )}
       </div>
     </AccountLayout>

@@ -275,14 +275,14 @@
 ---
 
 ## 12. Returns & Refunds Management
-- [ ] Customer: Request return / refund on delivered order items
-- [ ] Customer: Select return reason (Damaged, Wrong item, Quality issue)
-- [ ] Customer: Upload proof photos for return request
-- [ ] Admin: View all return/refund requests queue
-- [ ] Admin: Approve / Reject return request
-- [ ] Admin: Trigger online refund via payment gateway
-- [ ] Automatic stock replenishment on returned items
-- [ ] Return status timeline (`REQUESTED`, `APPROVED`, `REJECTED`, `REFUNDED`)
+- [x] Customer: Request return / refund on delivered order items
+- [x] Customer: Select return reason (Damaged, Wrong item, Quality issue)
+- [x] Customer: Upload proof photos for return request
+- [x] Admin: View all return/refund requests queue
+- [x] Admin: Approve / Reject return request
+- [x] Admin: Trigger online refund via payment gateway
+- [x] Automatic stock replenishment on returned items
+- [x] Return status timeline (`REQUESTED`, `APPROVED`, `REJECTED`, `REFUNDED`)
 
 ---
 

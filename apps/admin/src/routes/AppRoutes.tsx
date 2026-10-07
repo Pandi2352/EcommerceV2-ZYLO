@@ -38,6 +38,7 @@ import CouponsPage from '../pages/CouponsPage';
 import ReviewsPage from '../pages/ReviewsPage';
 import CustomersPage from '../pages/CustomersPage';
 import InventoryPage from '../pages/InventoryPage';
+import ReturnsPage from '../pages/ReturnsPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -120,9 +121,13 @@ export const AppRoutes: React.FC = () => {
             <Route path={ROUTES.BRANDS} element={<BrandsPage />} />
           </Route>
 
-          {/* Sales & Fulfillment: Orders */}
+          {/* Sales & Fulfillment: Orders & Returns */}
           <Route element={<ProtectedRoute permission="orders.view" />}>
             <Route path={ROUTES.ORDERS} element={<OrdersPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute permission="returns.view" />}>
+            <Route path={ROUTES.RETURNS} element={<ReturnsPage />} />
           </Route>
 
           {/* Marketing & Discounts: Coupons */}
