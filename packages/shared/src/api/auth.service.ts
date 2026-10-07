@@ -10,6 +10,8 @@ import type {
   LoginResult,
   MfaSetup,
   RegisterPayload,
+  SendRegistrationOtpResponse,
+  VerifyRegistrationOtpPayload,
 } from '../types/auth';
 
 const LOGIN_PATHS: Record<AuthPortal, string> = {
@@ -19,6 +21,12 @@ const LOGIN_PATHS: Record<AuthPortal, string> = {
 
 export const authService = {
   // ─── Session ────────────────────────────────────────────────────────────────
+  sendRegistrationOtp: (email: string) =>
+    unwrap<SendRegistrationOtpResponse>(api.post('/auth/register/send-otp', { email })),
+
+  verifyRegistrationOtp: (payload: VerifyRegistrationOtpPayload) =>
+    unwrap<{ user: AuthUser; message?: string }>(api.post('/auth/register/verify-otp', payload)),
+
   register: (payload: RegisterPayload) =>
     unwrap<{ user: AuthUser }>(api.post('/auth/register', payload)),
 

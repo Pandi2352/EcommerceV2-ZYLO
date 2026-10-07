@@ -51,6 +51,9 @@ export const productsService = {
   getBySlug: (slug: string) =>
     unwrap<ProductItem>(api.get(`/products/${slug}`)),
 
+  getRelated: (slug: string, limit = 4) =>
+    unwrap<ProductItem[]>(api.get(`/products/${slug}/related`, { params: { limit } })),
+
   getFacets: () =>
     unwrap<ProductFacets>(api.get('/products/facets')),
 

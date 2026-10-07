@@ -34,6 +34,12 @@ export class PublicProductsController {
     return this.productsService.getSuggestions(query || '');
   }
 
+  @Get(':slug/related')
+  @ApiOperation({ summary: 'Get related products by category or brand' })
+  async getRelated(@Param('slug') slug: string, @Query('limit') limit?: number) {
+    return this.productsService.getRelatedProducts(slug, limit);
+  }
+
   @Get(':slug')
   @ApiOperation({ summary: 'Get single published product by URL slug' })
   async findBySlug(@Param('slug') slug: string) {

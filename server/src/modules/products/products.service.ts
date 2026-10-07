@@ -288,6 +288,52 @@ export class ProductsService {
   }
 
   /**
+   * Find related products by category or brand, backfilling if needed
+   */
+  async getRelatedProducts(slug: string, limit = 4): Promise<ProductDocument[]> {
+    const target = await this.findBySlug(slug);
+    const categoryId = target.categoryId ? ((target.categoryId as any)._id || target.categoryId) : null;
+    const brandId = target.brandId ? ((target.brandId as any)._id || target.brandId) : null;
+    const targetLimit = Number(limit) || 4;
+
+    const filter: any = {
+      _id: { $ne: target._id },
+      status: 'PUBLISHED',
+    };
+
+    if (categoryId) {
+      filter.categoryId = categoryId;
+    } else if (brandId) {
+      filter.brandId = brandId;
+    }
+
+    let related = await this.productModel
+      .find(filter)
+      .populate('categoryId', 'name slug iconUrl')
+      .populate('brandId', 'name slug logoUrl')
+      .limit(targetLimit)
+      .exec();
+
+    // If fewer than requested items found, backfill with other published items
+    if (related.length < targetLimit) {
+      const remaining = targetLimit - related.length;
+      const existingIds = [target._id, ...related.map((p) => p._id)];
+      const backfill = await this.productModel
+        .find({
+          _id: { $nin: existingIds },
+          status: 'PUBLISHED',
+        })
+        .populate('categoryId', 'name slug iconUrl')
+        .populate('brandId', 'name slug logoUrl')
+        .limit(remaining)
+        .exec();
+      related = [...related, ...backfill];
+    }
+
+    return related;
+  }
+
+  /**
    * Update an existing product
    */
   async update(id: string, dto: UpdateProductDto): Promise<ProductDocument> {

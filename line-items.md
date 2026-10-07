@@ -78,15 +78,15 @@
 ---
 
 ## 2. Customer Account & Address Book
-- [ ] View account profile
-- [ ] Update profile details (Name, phone, avatar)
+- [x] View account profile
+- [x] Update profile details (Name, phone, avatar)
 - [x] Change password (Authenticated)
-- [ ] View saved addresses list
-- [ ] Add new shipping address
-- [ ] Edit existing address
-- [ ] Delete address
-- [ ] Set default shipping address
-- [ ] Address validation (City, state, postal code, phone)
+- [x] View saved addresses list
+- [x] Add new shipping address
+- [x] Edit existing address
+- [x] Delete address
+- [x] Set default shipping address
+- [x] Address validation (City, state, postal code, phone)
 
 ---
 
@@ -150,39 +150,39 @@
 ---
 
 ## 5. Product Discovery, Search & Filtering (Customer)
-- [ ] Keyword search across product name and description
-- [ ] Search suggestions / Typeahead dropdown
-- [ ] Filter by category (single & multi-select)
-- [ ] Filter by brand
-- [ ] Filter by price range (Min/Max slider)
-- [ ] Filter by stock availability ("In Stock" toggle)
-- [ ] Filter by customer rating (e.g. 4★ & above)
-- [ ] Sort by Price: Low to High
-- [ ] Sort by Price: High to Low
-- [ ] Sort by Newest arrivals
-- [ ] Sort by Top rated
-- [ ] Sort by Popularity / Best sellers
-- [ ] Server-side pagination (Page, limit, total count)
-- [ ] Active filter chips with one-click clear
+- [x] Keyword search across product name and description
+- [x] Search suggestions / Typeahead dropdown
+- [x] Filter by category (single & multi-select)
+- [x] Filter by brand
+- [x] Filter by price range (Min/Max slider)
+- [x] Filter by stock availability ("In Stock" toggle)
+- [x] Filter by customer rating (e.g. 4★ & above)
+- [x] Sort by Price: Low to High
+- [x] Sort by Price: High to Low
+- [x] Sort by Newest arrivals
+- [x] Sort by Top rated
+- [x] Sort by Popularity / Best sellers
+- [x] Server-side pagination (Page, limit, total count)
+- [x] Active filter chips with one-click clear
 
 ---
 
 ## 6. Product Details Page (PDP)
-- [ ] Product image gallery with zoom
-- [ ] Image thumbnail carousel
-- [ ] Product title, brand link, and category breadcrumbs
-- [ ] Star rating and review count summary
-- [ ] Real-time price display (Original vs Discount price)
-- [ ] Percentage savings badge
-- [ ] Variant selection (Size, Color pills)
-- [ ] Dynamic SKU and price update on variant change
-- [ ] Real-time stock status badge ("In Stock", "Only X left", "Out of Stock")
-- [ ] Quantity selector
-- [ ] Add to Cart button
-- [ ] Buy Now button (Instant checkout redirect)
-- [ ] Add to Wishlist toggle button
-- [ ] Product technical specifications table
-- [ ] Related products recommendation carousel
+- [x] Product image gallery with zoom
+- [x] Image thumbnail carousel
+- [x] Product title, brand link, and category breadcrumbs
+- [x] Star rating and review count summary
+- [x] Real-time price display (Original vs Discount price)
+- [x] Percentage savings badge
+- [x] Variant selection (Size, Color pills)
+- [x] Dynamic SKU and price update on variant change
+- [x] Real-time stock status badge ("In Stock", "Only X left", "Out of Stock")
+- [x] Quantity selector
+- [x] Add to Cart button
+- [x] Buy Now button (Instant checkout redirect)
+- [x] Add to Wishlist toggle button
+- [x] Product technical specifications table
+- [x] Related products recommendation carousel
 
 ---
 

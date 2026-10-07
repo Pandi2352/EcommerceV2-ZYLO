@@ -1,5 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { AuthUser, LoginPayload, LoginResult, RegisterPayload } from '../types/auth';
+import type {
+  AuthUser,
+  LoginPayload,
+  LoginResult,
+  RegisterPayload,
+  VerifyRegistrationOtpPayload,
+} from '../types/auth';
 import { usePortal } from './PortalContext';
 import { authService } from '../api/auth.service';
 import { onSessionExpired } from '../api/client';
@@ -14,6 +20,7 @@ interface AuthContextType {
   can: (permission: PermissionKey | string) => boolean;
   canAny: (...permissions: (PermissionKey | string)[]) => boolean;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
+  registerWithOtp: (payload: VerifyRegistrationOtpPayload) => Promise<AuthUser>;
   /** First factor. Resolves with `mfaRequired: true` when a second factor is needed. */
   login: (payload: LoginPayload) => Promise<LoginResult>;
   /** Second factor for a pending sign-in */
@@ -56,6 +63,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // the page for a loader, unmounting the form and losing its error state.
   const register = useCallback(async (payload: RegisterPayload) => {
     const result = await authService.register(payload);
+    setUser(result.user);
+    return result.user;
+  }, []);
+
+  const registerWithOtp = useCallback(async (payload: VerifyRegistrationOtpPayload) => {
+    const result = await authService.verifyRegistrationOtp(payload);
     setUser(result.user);
     return result.user;
   }, []);
@@ -109,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       can,
       canAny,
       register,
+      registerWithOtp,
       login,
       verifyMfa,
       logout,
@@ -116,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser,
       refreshUser,
     }),
-    [user, isLoading, can, canAny, register, login, verifyMfa, logout, logoutAll, refreshUser],
+    [user, isLoading, can, canAny, register, registerWithOtp, login, verifyMfa, logout, logoutAll, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

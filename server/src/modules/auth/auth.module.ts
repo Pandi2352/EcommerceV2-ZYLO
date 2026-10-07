@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { oauthConfig, OAuthConfig } from '../../config/oauth.config';
 import { UsersModule } from '../users/users.module';
 import { RefreshSession, RefreshSessionSchema } from './schemas/refresh-session.schema';
+import { RegistrationOtp, RegistrationOtpSchema } from './schemas/registration-otp.schema';
 // Controllers
 import { AuthController } from './controllers/auth.controller';
 import { PasswordController } from './controllers/password.controller';
@@ -32,7 +33,10 @@ import { RolesModule } from '../roles/roles.module';
   imports: [
     UsersModule,
     RolesModule,
-    MongooseModule.forFeature([{ name: RefreshSession.name, schema: RefreshSessionSchema }]),
+    MongooseModule.forFeature([
+      { name: RefreshSession.name, schema: RefreshSessionSchema },
+      { name: RegistrationOtp.name, schema: RegistrationOtpSchema },
+    ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     // Secrets and lifetimes are passed per call (access, refresh and MFA tokens use different secrets)
     JwtModule.register({}),

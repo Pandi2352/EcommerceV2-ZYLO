@@ -69,3 +69,16 @@ export function staffInvitationTemplate(
   });
 }
 
+export function registrationOtpTemplate(appName: string, otp: string): MailMessage {
+  return build(`${otp} is your ${appName} verification code`, {
+    appName,
+    heading: 'Verify your email address',
+    paragraphs: [
+      'To verify your email address, please enter this One Time Password (OTP):',
+      `<div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #1e293b; padding: 18px 0; font-family: monospace; text-align: center;">${otp}</div>`,
+      'This code is valid for 10 minutes. For your security, do not share this OTP with anyone.',
+    ],
+    footnote: 'If you did not request this verification code, please ignore this email.',
+  });
+}
+

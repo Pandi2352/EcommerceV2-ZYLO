@@ -12,6 +12,8 @@ import { UserDocument } from '../../users/schemas/user.schema';
 import { AuthService } from '../services/auth.service';
 import { AuthCookieService } from '../services/auth-cookie.service';
 import { RegisterDto } from '../dto/register.dto';
+import { SendRegistrationOtpDto } from '../dto/send-registration-otp.dto';
+import { VerifyRegistrationOtpDto } from '../dto/verify-registration-otp.dto';
 import { LoginDto } from '../dto/login.dto';
 import { AuthPortal } from '../enums/auth-portal.enum';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
@@ -27,6 +29,33 @@ export class AuthController {
     private readonly permissionResolver: PermissionResolverService,
     @Inject(oauthConfig.KEY) private readonly oauth: OAuthConfig,
   ) {}
+
+  @Public()
+  @Throttle(THROTTLE_CREDENTIALS)
+  @Post('register/send-otp')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send email OTP verification code for customer registration' })
+  @ApiResponse({ status: 200, description: 'OTP sent with 60s cooldown' })
+  @ApiResponse({ status: 409, description: 'Email address already registered' })
+  @ApiResponse({ status: 429, description: 'Please wait before requesting another OTP' })
+  async sendRegistrationOtp(@Body() dto: SendRegistrationOtpDto, @ReqMeta() meta: RequestMeta) {
+    return this.authService.sendRegistrationOtp(dto.email, meta);
+  }
+
+  @Public()
+  @Throttle(THROTTLE_CREDENTIALS)
+  @Post('register/verify-otp')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Verify OTP, set password, and create verified customer account' })
+  @ApiResponse({ status: 201, description: 'Customer account created and verified; session cookies set' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired OTP' })
+  async verifyRegistrationOtp(
+    @Body() dto: VerifyRegistrationOtpDto,
+    @ReqMeta() meta: RequestMeta,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.cookies.applyLoginOutcome(res, await this.authService.verifyRegistrationOtp(dto, meta));
+  }
 
   @Public()
   @Throttle(THROTTLE_CREDENTIALS)

@@ -1,14 +1,19 @@
 import AccountSecuritySections from '@shared/auth/components/AccountSecuritySections';
+import AccountLayout from '../../features/account/components/AccountLayout';
 
 /** Storefront: /account/security (rendered inside CustomerLayout by the router). */
 export default function AccountSecurityPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Account security</h1>
-        <p className="mt-1 text-sm text-slate-500">Manage your password, two-factor authentication and signed-in devices.</p>
+    <AccountLayout>
+      <div className="bg-white border border-slate-200 rounded-md p-6 sm:p-8">
+        <div className="mb-6 border-b border-slate-100 pb-4">
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight">Account Security</h2>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Manage your password, two-factor authentication, and signed-in devices.
+          </p>
+        </div>
+        <AccountSecuritySections />
       </div>
-      <AccountSecuritySections />
-    </div>
+    </AccountLayout>
   );
 }

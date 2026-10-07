@@ -65,3 +65,20 @@ export interface BackupCodes {
 export interface AuthProviders {
   google: boolean;
 }
+
+export interface SendRegistrationOtpPayload {
+  email: string;
+}
+
+export interface SendRegistrationOtpResponse {
+  message: string;
+  cooldownSeconds: number;
+  previewOtp?: string;
+}
+
+export interface VerifyRegistrationOtpPayload {
+  email: string;
+  otp: string;
+  name: string;
+  password: string;
+}

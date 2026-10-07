@@ -1,14 +1,22 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { RequestMeta } from '../../../common/decorators/request-meta.decorator';
 import { AppException } from '../../../common/exceptions/app.exception';
 import { ErrorCode } from '../../../common/constants/error-codes';
+import { sha256 } from '../../../common/utils/crypto.util';
+import { appConfig, AppConfig } from '../../../config/app.config';
 import { UserRole, isStaffRole } from '../../../common/enums/user-role.enum';
 import { UsersService } from '../../users/users.service';
 import { UserDocument } from '../../users/schemas/user.schema';
 import { AuditService } from '../../audit/audit.service';
 import { AuditEvent } from '../../audit/audit-event.enum';
+import { MailService } from '../../mail/mail.service';
+import { registrationOtpTemplate } from '../../mail/templates/auth.templates';
+import { RegistrationOtp, RegistrationOtpDocument } from '../schemas/registration-otp.schema';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
+import { VerifyRegistrationOtpDto } from '../dto/verify-registration-otp.dto';
 import { AuthPortal } from '../enums/auth-portal.enum';
 import { LoginOutcome } from '../interfaces/login-outcome.interface';
 import { TokenService, IssuedTokens } from './token.service';
@@ -30,7 +38,131 @@ export class AuthService {
     private readonly mfaChallenge: MfaChallengeService,
     private readonly emailVerification: EmailVerificationService,
     private readonly auditService: AuditService,
+    private readonly mailService: MailService,
+    @Inject(appConfig.KEY) private readonly app: AppConfig,
+    @InjectModel(RegistrationOtp.name) private readonly otpModel: Model<RegistrationOtpDocument>,
   ) {}
+
+  async sendRegistrationOtp(
+    email: string,
+    meta: RequestMeta,
+  ): Promise<{ message: string; cooldownSeconds: number; previewOtp?: string }> {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if account already exists
+    const existingUser = await this.usersService.findByEmail(normalizedEmail);
+    if (existingUser) {
+      throw new AppException(
+        HttpStatus.CONFLICT,
+        ErrorCode.EMAIL_TAKEN,
+        'An account with this email address already exists. Please sign in instead.',
+      );
+    }
+
+    // Rate-limit check: enforce 60 seconds cooldown between OTP requests
+    const existingOtp = await this.otpModel.findOne({ email: normalizedEmail }).exec();
+    if (existingOtp && existingOtp.lastSentAt) {
+      const elapsedMs = Date.now() - new Date(existingOtp.lastSentAt).getTime();
+      const cooldownMs = 60 * 1000;
+      if (elapsedMs < cooldownMs) {
+        const remainingSeconds = Math.ceil((cooldownMs - elapsedMs) / 1000);
+        throw new AppException(
+          HttpStatus.TOO_MANY_REQUESTS,
+          ErrorCode.TOO_MANY_REQUESTS,
+          `Please wait ${remainingSeconds} seconds before requesting a new OTP.`,
+        );
+      }
+    }
+
+    // Generate 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpHash = sha256(otp);
+
+    await this.otpModel.findOneAndUpdate(
+      { email: normalizedEmail },
+      {
+        email: normalizedEmail,
+        otpHash,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes expiry
+        lastSentAt: new Date(),
+        attempts: 0,
+      },
+      { upsert: true, returnDocument: 'after' },
+    );
+
+    // Send email with OTP
+    this.mailService.sendInBackground({
+      to: normalizedEmail,
+      ...registrationOtpTemplate(this.app.name, otp),
+    });
+
+    return {
+      message: 'A verification code has been sent to your email.',
+      cooldownSeconds: 60,
+      previewOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
+    };
+  }
+
+  async verifyRegistrationOtp(
+    dto: VerifyRegistrationOtpDto,
+    meta: RequestMeta,
+  ): Promise<LoginOutcome> {
+    const normalizedEmail = dto.email.toLowerCase().trim();
+
+    // Double check email collision
+    if (await this.usersService.findByEmail(normalizedEmail)) {
+      throw new AppException(
+        HttpStatus.CONFLICT,
+        ErrorCode.EMAIL_TAKEN,
+        'An account with this email address already exists. Please sign in instead.',
+      );
+    }
+
+    const otpRecord = await this.otpModel.findOne({ email: normalizedEmail }).exec();
+    if (!otpRecord || otpRecord.expiresAt < new Date()) {
+      throw new AppException(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.INVALID_TOKEN,
+        'Your verification code has expired or was not requested. Please request a new OTP.',
+      );
+    }
+
+    if (otpRecord.attempts >= 5) {
+      throw new AppException(
+        HttpStatus.TOO_MANY_REQUESTS,
+        ErrorCode.TOO_MANY_REQUESTS,
+        'Too many failed attempts. Please request a new verification code.',
+      );
+    }
+
+    if (sha256(dto.otp.trim()) !== otpRecord.otpHash) {
+      await this.otpModel.updateOne({ _id: otpRecord._id }, { $inc: { attempts: 1 } });
+      throw new AppException(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.INVALID_TOKEN,
+        'The verification code is incorrect. Please check your email and try again.',
+      );
+    }
+
+    // OTP is valid! Delete the consumed OTP record
+    await this.otpModel.deleteOne({ _id: otpRecord._id });
+
+    // Create verified customer user
+    const user = await this.usersService.create({
+      name: dto.name.trim(),
+      email: normalizedEmail,
+      passwordHash: await this.passwordService.hash(dto.password),
+      passwordChangedAt: new Date(Date.now() - 1000),
+      role: UserRole.CUSTOMER,
+      isEmailVerified: true, // Verified instantly via OTP!
+    });
+
+    await this.auditService.log({ event: AuditEvent.USER_CREATED, subject: user, meta });
+    await this.auditService.log({ event: AuditEvent.EMAIL_VERIFIED, subject: user, meta });
+    await this.loginAttempts.recordSuccess(user, AuthPortal.CUSTOMER, meta);
+
+    return { mfaRequired: false, user, tokens: await this.tokenService.issue(user, false) };
+  }
 
   async register(dto: RegisterDto, meta: RequestMeta): Promise<LoginOutcome> {
     if (await this.usersService.findByEmail(dto.email)) {
