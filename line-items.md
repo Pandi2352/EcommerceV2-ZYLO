@@ -187,27 +187,29 @@
 ---
 
 ## 7. Shopping Cart
-- [ ] Add item to cart (Product ID, Variant ID, Quantity)
-- [ ] Real-time stock limit validation on add
-- [ ] View cart items with thumbnails and variant titles
-- [ ] Increment item quantity
-- [ ] Decrement item quantity
-- [ ] Remove item from cart
-- [ ] Clear entire cart
-- [ ] Persistent cart for authenticated users
-- [ ] Local storage cart for guest shoppers
-- [ ] Merge guest cart items into user cart upon login
-- [ ] Real-time server-side price calculation
-- [ ] Cart subtotal calculation
-- [ ] Free shipping progress indicator / threshold calculation
-- [ ] Estimated shipping fee calculation
-- [ ] Tax calculation
-- [ ] Cart grand total calculation
-- [ ] Apply promotional coupon code
-- [ ] Remove applied coupon code
-- [ ] Cart slide-over drawer UI
-- [ ] Dedicated full cart page UI
-- [ ] Empty cart state with "Shop Now" call to action
+- [x] Add item to cart (Product ID, Variant ID, Quantity)
+- [x] Real-time stock limit validation on add
+- [x] View cart items with thumbnails and variant titles
+- [x] Increment item quantity
+- [x] Decrement item quantity
+- [x] Remove item from cart
+- [x] Clear entire cart
+- [x] Persistent cart for authenticated users (MongoDB)
+- [x] Local storage cart for guest shoppers
+- [x] Merge guest cart items into user cart upon login
+- [x] Real-time server-side price calculation
+- [x] Cart subtotal calculation
+- [x] Free shipping progress indicator / threshold calculation ($50 threshold)
+- [x] Estimated shipping fee calculation
+- [x] Tax calculation
+- [x] Cart grand total calculation
+- [x] Apply promotional coupon code (ZYLO10, ZYLO20, WELCOME5, FREESHIP)
+- [x] Remove applied coupon code
+- [x] Cart slide-over drawer UI
+- [x] Dedicated full cart page UI
+- [x] Empty cart state with "Shop Now" call to action
+- [x] Amazon signature feature: "Save for Later" & "Move to Cart"
+- [x] Amazon signature feature: Item selection checkboxes with live subtotal re-calculation
 
 ---
 

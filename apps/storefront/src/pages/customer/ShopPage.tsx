@@ -26,7 +26,6 @@ export const ShopPage: React.FC = () => {
   const {
     products,
     total,
-    totalPages,
     facets,
     isLoading,
     isFacetsLoading,

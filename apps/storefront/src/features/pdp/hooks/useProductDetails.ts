@@ -4,12 +4,14 @@ import { productsService } from '@shared/api/products.service';
 import type { ProductItem, ProductVariant } from '@shared/types/product';
 import { toast } from '@shared/ui/toastStore';
 import { ROUTES } from '../../../routes/routePaths';
+import { useCart } from '../../cart/context/CartContext';
 
 export type ProductTabId = 'overview' | 'specs' | 'shipping' | 'reviews';
 
 export function useProductDetails() {
   const { slug, id } = useParams<{ slug?: string; id?: string }>();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   const productIdentifier = slug || id;
 
@@ -154,16 +156,15 @@ export function useProductDetails() {
     });
   };
 
-  const handleAddToCart = () => {
-    if (isOutOfStock) return;
-    const title = selectedVariant ? `${product?.name} (${selectedVariant.title})` : product?.name;
-    toast.success(`Added ${quantity} × "${title}" to your cart!`);
+  const handleAddToCart = async () => {
+    if (!product || isOutOfStock) return;
+    await addToCart(product, selectedVariant?.sku, quantity);
   };
 
-  const handleBuyNow = () => {
-    if (isOutOfStock) return;
-    handleAddToCart();
-    navigate(ROUTES.CUSTOMER.CHECKOUT);
+  const handleBuyNow = async () => {
+    if (!product || isOutOfStock) return;
+    await addToCart(product, selectedVariant?.sku, quantity);
+    navigate(ROUTES.CUSTOMER.CART);
   };
 
   return {

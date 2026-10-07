@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Star, ShieldCheck } from 'lucide-react';
-import { ROUTES } from '../../../routes/routePaths';
+import { Star, ShieldCheck } from 'lucide-react';
 import type { ProductItem } from '@shared/types/product';
 
 interface ProductHeaderMetaProps {
@@ -13,7 +12,6 @@ export const ProductHeaderMeta: React.FC<ProductHeaderMetaProps> = ({
   product,
   effectiveSku,
 }) => {
-  const category = product.categoryId;
   const brand = product.brandId;
 
   return (

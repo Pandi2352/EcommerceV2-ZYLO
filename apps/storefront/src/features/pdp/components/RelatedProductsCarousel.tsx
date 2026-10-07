@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import type { ProductItem } from '@shared/types/product';
 import ProductCard from '../../shop/components/ProductCard';
-import { ROUTES } from '../../../routes/routePaths';
 
 interface RelatedProductsCarouselProps {
   products: ProductItem[];

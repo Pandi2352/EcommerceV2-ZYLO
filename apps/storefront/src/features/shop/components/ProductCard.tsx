@@ -4,12 +4,10 @@ import {
   Star,
   ShoppingBag,
   Eye,
-  Check,
-  AlertCircle,
 } from 'lucide-react';
 import type { ProductItem } from '@shared/types/product';
 import Button from '@shared/ui/Button';
-import { toast } from '@shared/ui/toastStore';
+import { useCart } from '../../cart/context/CartContext';
 
 interface ProductCardProps {
   product: ProductItem;
@@ -22,6 +20,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   viewMode = 'grid',
   onQuickView,
 }) => {
+  const { addToCart } = useCart();
   const [isHovered, setIsHovered] = useState(false);
 
   const primaryImage =
@@ -45,11 +44,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const isOutOfStock = product.trackInventory && product.stockQuantity <= 0;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock) return;
-    toast.success(`Added "${product.name}" to cart!`);
+    await addToCart(product, undefined, 1);
   };
 
   const handleQuickViewClick = (e: React.MouseEvent) => {

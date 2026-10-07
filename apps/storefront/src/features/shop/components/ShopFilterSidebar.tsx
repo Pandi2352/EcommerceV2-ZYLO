@@ -4,17 +4,14 @@ import {
   Check,
   Star,
   RotateCcw,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 import type { ShopFilters } from '../hooks/useShopProducts';
 import type { ProductFacets } from '@shared/types/product';
-import Button from '@shared/ui/Button';
 
 interface ShopFilterSidebarProps {
   filters: ShopFilters;
   facets: ProductFacets | null;
-  isLoading: boolean;
+  isLoading?: boolean;
   onToggleCategory: (categoryId: string) => void;
   onToggleBrand: (brandId: string) => void;
   onSetPriceRange: (min?: number, max?: number) => void;
@@ -34,7 +31,7 @@ const PRICE_PRESETS = [
 export const ShopFilterSidebar: React.FC<ShopFilterSidebarProps> = ({
   filters,
   facets,
-  isLoading,
+  isLoading: _isLoading,
   onToggleCategory,
   onToggleBrand,
   onSetPriceRange,

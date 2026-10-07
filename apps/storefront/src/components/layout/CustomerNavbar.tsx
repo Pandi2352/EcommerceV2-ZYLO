@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../routes/routePaths';
 import AccountMenu from '../../features/auth/components/AccountMenu';
-import MiniCartDropdown from './MiniCartDropdown';
 import {
   ChevronDown,
   Menu,
@@ -15,14 +14,29 @@ import {
 import ZyloLogo from '@shared/ui/ZyloLogo';
 import { productsService } from '@shared/api/products.service';
 import type { SearchSuggestion } from '@shared/types/product';
+import { useCart } from '../../features/cart/context/CartContext';
 
 export const CustomerNavbar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { totalCount, openDrawer } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('All categories');
+  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<{ id?: string; name: string }>({
+    name: 'All categories',
+  });
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
-  const cartRef = useRef<HTMLDivElement>(null);
+  const [categoriesList, setCategoriesList] = useState<{ id: string; name: string }[]>([]);
+
+  const { pathname, search } = location;
+
+  const isFlashDeals = pathname === '/shop' && search.includes('sortBy=price_asc');
+  const isSpecial = pathname === '/shop' && search.includes('minRating=4');
+  const isTopSellers = pathname === '/shop' && search.includes('sortBy=rating');
+
+  const isWishlistActive = pathname === ROUTES.CUSTOMER.WISHLIST;
+  const isCartActive = pathname === ROUTES.CUSTOMER.CART;
+  const isCompareActive = pathname === ROUTES.CUSTOMER.COMPARE;
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,20 +45,38 @@ export const CustomerNavbar: React.FC = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Close suggestions or cart on click outside
+  // Load actual catalog categories dynamically for the search department selector
+  useEffect(() => {
+    let isMounted = true;
+    productsService
+      .getFacets()
+      .then((res) => {
+        if (isMounted && res?.categories?.length) {
+          setCategoriesList(
+            res.categories.map((c) => ({
+              id: c.id,
+              name: c.name,
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Close suggestions on click outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (cartOpen && !cartRef.current?.contains(e.target as Node)) {
-        setCartOpen(false);
-      }
       if (showSuggestions && !searchContainerRef.current?.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
     };
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setCartOpen(false);
         setShowSuggestions(false);
+        setCategoryDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClick);
@@ -53,7 +85,7 @@ export const CustomerNavbar: React.FC = () => {
       document.removeEventListener('mousedown', handleClick);
       document.removeEventListener('keydown', handleKey);
     };
-  }, [cartOpen, showSuggestions]);
+  }, [showSuggestions]);
 
   // Debounced search suggestions fetcher
   useEffect(() => {
@@ -78,31 +110,46 @@ export const CustomerNavbar: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setShowSuggestions(false);
+    const trimmed = searchQuery.trim();
     const catParam =
-      selectedCategory !== 'All categories'
-        ? `&categoryName=${encodeURIComponent(selectedCategory)}`
-        : '';
-    navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}${catParam}`);
+      selectedCategory.id ? `&categoryIds=${selectedCategory.id}` : '';
+    if (trimmed) {
+      navigate(`/shop?search=${encodeURIComponent(trimmed)}${catParam}`);
+    } else if (selectedCategory.id) {
+      navigate(`/shop?categoryIds=${selectedCategory.id}`);
+    } else {
+      navigate(ROUTES.CUSTOMER.SHOP);
+    }
+  };
+
+  const handleSelectCategory = (cat: { id?: string; name: string }) => {
+    setSelectedCategory(cat);
+    setCategoryDropdownOpen(false);
+    // If no text typed in search box, immediately browse this department
+    if (!searchQuery.trim()) {
+      if (cat.id) {
+        navigate(`/shop?categoryIds=${cat.id}`);
+      } else {
+        navigate(ROUTES.CUSTOMER.SHOP);
+      }
+    }
   };
 
   const handleSelectSuggestion = (item: SearchSuggestion) => {
     setShowSuggestions(false);
-    navigate(`/shop?search=${encodeURIComponent(item.name)}`);
+    // Amazon style: direct jump to product details page
+    navigate(`/products/${item.slug}`);
   };
 
-  const categories = [
-    'All categories',
-    'Electronics',
-    'Audio & Acoustics',
-    'Apparel & Streetwear',
-    'Wearables & Watches',
-    'Home & Workspace',
-    'Computers',
-  ];
+  const handleMobileSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mobileSearchQuery.trim()) return;
+    setMobileMenuOpen(false);
+    navigate(`/shop?search=${encodeURIComponent(mobileSearchQuery.trim())}`);
+  };
 
   return (
     <header className="w-full bg-white border-b border-slate-100 sticky top-0 z-40 select-none">
@@ -125,7 +172,7 @@ export const CustomerNavbar: React.FC = () => {
                 onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
                 className="flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] text-slate-700 hover:text-slate-900 border-r border-slate-200 cursor-pointer h-full whitespace-nowrap shrink-0 font-medium"
               >
-                <span className="whitespace-nowrap">{selectedCategory}</span>
+                <span className="whitespace-nowrap max-w-[120px] truncate">{selectedCategory.name}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               </button>
 
@@ -135,22 +182,30 @@ export const CustomerNavbar: React.FC = () => {
                     className="fixed inset-0 z-40"
                     onClick={() => setCategoryDropdownOpen(false)}
                   />
-                  <div className="absolute left-0 mt-1 w-48 bg-white border border-slate-200 rounded-md py-1 z-50 animate-in fade-in duration-100 shadow-none">
-                    {categories.map((cat) => (
+                  <div className="absolute left-0 mt-1 w-52 max-h-72 overflow-y-auto bg-white border border-slate-200 rounded-md py-1 z-50 animate-in fade-in duration-100 shadow-none">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectCategory({ name: 'All categories' })}
+                      className={`w-full text-left px-3.5 py-2 text-[13px] transition-colors cursor-pointer ${
+                        !selectedCategory.id
+                          ? 'bg-amber-50 text-amber-900 font-bold'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      All categories
+                    </button>
+                    {categoriesList.map((cat) => (
                       <button
-                        key={cat}
+                        key={cat.id}
                         type="button"
-                        onClick={() => {
-                          setSelectedCategory(cat);
-                          setCategoryDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-3.5 py-2 text-[13px] transition-colors cursor-pointer ${
-                          selectedCategory === cat
+                        onClick={() => handleSelectCategory(cat)}
+                        className={`w-full text-left px-3.5 py-2 text-[13px] transition-colors cursor-pointer truncate ${
+                          selectedCategory.id === cat.id
                             ? 'bg-amber-50 text-amber-900 font-bold'
                             : 'text-slate-700 hover:bg-slate-50'
                         }`}
                       >
-                        {cat}
+                        {cat.name}
                       </button>
                     ))}
                   </div>
@@ -172,7 +227,7 @@ export const CustomerNavbar: React.FC = () => {
               />
               <button
                 type="submit"
-                className="pr-3 pl-1 text-slate-400 hover:text-amber-600 transition-colors"
+                className="pr-3 pl-1 text-slate-400 hover:text-amber-600 transition-colors cursor-pointer"
                 title="Search"
               >
                 {isSearching ? (
@@ -196,7 +251,7 @@ export const CustomerNavbar: React.FC = () => {
                       key={item.id}
                       type="button"
                       onClick={() => handleSelectSuggestion(item)}
-                      className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-amber-50/40 transition-colors text-left group"
+                      className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-amber-50/40 transition-colors text-left group cursor-pointer"
                     >
                       <div className="w-10 h-10 rounded border border-slate-200 bg-white flex items-center justify-center overflow-hidden shrink-0">
                         {item.thumbnailUrl ? (
@@ -244,23 +299,35 @@ export const CustomerNavbar: React.FC = () => {
             )}
           </div>
 
-          {/* Quick Deal Tags next to Search Bar (matches screenshot) */}
-          <div className="hidden xl:flex items-center gap-4 text-[12.5px] font-medium text-slate-600 shrink-0">
+          {/* Quick Deal Tags next to Search Bar */}
+          <div className="hidden xl:flex items-center gap-3 text-[12.5px] shrink-0">
             <Link
-              to={ROUTES.CUSTOMER.SHOP}
-              className="hover:text-amber-600 transition-colors"
+              to="/shop?sortBy=price_asc"
+              className={`transition-colors rounded-md px-2 py-0.5 ${
+                isFlashDeals
+                  ? 'text-amber-800 bg-amber-50 font-bold border border-amber-200'
+                  : 'text-slate-600 hover:text-amber-600 font-medium'
+              }`}
             >
               Flash Deals
             </Link>
             <Link
-              to={ROUTES.CUSTOMER.SHOP}
-              className="hover:text-amber-600 transition-colors"
+              to="/shop?minRating=4"
+              className={`transition-colors rounded-md px-2 py-0.5 ${
+                isSpecial
+                  ? 'text-amber-800 bg-amber-50 font-bold border border-amber-200'
+                  : 'text-slate-600 hover:text-amber-600 font-medium'
+              }`}
             >
               Special
             </Link>
             <Link
-              to={ROUTES.CUSTOMER.SHOP}
-              className="hover:text-amber-600 transition-colors"
+              to="/shop?sortBy=rating"
+              className={`transition-colors rounded-md px-2 py-0.5 ${
+                isTopSellers
+                  ? 'text-amber-800 bg-amber-50 font-bold border border-amber-200'
+                  : 'text-slate-600 hover:text-amber-600 font-medium'
+              }`}
             >
               Top Sellers
             </Link>
@@ -275,56 +342,71 @@ export const CustomerNavbar: React.FC = () => {
           {/* Wishlist */}
           <Link
             to={ROUTES.CUSTOMER.WISHLIST}
-            className="flex items-center gap-1.5 hover:text-amber-600 transition-colors cursor-pointer group"
+            className={`flex items-center gap-1.5 transition-colors cursor-pointer group ${
+              isWishlistActive ? 'text-amber-600 font-bold' : 'text-slate-700 hover:text-amber-600'
+            }`}
           >
             <div className="relative flex items-center justify-center">
               {/* Solid Heart Icon */}
-              <svg className="w-5 h-5 text-slate-600 fill-slate-600 group-hover:fill-amber-600 group-hover:text-amber-600 transition-colors" viewBox="0 0 24 24">
+              <svg className={`w-5 h-5 transition-colors ${
+                isWishlistActive
+                  ? 'text-amber-600 fill-amber-600'
+                  : 'text-slate-600 fill-slate-600 group-hover:fill-amber-600 group-hover:text-amber-600'
+              }`} viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
               <span className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full text-[10px] w-4 h-4 flex items-center justify-center font-bold">
                 5
               </span>
             </div>
-            <span className="hidden sm:inline text-slate-700 group-hover:text-amber-600 transition-colors">
+            <span className="hidden sm:inline">
               Wishlist
             </span>
           </Link>
 
-          {/* Cart with Mini-Cart Dropdown */}
-          <div className="relative" ref={cartRef}>
+          {/* Cart Trigger */}
+          <div className="relative">
             <button
               type="button"
-              onClick={() => setCartOpen((prev) => !prev)}
+              onClick={openDrawer}
               aria-label="View Shopping Cart"
-              aria-expanded={cartOpen}
-              className="flex items-center gap-1.5 hover:text-amber-600 transition-colors cursor-pointer group"
+              title={`Shopping Cart (${totalCount})`}
+              className={`flex items-center gap-1.5 transition-colors cursor-pointer group ${
+                isCartActive ? 'text-amber-600 font-bold' : 'text-slate-700 hover:text-amber-600'
+              }`}
             >
               <div className="relative flex items-center justify-center">
                 {/* Solid Cart Icon */}
-                <svg className="w-5 h-5 text-slate-600 fill-slate-600 group-hover:fill-amber-600 group-hover:text-amber-600 transition-colors" viewBox="0 0 24 24">
+                <svg className={`w-5 h-5 transition-colors ${
+                  isCartActive
+                    ? 'text-amber-600 fill-amber-600'
+                    : 'text-slate-600 fill-slate-600 group-hover:fill-amber-600 group-hover:text-amber-600'
+                }`} viewBox="0 0 24 24">
                   <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
                 </svg>
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full text-[10px] w-4 h-4 flex items-center justify-center font-bold">
-                  2
-                </span>
+                {totalCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full text-[10px] min-w-4 h-4 px-1 flex items-center justify-center font-bold">
+                    {totalCount}
+                  </span>
+                )}
               </div>
-              <span className="hidden sm:inline text-slate-700 group-hover:text-amber-600 transition-colors">
+              <span className="hidden sm:inline">
                 Cart
               </span>
             </button>
-
-            {/* Dropdown Menu */}
-            <MiniCartDropdown isOpen={cartOpen} onClose={() => setCartOpen(false)} />
           </div>
 
           {/* Compare */}
           <Link
             to={ROUTES.CUSTOMER.COMPARE}
-            className="hidden md:flex items-center gap-1.5 hover:text-amber-600 transition-colors cursor-pointer group"
+            className={`hidden md:flex items-center gap-1.5 transition-colors cursor-pointer group ${
+              isCompareActive ? 'text-amber-600 font-bold' : 'text-slate-700 hover:text-amber-600'
+            }`}
           >
             {/* Compare Circular Arrows with Nodes */}
-            <svg className="w-5 h-5 text-slate-600 group-hover:text-amber-600 transition-colors shrink-0" viewBox="0 0 24 24" fill="none">
+            <svg className={`w-5 h-5 transition-colors shrink-0 ${
+              isCompareActive ? 'text-amber-600' : 'text-slate-600 group-hover:text-amber-600'
+            }`} viewBox="0 0 24 24" fill="none">
               <circle cx="18" cy="6" r="2.2" fill="currentColor" />
               <path d="M18 10v2a4 4 0 0 1-4 4H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               <path d="M10 19l-3-3 3-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -332,7 +414,7 @@ export const CustomerNavbar: React.FC = () => {
               <path d="M6 14v-2a4 4 0 0 1 4-4h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               <path d="M14 5l3 3-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-slate-700 group-hover:text-amber-600 transition-colors">
+            <span>
               Compare
             </span>
           </Link>
@@ -350,21 +432,82 @@ export const CustomerNavbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-2.5 animate-in slide-in-from-top duration-150">
-          <div className="relative flex items-center border border-slate-200 rounded-md">
+        <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-3 animate-in slide-in-from-top duration-150">
+          <form onSubmit={handleMobileSearchSubmit} className="relative flex items-center border border-slate-200 rounded-md">
             <input
               type="text"
-              placeholder="Search for items..."
-              className="w-full py-1.5 px-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none"
+              value={mobileSearchQuery}
+              onChange={(e) => setMobileSearchQuery(e.target.value)}
+              placeholder="Search products or brands..."
+              className="w-full py-2 px-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none"
             />
-          </div>
-          <div className="flex flex-col gap-2 text-xs font-medium text-slate-700">
-            <Link to={ROUTES.CUSTOMER.HOME} className="py-1">Home</Link>
-            <Link to={ROUTES.CUSTOMER.SHOP} className="py-1">Shop</Link>
-            <Link to={ROUTES.CUSTOMER.VENDORS} className="py-1">Vendors</Link>
-            <Link to={ROUTES.CUSTOMER.PAGES} className="py-1">Pages</Link>
-            <Link to={ROUTES.CUSTOMER.BLOG} className="py-1">Blog</Link>
-            <Link to={ROUTES.CUSTOMER.CONTACT} className="py-1">Contact Us</Link>
+            <button
+              type="submit"
+              className="pr-3 pl-1 text-slate-400 hover:text-amber-600 transition-colors"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </form>
+          <div className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+            <Link
+              to={ROUTES.CUSTOMER.HOME}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`py-1.5 px-2.5 rounded-md transition-colors ${
+                pathname === '/' ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200/70' : 'hover:text-amber-600 hover:bg-slate-50'
+              }`}
+            >
+              Home
+            </Link>
+            <Link
+              to={ROUTES.CUSTOMER.SHOP}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`py-1.5 px-2.5 rounded-md transition-colors ${
+                pathname === '/shop' ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200/70' : 'hover:text-amber-600 hover:bg-slate-50'
+              }`}
+            >
+              Shop Catalog
+            </Link>
+            <Link
+              to={ROUTES.CUSTOMER.CART}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`py-1.5 px-2.5 rounded-md transition-colors flex items-center justify-between ${
+                pathname === '/cart' ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200/70' : 'hover:text-amber-600 hover:bg-slate-50'
+              }`}
+            >
+              <span>Shopping Cart</span>
+              {totalCount > 0 && (
+                <span className="bg-orange-500 text-white rounded-full text-[10px] px-1.5 py-0.2 font-bold">
+                  {totalCount}
+                </span>
+              )}
+            </Link>
+            <Link
+              to={ROUTES.CUSTOMER.PROFILE}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`py-1.5 px-2.5 rounded-md transition-colors ${
+                pathname.startsWith('/account') ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200/70' : 'hover:text-amber-600 hover:bg-slate-50'
+              }`}
+            >
+              My Account
+            </Link>
+            <Link
+              to={ROUTES.CUSTOMER.VENDORS}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`py-1.5 px-2.5 rounded-md transition-colors ${
+                pathname === '/vendors' ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200/70' : 'hover:text-amber-600 hover:bg-slate-50'
+              }`}
+            >
+              Brand Partners
+            </Link>
+            <Link
+              to={ROUTES.CUSTOMER.CONTACT}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`py-1.5 px-2.5 rounded-md transition-colors ${
+                pathname === '/contact' ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200/70' : 'hover:text-amber-600 hover:bg-slate-50'
+              }`}
+            >
+              Contact & Support
+            </Link>
           </div>
         </div>
       )}

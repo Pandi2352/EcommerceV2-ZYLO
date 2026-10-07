@@ -18,7 +18,6 @@ export const CUSTOMER_PUBLIC_PLANNED: PlannedRoute[] = [
   { path: ROUTES.CUSTOMER.TERMS, title: 'Terms & Conditions' },
   { path: ROUTES.CUSTOMER.OPEN_SHOP, title: 'Open a Shop' },
   { path: ROUTES.CUSTOMER.COMPARE, title: 'Compare Products' },
-  { path: ROUTES.CUSTOMER.CART, title: 'Shopping Cart' },
 ];
 
 export const CUSTOMER_ACCOUNT_PLANNED: PlannedRoute[] = [

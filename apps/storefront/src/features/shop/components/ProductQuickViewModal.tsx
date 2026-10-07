@@ -13,8 +13,7 @@ import {
 } from 'lucide-react';
 import type { ProductItem } from '@shared/types/product';
 import Button from '@shared/ui/Button';
-import Badge from '@shared/ui/Badge';
-import { toast } from '@shared/ui/toastStore';
+import { useCart } from '../../cart/context/CartContext';
 
 interface ProductQuickViewModalProps {
   product: ProductItem | null;
@@ -27,6 +26,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { addToCart } = useCart();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
@@ -60,8 +60,9 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   const isOutOfStock = product.trackInventory && product.stockQuantity <= 0;
   const isLowStock = product.trackInventory && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
 
-  const handleAddToCart = () => {
-    toast.success(`Added ${quantity} × "${product.name}" to your cart!`);
+  const handleAddToCart = async () => {
+    if (isOutOfStock) return;
+    await addToCart(product, undefined, quantity);
     onClose();
   };
 

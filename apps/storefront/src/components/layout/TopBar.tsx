@@ -35,7 +35,7 @@ export const TopBar: React.FC = () => {
         <div className="hidden md:flex items-center font-medium">
           <span>
             Free shipping for all orders over{' '}
-            <span className="font-bold text-emerald-400">$75.00</span>
+            <span className="font-bold text-emerald-400">$50.00</span>
           </span>
         </div>
 

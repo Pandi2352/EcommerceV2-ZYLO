@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../routes/routePaths';
-import { Star, ShoppingBag, Heart, ArrowRight } from 'lucide-react';
+import { Star, ShoppingBag, ArrowRight } from 'lucide-react';
 import { productsService } from '@shared/api/products.service';
 import type { ProductItem } from '@shared/types/product';
-import { toast } from '@shared/ui/toastStore';
+import { useCart } from '../../features/cart/context/CartContext';
 
 export const FeaturedProductsGrid: React.FC = () => {
+  const { addToCart } = useCart();
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -33,10 +34,10 @@ export const FeaturedProductsGrid: React.FC = () => {
     };
   }, []);
 
-  const handleAddToCart = (e: React.MouseEvent, prod: ProductItem) => {
+  const handleAddToCart = async (e: React.MouseEvent, prod: ProductItem) => {
     e.preventDefault();
     e.stopPropagation();
-    toast.success(`Added "${prod.name}" to cart!`);
+    await addToCart(prod, undefined, 1);
   };
 
   return (

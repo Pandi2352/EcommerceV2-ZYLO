@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { ROUTES } from '../../routes/routePaths';
 import {
   LayoutGrid,
   Monitor,
@@ -16,19 +18,19 @@ import {
 } from 'lucide-react';
 
 const railItems = [
-  { icon: LayoutGrid, label: 'All Categories' },
-  { icon: Monitor, label: 'Computers & Office' },
-  { icon: Smartphone, label: 'Smartphones & Tablets' },
-  { icon: Gamepad2, label: 'Gaming & VR' },
-  { icon: Watch, label: 'Wearable Tech' },
-  { icon: Utensils, label: 'Home & Kitchen' },
-  { icon: Mouse, label: 'Accessories' },
-  { icon: Bluetooth, label: 'Audio & Wireless' },
-  { icon: Trees, label: 'Outdoor & Sports' },
-  { icon: Plug, label: 'Power & Cables' },
-  { icon: Cpu, label: 'Components & Chips' },
-  { icon: Server, label: 'Networking & Servers' },
-  { icon: Coffee, label: 'Lifestyle' },
+  { icon: LayoutGrid, label: 'All Categories', path: ROUTES.CUSTOMER.SHOP },
+  { icon: Monitor, label: 'Computers & Office', path: '/shop?search=Computers' },
+  { icon: Smartphone, label: 'Smartphones & Tablets', path: '/shop?search=Smartphones' },
+  { icon: Gamepad2, label: 'Gaming & VR', path: '/shop?search=Gaming' },
+  { icon: Watch, label: 'Wearable Tech', path: '/shop?search=Wearable' },
+  { icon: Utensils, label: 'Home & Kitchen', path: '/shop?search=Home' },
+  { icon: Mouse, label: 'Accessories', path: '/shop?search=Accessories' },
+  { icon: Bluetooth, label: 'Audio & Wireless', path: '/shop?search=Audio' },
+  { icon: Trees, label: 'Outdoor & Sports', path: '/shop?search=Outdoor' },
+  { icon: Plug, label: 'Power & Cables', path: '/shop?search=Power' },
+  { icon: Cpu, label: 'Components & Chips', path: '/shop?search=Components' },
+  { icon: Server, label: 'Networking & Servers', path: '/shop?search=Networking' },
+  { icon: Coffee, label: 'Lifestyle', path: '/shop?search=Lifestyle' },
 ];
 
 export const CategoryRail: React.FC = () => {
@@ -38,18 +40,18 @@ export const CategoryRail: React.FC = () => {
         {railItems.map((item, idx) => {
           const Icon = item.icon;
           return (
-            <button
+            <Link
               key={idx}
-              type="button"
+              to={item.path}
               title={item.label}
-              className="p-1.5 rounded hover:text-indigo-600 hover:bg-slate-50 transition-colors group relative cursor-pointer"
+              className="p-1.5 rounded hover:text-amber-600 hover:bg-slate-50 transition-colors group relative cursor-pointer"
             >
               <Icon className="w-4 h-4 stroke-[1.75]" />
               {/* Tooltip */}
               <span className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-[11px] rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                 {item.label}
               </span>
-            </button>
+            </Link>
           );
         })}
       </div>

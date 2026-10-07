@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, User, Clock, ArrowRight, CheckCircle2, RotateCw, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, User, Clock, CheckCircle2, RotateCw, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
 import { useAuth } from '@shared/auth/AuthContext';
 import { authService } from '@shared/api/auth.service';
@@ -43,7 +43,7 @@ export default function CustomerRegisterPage() {
 
   // 60-second cooldown timer for resend OTP (Amazon style)
   const [cooldown, setCooldown] = useState<number>(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (cooldown > 0) {

@@ -10,7 +10,6 @@ import {
   CheckCircle,
   Clock,
   Shield,
-  HelpCircle,
 } from 'lucide-react';
 
 interface ProductTabsSectionProps {
