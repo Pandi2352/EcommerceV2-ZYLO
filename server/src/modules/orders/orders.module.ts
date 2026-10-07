@@ -6,6 +6,7 @@ import { Cart, CartSchema } from '../cart/schemas/cart.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
+import { AdminOrdersController } from './admin-orders.controller';
 import { CartModule } from '../cart/cart.module';
 
 @Module({
@@ -18,7 +19,7 @@ import { CartModule } from '../cart/cart.module';
     ]),
     CartModule,
   ],
-  controllers: [OrdersController],
+  controllers: [OrdersController, AdminOrdersController],
   providers: [OrdersService],
   exports: [OrdersService],
 })

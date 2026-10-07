@@ -20,6 +20,10 @@ import { User, UserDocument } from '../users/schemas/user.schema';
 import { CheckoutDto } from './dto/checkout.dto';
 import { CancelOrderDto } from './dto/cancel-order.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
+import { AdminOrderQueryDto } from './dto/admin-order-query.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto';
+import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 
 const FREE_SHIPPING_THRESHOLD = 50.0;
 const STANDARD_SHIPPING_FEE = 5.99;
@@ -307,5 +311,280 @@ export class OrdersService {
 
     await order.save();
     return order;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ADMIN ORDER MANAGEMENT
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  async getAdminOrders(query: AdminOrderQueryDto) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const filter: any = {};
+
+    if (query.status && query.status !== ('ALL' as any)) {
+      filter.orderStatus = query.status;
+    }
+
+    if (query.paymentStatus && query.paymentStatus !== ('ALL' as any)) {
+      filter.paymentStatus = query.paymentStatus;
+    }
+
+    if (query.paymentMethod && query.paymentMethod !== ('ALL' as any)) {
+      filter.paymentMethod = query.paymentMethod;
+    }
+
+    if (query.deliveryMethod && query.deliveryMethod !== ('ALL' as any)) {
+      filter.deliveryMethod = query.deliveryMethod;
+    }
+
+    if (query.startDate || query.endDate) {
+      filter.createdAt = {};
+      if (query.startDate) filter.createdAt.$gte = new Date(query.startDate);
+      if (query.endDate) filter.createdAt.$lte = new Date(query.endDate);
+    }
+
+    if (query.search && query.search.trim()) {
+      const searchRegex = new RegExp(query.search.trim(), 'i');
+      filter.$or = [
+        { orderNumber: searchRegex },
+        { customerName: searchRegex },
+        { customerEmail: searchRegex },
+        { 'shippingAddress.phone': searchRegex },
+        { 'shippingAddress.city': searchRegex },
+        { trackingNumber: searchRegex },
+      ];
+    }
+
+    const [orders, total, metrics] = await Promise.all([
+      this.orderModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.orderModel.countDocuments(filter).exec(),
+      this.getAdminOrderMetrics(),
+    ]);
+
+    return {
+      orders,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+      metrics,
+    };
+  }
+
+  async getAdminOrderMetrics() {
+    const allOrders = await this.orderModel.find({}, 'orderStatus grandTotal paymentStatus').exec();
+
+    let totalOrders = allOrders.length;
+    let totalRevenue = 0;
+    let pendingCount = 0;
+    let processingCount = 0;
+    let shippedCount = 0;
+    let deliveredCount = 0;
+    let cancelledCount = 0;
+
+    for (const o of allOrders) {
+      if (o.orderStatus !== OrderStatus.CANCELLED) {
+        totalRevenue += o.grandTotal || 0;
+      }
+      if (o.orderStatus === OrderStatus.PENDING || o.orderStatus === OrderStatus.CONFIRMED) {
+        pendingCount++;
+      } else if (o.orderStatus === OrderStatus.PROCESSING || o.orderStatus === OrderStatus.PACKED) {
+        processingCount++;
+      } else if (o.orderStatus === OrderStatus.SHIPPED || o.orderStatus === OrderStatus.OUT_FOR_DELIVERY) {
+        shippedCount++;
+      } else if (o.orderStatus === OrderStatus.DELIVERED) {
+        deliveredCount++;
+      } else if (o.orderStatus === OrderStatus.CANCELLED) {
+        cancelledCount++;
+      }
+    }
+
+    return {
+      totalOrders,
+      totalRevenue: +totalRevenue.toFixed(2),
+      pendingCount,
+      processingCount,
+      shippedCount,
+      deliveredCount,
+      cancelledCount,
+    };
+  }
+
+  async getAdminOrderById(identifier: string): Promise<OrderDocument> {
+    const isObjectId = Types.ObjectId.isValid(identifier);
+    const filter: any = {
+      $or: [
+        { orderNumber: identifier.toUpperCase() },
+        ...(isObjectId ? [{ _id: identifier }] : []),
+      ],
+    };
+
+    const order = await this.orderModel.findOne(filter).exec();
+    if (!order) {
+      throw new NotFoundException(`Order not found: ${identifier}`);
+    }
+
+    return order;
+  }
+
+  async updateOrderStatusAdmin(orderId: string, dto: UpdateOrderStatusDto): Promise<OrderDocument> {
+    const order = await this.getAdminOrderById(orderId);
+
+    const oldStatus = order.orderStatus;
+    const newStatus = dto.status;
+
+    if (oldStatus === newStatus) {
+      return order;
+    }
+
+    // If cancelling, restore inventory
+    if (newStatus === OrderStatus.CANCELLED && oldStatus !== OrderStatus.CANCELLED) {
+      for (const item of order.items) {
+        if (item.variantSku) {
+          await this.productModel.updateOne(
+            { _id: item.productId, 'variants.sku': item.variantSku },
+            {
+              $inc: {
+                'variants.$.stockQuantity': item.quantity,
+                stockQuantity: item.quantity,
+              },
+            },
+          );
+        } else {
+          await this.productModel.updateOne(
+            { _id: item.productId },
+            { $inc: { stockQuantity: item.quantity } },
+          );
+        }
+      }
+      order.cancelledAt = new Date();
+      order.cancellationReason = dto.note || 'Cancelled by admin';
+      if (order.paymentStatus === PaymentStatus.PAID) {
+        order.paymentStatus = PaymentStatus.REFUNDED;
+      }
+    }
+
+    // Set fulfillment timestamps
+    if (newStatus === OrderStatus.SHIPPED && !order.shippedAt) {
+      order.shippedAt = new Date();
+    }
+    if (newStatus === OrderStatus.DELIVERED) {
+      order.deliveredAt = new Date();
+      // Auto-mark COD as paid upon delivery
+      if (order.paymentMethod === PaymentMethod.COD && order.paymentStatus === PaymentStatus.PENDING) {
+        order.paymentStatus = PaymentStatus.PAID;
+      }
+    }
+
+    order.orderStatus = newStatus;
+    order.statusHistory.push({
+      status: newStatus,
+      timestamp: new Date(),
+      note: dto.note || `Status updated from ${oldStatus} to ${newStatus}`,
+    });
+
+    await order.save();
+    return order;
+  }
+
+  async updateOrderTrackingAdmin(orderId: string, dto: UpdateOrderTrackingDto): Promise<OrderDocument> {
+    const order = await this.getAdminOrderById(orderId);
+
+    order.courierName = dto.courierName;
+    order.trackingNumber = dto.trackingNumber;
+    if (dto.trackingUrl) {
+      order.trackingUrl = dto.trackingUrl;
+    }
+
+    if (dto.status) {
+      order.orderStatus = dto.status;
+      if (dto.status === OrderStatus.SHIPPED && !order.shippedAt) {
+        order.shippedAt = new Date();
+      }
+    }
+
+    order.statusHistory.push({
+      status: order.orderStatus,
+      timestamp: new Date(),
+      note: dto.note || `Dispatched via ${dto.courierName} (Tracking: ${dto.trackingNumber})`,
+    });
+
+    await order.save();
+    return order;
+  }
+
+  async updateOrderPaymentAdmin(orderId: string, dto: UpdatePaymentStatusDto): Promise<OrderDocument> {
+    const order = await this.getAdminOrderById(orderId);
+
+    order.paymentStatus = dto.paymentStatus;
+    order.statusHistory.push({
+      status: order.orderStatus,
+      timestamp: new Date(),
+      note: dto.note || `Payment status changed to ${dto.paymentStatus}`,
+    });
+
+    await order.save();
+    return order;
+  }
+
+  async exportOrdersAdmin(format: 'json' | 'csv' = 'json') {
+    const orders = await this.orderModel.find({}).sort({ createdAt: -1 }).lean().exec();
+
+    if (format === 'csv') {
+      const headers = [
+        'Order Number',
+        'Date',
+        'Customer Name',
+        'Customer Email',
+        'Items Count',
+        'Subtotal',
+        'Tax',
+        'Shipping',
+        'Discount',
+        'Grand Total',
+        'Payment Method',
+        'Payment Status',
+        'Order Status',
+        'Courier',
+        'Tracking Number',
+      ];
+
+      const rows = orders.map((o) => [
+        `"${o.orderNumber}"`,
+        `"${new Date((o as any).createdAt).toISOString()}"`,
+        `"${o.customerName || ''}"`,
+        `"${o.customerEmail || ''}"`,
+        (o.items || []).reduce((sum: number, it: any) => sum + (it.quantity || 0), 0),
+        o.subtotal || 0,
+        o.tax || 0,
+        o.shippingFee || 0,
+        o.discount || 0,
+        o.grandTotal || 0,
+        `"${o.paymentMethod || ''}"`,
+        `"${o.paymentStatus || ''}"`,
+        `"${o.orderStatus || ''}"`,
+        `"${o.courierName || ''}"`,
+        `"${o.trackingNumber || ''}"`,
+      ]);
+
+      const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+      return {
+        data: csv,
+        filename: `orders_export_${new Date().toISOString().slice(0, 10)}.csv`,
+      };
+    }
+
+    return {
+      data: orders,
+      filename: `orders_export_${new Date().toISOString().slice(0, 10)}.json`,
+    };
   }
 }

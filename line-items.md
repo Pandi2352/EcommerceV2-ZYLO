@@ -344,15 +344,18 @@
 ---
 
 ## 17. Admin Order Management
-- [ ] View all customer orders (Paginated)
-- [ ] Search orders by order number or customer name
-- [ ] Filter orders by order status
-- [ ] Filter orders by payment status
-- [ ] Filter orders by date range
-- [ ] View full order details modal / drawer
-- [ ] Update order status (`CONFIRMED` ➔ `PROCESSING` ➔ `PACKED` ➔ `SHIPPED` ➔ `DELIVERED`)
-- [ ] Add courier tracking number, courier company name, and tracking URL
-- [ ] Admin order cancellation with stock replenishment
+- [x] View all customer orders (Paginated table with rows per page selector)
+- [x] Search orders by order number, customer name, email, or tracking number
+- [x] Filter orders by order status (`CONFIRMED`, `PROCESSING`, `SHIPPED`, `DELIVERED`, `CANCELLED`)
+- [x] Filter orders by payment status (`PAID`, `PENDING`, `REFUNDED`) and payment method (`COD`, `ONLINE`)
+- [x] Filter orders by date range
+- [x] View full order details modal / drawer (`OrderDetailsDrawer`)
+- [x] Update order status workflow (`CONFIRMED` ➔ `PROCESSING` ➔ `PACKED` ➔ `SHIPPED` ➔ `DELIVERED`) with status history timeline
+- [x] Add courier tracking number, courier company name, and carrier tracking URL
+- [x] Admin order cancellation with automated product & variant stock replenishment
+- [x] Printable Tax Invoice & Packing Slip modal (`OrderInvoiceModal`) with print stylesheet
+- [x] Bulk sales export to CSV and JSON (`/api/v1/admin/orders/export`)
+- [x] KPI metrics overview cards (Total Orders, Gross Sales with dynamic currency, In Fulfillment, Completed)
 
 ---
 

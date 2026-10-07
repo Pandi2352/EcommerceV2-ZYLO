@@ -10,7 +10,6 @@ export interface PlannedRoute {
 
 /** Open to every staff role */
 export const STAFF_PLANNED: PlannedRoute[] = [
-  { path: ROUTES.ORDERS, title: 'Orders Management' },
   { path: ROUTES.SHIPMENTS, title: 'Shipments & Fulfillment' },
   { path: ROUTES.RETURNS, title: 'Returns & Refunds' },
   { path: ROUTES.INVOICES, title: 'Invoices & Receipts' },

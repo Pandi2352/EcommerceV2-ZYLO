@@ -81,6 +81,11 @@ export interface Order {
   statusHistory: OrderStatusHistory[];
   estimatedDeliveryDate: string | Date;
   notes?: string;
+  courierName?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  shippedAt?: string | Date | null;
+  deliveredAt?: string | Date | null;
   createdAt: string | Date;
   updatedAt: string | Date;
   cancelledAt?: string | Date | null;
@@ -102,4 +107,53 @@ export interface OrdersListResponse {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface AdminOrderMetrics {
+  totalOrders: number;
+  totalRevenue: number;
+  pendingCount: number;
+  processingCount: number;
+  shippedCount: number;
+  deliveredCount: number;
+  cancelledCount: number;
+}
+
+export interface AdminOrderQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: OrderStatus | 'ALL';
+  paymentStatus?: PaymentStatus | 'ALL';
+  paymentMethod?: PaymentMethod | 'ALL';
+  deliveryMethod?: DeliveryMethod | 'ALL';
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface AdminOrdersListResponse {
+  orders: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  metrics: AdminOrderMetrics;
+}
+
+export interface UpdateOrderStatusPayload {
+  status: OrderStatus;
+  note?: string;
+}
+
+export interface UpdateOrderTrackingPayload {
+  courierName: string;
+  trackingNumber: string;
+  trackingUrl?: string;
+  status?: OrderStatus;
+  note?: string;
+}
+
+export interface UpdatePaymentStatusPayload {
+  paymentStatus: PaymentStatus;
+  note?: string;
 }

@@ -184,6 +184,21 @@ export class Order {
   @Prop({ default: '' })
   notes?: string;
 
+  @Prop({ type: String, default: null })
+  courierName?: string | null;
+
+  @Prop({ type: String, default: null })
+  trackingNumber?: string | null;
+
+  @Prop({ type: String, default: null })
+  trackingUrl?: string | null;
+
+  @Prop({ type: Date, default: null })
+  shippedAt?: Date | null;
+
+  @Prop({ type: Date, default: null })
+  deliveredAt?: Date | null;
+
   @Prop({ type: Date, default: null })
   cancelledAt?: Date | null;
 
