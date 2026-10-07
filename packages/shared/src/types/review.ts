@@ -47,3 +47,41 @@ export interface QueryReviewsParams {
   sortBy?: 'recent' | 'highest' | 'lowest' | 'helpful';
   ratingFilter?: number;
 }
+
+export interface AdminReviewProduct {
+  _id: string;
+  name: string;
+  sku?: string;
+  slug?: string;
+  thumbnailUrl?: string;
+  images?: { url: string; isPrimary?: boolean }[];
+}
+
+export interface AdminReviewItem extends Omit<ReviewItem, 'productId'> {
+  productId: AdminReviewProduct | string;
+  status: 'APPROVED' | 'REJECTED' | 'PENDING';
+}
+
+export interface AdminReviewStats {
+  totalReviews: number;
+  pendingReviews: number;
+  approvedReviews: number;
+  rejectedReviews: number;
+  averageRating: number;
+}
+
+export interface AdminReviewQuery {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+  productId?: string;
+}
+
+export interface AdminReviewsResponse {
+  reviews: AdminReviewItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

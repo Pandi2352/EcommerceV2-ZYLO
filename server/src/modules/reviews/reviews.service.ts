@@ -369,4 +369,38 @@ export class ReviewsService {
 
     return review;
   }
+
+  /**
+   * Admin: Get summary statistics for moderation dashboard
+   */
+  async getStatsAdmin() {
+    const [total, pending, approved, rejected, ratingAgg] = await Promise.all([
+      this.reviewModel.countDocuments(),
+      this.reviewModel.countDocuments({ status: 'PENDING' }),
+      this.reviewModel.countDocuments({ status: 'APPROVED' }),
+      this.reviewModel.countDocuments({ status: 'REJECTED' }),
+      this.reviewModel.aggregate([
+        { $match: { status: 'APPROVED' } },
+        {
+          $group: {
+            _id: null,
+            avgRating: { $avg: '$rating' },
+          },
+        },
+      ]),
+    ]);
+
+    const avgRating =
+      ratingAgg.length > 0 && ratingAgg[0].avgRating
+        ? Math.round(ratingAgg[0].avgRating * 10) / 10
+        : 0;
+
+    return {
+      totalReviews: total,
+      pendingReviews: pending,
+      approvedReviews: approved,
+      rejectedReviews: rejected,
+      averageRating: avgRating,
+    };
+  }
 }

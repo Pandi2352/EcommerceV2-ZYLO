@@ -14,6 +14,7 @@ import { ApiBearerAuth, ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { StaffOnly } from '../../common/authorization/account-type.decorator';
+import { RequirePermissions } from '../../common/authorization/require-permissions.decorator';
 import { UserDocument } from '../users/schemas/user.schema';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -105,7 +106,15 @@ export class ReviewsActionsController {
 export class AdminReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
+  @Get('stats')
+  @RequirePermissions('reviews.view')
+  @ApiOperation({ summary: 'Admin: Get reviews moderation stats and rating breakdown' })
+  async getStats() {
+    return this.reviewsService.getStatsAdmin();
+  }
+
   @Get()
+  @RequirePermissions('reviews.view')
   @ApiOperation({ summary: 'Admin: Get all reviews across all products' })
   async getAllReviews(
     @Query('page') page?: number,
@@ -124,6 +133,7 @@ export class AdminReviewsController {
   }
 
   @Patch(':reviewId/status')
+  @RequirePermissions('reviews.approve')
   @ApiOperation({ summary: 'Admin: Update review status (approve or reject)' })
   async updateStatus(
     @Param('reviewId') reviewId: string,
@@ -134,6 +144,7 @@ export class AdminReviewsController {
   }
 
   @Delete(':reviewId')
+  @RequirePermissions('reviews.delete')
   @ApiOperation({ summary: 'Admin: Delete an inappropriate review' })
   async deleteReview(
     @Param('reviewId') reviewId: string,

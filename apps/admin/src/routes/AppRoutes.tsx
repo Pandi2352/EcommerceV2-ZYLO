@@ -35,6 +35,7 @@ import ProductsPage from '../pages/ProductsPage';
 import BusinessSettingsPage from '../pages/BusinessSettingsPage';
 import OrdersPage from '../pages/OrdersPage';
 import CouponsPage from '../pages/CouponsPage';
+import ReviewsPage from '../pages/ReviewsPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -124,6 +125,11 @@ export const AppRoutes: React.FC = () => {
           {/* Marketing & Discounts: Coupons */}
           <Route element={<ProtectedRoute permission="coupons.view" />}>
             <Route path={ROUTES.COUPONS} element={<CouponsPage />} />
+          </Route>
+
+          {/* Customers & Community: Reviews */}
+          <Route element={<ProtectedRoute permission="reviews.view" />}>
+            <Route path={ROUTES.REVIEWS} element={<ReviewsPage />} />
           </Route>
 
           {/* Store & Business Settings */}

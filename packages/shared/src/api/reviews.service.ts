@@ -31,4 +31,25 @@ export const reviewsService = {
     unwrap<{ success: boolean }>(
       api.delete(`/reviews/${reviewId}`),
     ),
+
+  // Admin Moderation Operations
+  getAdminStats: () =>
+    unwrap<import('../types/review').AdminReviewStats>(
+      api.get('/admin/reviews/stats'),
+    ),
+
+  getAdminReviews: (params?: import('../types/review').AdminReviewQuery) =>
+    unwrap<import('../types/review').AdminReviewsResponse>(
+      api.get('/admin/reviews', { params }),
+    ),
+
+  updateAdminStatus: (reviewId: string, status: 'APPROVED' | 'REJECTED' | 'PENDING') =>
+    unwrap<{ review: import('../types/review').AdminReviewItem; message: string }>(
+      api.patch(`/admin/reviews/${reviewId}/status`, { status }),
+    ),
+
+  deleteAdminReview: (reviewId: string) =>
+    unwrap<{ success: boolean }>(
+      api.delete(`/admin/reviews/${reviewId}`),
+    ),
 };
