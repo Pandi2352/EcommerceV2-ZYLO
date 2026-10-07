@@ -300,19 +300,19 @@
 ---
 
 ## 14. Promotional Coupons & Discounts
-- [ ] Admin: Create promotional coupon
-- [ ] Coupon code string (e.g. `SAVE20`)
-- [ ] Discount type: `PERCENTAGE` or `FIXED`
-- [ ] Discount value
-- [ ] Minimum order amount threshold
-- [ ] Maximum discount cap (for percentage discounts)
-- [ ] Validity start date and expiration date
-- [ ] Global usage limit count
-- [ ] Per-user usage limit
-- [ ] Admin: List all coupons with usage statistics
-- [ ] Admin: Toggle coupon active/inactive status
-- [ ] Admin: Delete coupon
-- [ ] Server-side coupon verification engine
+- [x] Admin: Create promotional coupon
+- [x] Coupon code string (e.g. `SAVE20`)
+- [x] Discount type: `PERCENTAGE` or `FIXED`
+- [x] Discount value
+- [x] Minimum order amount threshold
+- [x] Maximum discount cap (for percentage discounts)
+- [x] Validity start date and expiration date
+- [x] Global usage limit count
+- [x] Per-user usage limit
+- [x] Admin: List all coupons with usage statistics
+- [x] Admin: Toggle coupon active/inactive status
+- [x] Admin: Delete coupon
+- [x] Server-side coupon verification engine
 
 ---
 

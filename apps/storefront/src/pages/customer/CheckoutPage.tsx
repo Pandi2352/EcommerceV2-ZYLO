@@ -43,6 +43,7 @@ export const CheckoutPage: React.FC = () => {
     appliedCoupon,
     applyCoupon,
     removeCoupon,
+    discount,
     refreshCart,
   } = useCart();
 
@@ -112,12 +113,7 @@ export const CheckoutPage: React.FC = () => {
       ? 0.0
       : 5.99;
 
-  let couponDiscount = 0;
-  if (appliedCoupon && subtotal > 0) {
-    if (appliedCoupon === 'ZYLO10') couponDiscount = +(subtotal * 0.1).toFixed(2);
-    if (appliedCoupon === 'ZYLO20') couponDiscount = +(subtotal * 0.2).toFixed(2);
-    if (appliedCoupon === 'WELCOME5') couponDiscount = Math.min(5, subtotal);
-  }
+  const couponDiscount = discount ?? 0;
 
   const taxRate = settings?.taxRate ?? 8;
   const estimatedTax = +(subtotal * (taxRate / 100)).toFixed(2);

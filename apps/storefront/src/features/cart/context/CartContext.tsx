@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@shared/auth/AuthContext';
 import { cartService } from '@shared/api/cart.service';
+import { couponsService } from '@shared/api/coupons.service';
 import type { CartCalculation, CartItem } from '@shared/types/cart';
 import { toast } from '@shared/ui/Toast';
 
@@ -442,8 +443,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCartState(res);
       } else {
         const upper = code.trim().toUpperCase();
-        if (!['ZYLO10', 'ZYLO20', 'WELCOME5', 'FREESHIP'].includes(upper)) {
-          toast.error('Invalid promo code');
+        const selectedItems = cartState.items.filter((i) => i.selected);
+        const subtotal = selectedItems.reduce((acc, i) => acc + i.price * i.quantity, 0);
+        const valRes = await couponsService.validate({ code: upper, subtotal });
+        if (!valRes.isValid) {
+          toast.error(valRes.message || 'Invalid promo code');
           return false;
         }
         saveGuestCart(cartState.items, cartState.savedForLater, upper);

@@ -24,6 +24,7 @@ import { AdminOrderQueryDto } from './dto/admin-order-query.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto';
 import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
+import { CouponsService } from '../coupons/coupons.service';
 
 const FREE_SHIPPING_THRESHOLD = 50.0;
 const STANDARD_SHIPPING_FEE = 5.99;
@@ -37,6 +38,7 @@ export class OrdersService {
     @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
     @InjectModel(Cart.name) private readonly cartModel: Model<CartDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    private readonly couponsService: CouponsService,
   ) {}
 
   async checkout(userId: string, user: UserDocument, dto: CheckoutDto): Promise<OrderDocument> {
@@ -138,7 +140,7 @@ export class OrdersService {
     }
 
     // 3. Financial calculations
-    const coupon = dto.couponCode || cart.appliedCoupon;
+    const couponCode = dto.couponCode || cart.appliedCoupon;
     let shippingFee = 0;
     if (dto.deliveryMethod === DeliveryMethod.EXPRESS) {
       shippingFee = EXPRESS_SHIPPING_FEE;
@@ -147,11 +149,24 @@ export class OrdersService {
     }
 
     let discount = 0;
-    if (coupon && subtotal > 0) {
-      if (coupon === 'ZYLO10') discount = +(subtotal * 0.1).toFixed(2);
-      if (coupon === 'ZYLO20') discount = +(subtotal * 0.2).toFixed(2);
-      if (coupon === 'WELCOME5') discount = Math.min(5, subtotal);
-      if (coupon === 'FREESHIP') shippingFee = 0;
+    let validatedCouponCode: string | null = null;
+    if (couponCode && subtotal > 0) {
+      try {
+        const valResult = await this.couponsService.validateCoupon(
+          couponCode,
+          subtotal,
+          userId,
+        );
+        if (valResult.isValid) {
+          discount = valResult.discountAmount;
+          validatedCouponCode = valResult.code;
+          if (valResult.isFreeShipping) {
+            shippingFee = 0;
+          }
+        }
+      } catch {
+        discount = 0;
+      }
     }
 
     const tax = +(subtotal * ESTIMATED_TAX_RATE).toFixed(2);
@@ -188,7 +203,7 @@ export class OrdersService {
       subtotal,
       shippingFee,
       discount,
-      appliedCoupon: coupon || null,
+      appliedCoupon: validatedCouponCode || null,
       tax,
       grandTotal,
       paymentMethod: dto.paymentMethod,
@@ -207,7 +222,12 @@ export class OrdersService {
 
     await order.save();
 
-    // 7. Remove purchased items from Cart
+    // 7. Record coupon usage if valid promo code used
+    if (validatedCouponCode) {
+      await this.couponsService.recordUsage(validatedCouponCode, userId);
+    }
+
+    // 8. Remove purchased items from Cart
     const purchasedItemIds = new Set(selectedCartItems.map((i) => i._id));
     cart.items = cart.items.filter((i) => !purchasedItemIds.has(i._id));
     cart.appliedCoupon = null;

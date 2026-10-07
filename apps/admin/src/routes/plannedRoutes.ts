@@ -15,7 +15,6 @@ export const STAFF_PLANNED: PlannedRoute[] = [
   { path: ROUTES.INVOICES, title: 'Invoices & Receipts' },
   { path: ROUTES.CUSTOMERS, title: 'Customer Directory' },
   { path: ROUTES.REVIEWS, title: 'Product Reviews & Ratings' },
-  { path: ROUTES.COUPONS, title: 'Coupons & Vouchers' },
   { path: ROUTES.PROMOTIONS, title: 'Promotions & Flash Deals' },
   { path: ROUTES.DASHBOARDS_ANALYTICS, title: 'Sales Analytics & Reports' },
 ];

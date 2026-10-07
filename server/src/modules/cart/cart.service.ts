@@ -8,6 +8,7 @@ import { Model, Types } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { Cart, CartDocument } from './schemas/cart.schema';
 import { Product, ProductDocument } from '../products/schemas/product.schema';
+import { CouponsService } from '../coupons/coupons.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 
@@ -56,6 +57,7 @@ export class CartService {
   constructor(
     @InjectModel(Cart.name) private readonly cartModel: Model<CartDocument>,
     @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
+    private readonly couponsService: CouponsService,
   ) {}
 
   async getOrCreateCart(userId: string): Promise<CartDocument> {
@@ -239,15 +241,16 @@ export class CartService {
   }
 
   async applyCoupon(userId: string, code: string): Promise<CartCalculationResult> {
-    const upperCode = code.trim().toUpperCase();
-    const VALID_COUPONS = ['ZYLO10', 'ZYLO20', 'WELCOME5', 'FREESHIP'];
+    const cleanCode = (code || '').trim().toUpperCase();
+    const cart = await this.getOrCreateCart(userId);
+    const prelim = await this.calculateCart(cart);
 
-    if (!VALID_COUPONS.includes(upperCode)) {
-      throw new BadRequestException('Invalid or expired promotional code');
+    const validation = await this.couponsService.validateCoupon(cleanCode, prelim.subtotal, userId);
+    if (!validation.isValid) {
+      throw new BadRequestException(validation.message || 'Invalid or expired promotional code');
     }
 
-    const cart = await this.getOrCreateCart(userId);
-    cart.appliedCoupon = upperCode;
+    cart.appliedCoupon = validation.code;
     await cart.save();
     return this.calculateCart(cart);
   }
@@ -371,10 +374,21 @@ export class CartService {
     // Coupon discount logic
     let discount = 0;
     if (cart.appliedCoupon && subtotal > 0) {
-      if (cart.appliedCoupon === 'ZYLO10') discount = +(subtotal * 0.1).toFixed(2);
-      if (cart.appliedCoupon === 'ZYLO20') discount = +(subtotal * 0.2).toFixed(2);
-      if (cart.appliedCoupon === 'WELCOME5') discount = Math.min(5, subtotal);
-      if (cart.appliedCoupon === 'FREESHIP') estimatedShipping = 0;
+      try {
+        const valResult = await this.couponsService.validateCoupon(
+          cart.appliedCoupon,
+          subtotal,
+          cart.userId?.toString(),
+        );
+        if (valResult.isValid) {
+          discount = valResult.discountAmount;
+          if (valResult.isFreeShipping) {
+            estimatedShipping = 0;
+          }
+        }
+      } catch {
+        discount = 0;
+      }
     }
 
     const estimatedTax = +(subtotal * ESTIMATED_TAX_RATE).toFixed(2);
