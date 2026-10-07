@@ -53,7 +53,7 @@ export const ProductHeaderMeta: React.FC<ProductHeaderMetaProps> = ({
               <Star
                 key={i}
                 className={`w-4 h-4 ${
-                  i < Math.round(product.ratingAverage || 4.8)
+                  (product.ratingCount || 0) > 0 && i < Math.round(product.ratingAverage || 0)
                     ? 'fill-amber-400 stroke-amber-400'
                     : 'stroke-slate-300 text-slate-300'
                 }`}
@@ -61,14 +61,16 @@ export const ProductHeaderMeta: React.FC<ProductHeaderMetaProps> = ({
             ))}
           </div>
           <span className="font-bold text-slate-800">
-            {product.ratingAverage ? product.ratingAverage.toFixed(1) : '4.8'}
+            {(product.ratingCount || 0) > 0 ? product.ratingAverage.toFixed(1) : '0.0'}
           </span>
           <span className="text-slate-400">•</span>
           <a
             href="#reviews"
             className="text-slate-600 hover:text-amber-600 hover:underline transition-colors"
           >
-            {product.ratingCount || 24} customer reviews
+            {(product.ratingCount || 0) > 0
+              ? `${product.ratingCount} customer review${product.ratingCount === 1 ? '' : 's'}`
+              : 'No reviews yet'}
           </a>
         </div>
 

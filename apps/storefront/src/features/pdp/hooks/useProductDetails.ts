@@ -192,5 +192,6 @@ export function useProductDetails() {
     toggleWishlist,
     handleAddToCart,
     handleBuyNow,
+    refetchProduct: fetchProductData,
   };
 }

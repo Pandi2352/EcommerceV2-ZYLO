@@ -315,15 +315,15 @@
 ---
 
 ## 15. Customer Reviews & Ratings
-- [ ] Submit star rating (1 to 5 stars)
-- [ ] Write review title and detailed review comment
-- [ ] Verified purchaser validation (Only delivered buyers can review)
-- [ ] Prevent duplicate reviews per user per product
-- [ ] View product reviews list on PDP
-- [ ] Star rating breakdown & average rating calculation
-- [ ] Admin: View all customer reviews
-- [ ] Admin: Approve / Reject customer reviews
-- [ ] Admin: Delete inappropriate reviews
+- [x] Submit star rating (1 to 5 stars)
+- [x] Write review title and detailed review comment
+- [x] Verified purchaser validation (Only delivered buyers can review)
+- [x] Prevent duplicate reviews per user per product
+- [x] View product reviews list on PDP
+- [x] Star rating breakdown & average rating calculation
+- [x] Admin: View all customer reviews
+- [x] Admin: Approve / Reject customer reviews
+- [x] Admin: Delete inappropriate reviews
 
 ---
 

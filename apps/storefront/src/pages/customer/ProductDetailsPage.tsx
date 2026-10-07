@@ -44,6 +44,7 @@ export const ProductDetailsPage: React.FC = () => {
     toggleWishlist,
     handleAddToCart,
     handleBuyNow,
+    refetchProduct,
   } = useProductDetails();
 
   const [quickViewProduct, setQuickViewProduct] = useState<ProductItem | null>(null);
@@ -208,6 +209,7 @@ export const ProductDetailsPage: React.FC = () => {
           product={product}
           activeTab={activeTab}
           onTabChange={setActiveTab}
+          onReviewSubmitted={refetchProduct}
         />
 
         {/* 4. Bottom: Related Products Recommendation Carousel */}
