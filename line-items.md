@@ -381,6 +381,7 @@
 - [x] Storefront comprehensive Brand Footer (`Footer.tsx`) with live address, phone, email, operating hours, social icons, and copyright
 - [x] Storefront dedicated Contact Us page (`/contact`) with live business contact cards, inquiry submission form, FAQs, and WhatsApp integration
 - [x] Storefront full dynamic currency formatting (`formatPrice`) across Product Cards, PDP, Cart Drawer, Shopping Cart Page, Checkout Page, Order Confirmation, Customer Orders, and Order Tracking
+- [x] Admin Business Settings page zero-shadow aesthetic with strict `rounded-md` standard and shared form components (`InputField`, `Button`)
 
 ---
 
