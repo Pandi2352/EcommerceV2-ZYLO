@@ -67,5 +67,9 @@ export const ROUTES = {
   EMAIL_TEMPLATE_EDITOR: '/email-templates/editor/:id',
   EMAIL_TEMPLATE_NEW: '/email-templates/new',
 
+  // Warehouses & Stock Transfers
+  WAREHOUSES: '/warehouses',
+  STOCK_TRANSFERS: '/warehouses/transfers',
+
   NOT_FOUND: '*',
 } as const;

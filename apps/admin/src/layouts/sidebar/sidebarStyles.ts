@@ -10,6 +10,7 @@ import {
   FolderTree,
   Award,
   Mail,
+  Building2,
 } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
 import type { SubPageItem } from './SidebarGroup';
@@ -126,6 +127,15 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         pages: [
           { label: 'Overview', to: ROUTES.PRODUCTS_OVERVIEW },
           { label: 'All Products', to: ROUTES.PRODUCTS },
+        ],
+      },
+      {
+        id: 'warehouses',
+        label: 'Warehouses',
+        icon: Building2,
+        pages: [
+          { label: 'Fulfillment Centers', to: ROUTES.WAREHOUSES },
+          { label: 'Stock Transfers', to: ROUTES.STOCK_TRANSFERS },
         ],
       },
       {

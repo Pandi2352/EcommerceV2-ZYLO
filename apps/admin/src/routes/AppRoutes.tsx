@@ -41,6 +41,7 @@ import InventoryPage from '../pages/InventoryPage';
 import ReturnsPage from '../pages/ReturnsPage';
 import EmailTemplatesListPage from '../pages/email-templates/EmailTemplatesListPage';
 import EmailTemplateCanvasEditorPage from '../pages/email-templates/EmailTemplateCanvasEditorPage';
+import WarehousesPage from '../pages/warehouses/WarehousesPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -136,6 +137,10 @@ export const AppRoutes: React.FC = () => {
             <Route path={ROUTES.RETURNS} element={<ReturnsPage />} />
           </Route>
 
+          {/* Warehouses & Fulfillment Centers & Transfers */}
+          <Route path={ROUTES.WAREHOUSES} element={<WarehousesPage />} />
+          <Route path={ROUTES.STOCK_TRANSFERS} element={<WarehousesPage />} />
+
           {/* Marketing & Discounts: Coupons */}
           <Route element={<ProtectedRoute permission="coupons.view" />}>
             <Route path={ROUTES.COUPONS} element={<CouponsPage />} />
@@ -158,6 +163,8 @@ export const AppRoutes: React.FC = () => {
 
           {/* Email Templates Studio & Management */}
           <Route path={ROUTES.EMAIL_TEMPLATES} element={<EmailTemplatesListPage />} />
+          <Route path={ROUTES.EMAIL_TEMPLATE_EDITOR} element={<EmailTemplateCanvasEditorPage />} />
+          <Route path={ROUTES.EMAIL_TEMPLATE_NEW} element={<EmailTemplateCanvasEditorPage />} />
 
           <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage homeLabel="Back to Dashboard" />} />
         </Route>
