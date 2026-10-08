@@ -13,6 +13,9 @@ export const cartService = {
   addItem: (payload: AddToCartPayload) =>
     unwrap<CartCalculation & { message: string }>(api.post('/cart/items', payload)),
 
+  addMultipleItems: (items: AddToCartPayload[]) =>
+    unwrap<CartCalculation & { message: string }>(api.post('/cart/items/bulk', { items })),
+
   updateItem: (itemId: string, payload: UpdateCartItemPayload) =>
     unwrap<CartCalculation & { message: string }>(api.patch(`/cart/items/${itemId}`, payload)),
 

@@ -132,6 +132,45 @@ export class CartService {
     return this.calculateCart(cart);
   }
 
+  async addMultipleItems(userId: string, items: AddToCartDto[]): Promise<CartCalculationResult> {
+    const cart = await this.getOrCreateCart(userId);
+
+    for (const dto of items) {
+      const product = await this.findProduct(dto.productId);
+      if (!product) continue;
+
+      const { stock, trackInventory } = this.resolveStockAndVariant(product, dto.variantSku);
+      if (trackInventory && stock <= 0) continue;
+
+      const existingIndex = cart.items.findIndex(
+        (item) =>
+          item.productId.toString() === product._id.toString() &&
+          (item.variantSku || null) === (dto.variantSku || null),
+      );
+
+      const qtyToAdd = Math.max(1, dto.quantity || 1);
+
+      if (existingIndex > -1) {
+        const existing = cart.items[existingIndex];
+        const newQty = existing.quantity + qtyToAdd;
+        existing.quantity = trackInventory ? Math.min(newQty, stock) : newQty;
+        existing.selected = true;
+      } else {
+        cart.items.push({
+          _id: uuidv4(),
+          productId: product._id as Types.ObjectId,
+          variantSku: dto.variantSku || null,
+          quantity: trackInventory ? Math.min(qtyToAdd, stock) : qtyToAdd,
+          selected: true,
+          addedAt: new Date(),
+        });
+      }
+    }
+
+    await cart.save();
+    return this.calculateCart(cart);
+  }
+
   async updateItem(userId: string, itemId: string, dto: UpdateCartItemDto): Promise<CartCalculationResult> {
     const cart = await this.getOrCreateCart(userId);
     const index = cart.items.findIndex((i) => i._id === itemId);

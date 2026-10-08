@@ -15,6 +15,7 @@ import { ProductPurchaseCard } from '../../features/pdp/components/ProductPurcha
 import { ProductTabsSection } from '../../features/pdp/components/ProductTabsSection';
 import { RelatedProductsCarousel } from '../../features/pdp/components/RelatedProductsCarousel';
 import { ProductQuickViewModal } from '../../features/shop/components/ProductQuickViewModal';
+import { ProductBundlesSection } from '../../features/pdp/components/ProductBundlesSection';
 
 export const ProductDetailsPage: React.FC = () => {
   const {
@@ -217,6 +218,9 @@ export const ProductDetailsPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Frequently Bought Together / Product Bundles */}
+        <ProductBundlesSection productIdOrSlug={product.slug || product._id} />
 
         {/* 3. Middle: Tabbed Sections (Overview, Specs Table, Shipping, Reviews) */}
         <ProductTabsSection

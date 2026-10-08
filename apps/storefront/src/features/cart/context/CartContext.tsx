@@ -32,6 +32,19 @@ interface CartContextType {
   openDrawer: () => void;
   closeDrawer: () => void;
   addToCart: (product: any, variantSku?: string | null, quantity?: number) => Promise<boolean>;
+  addMultipleToCart: (
+    items: {
+      productId: string;
+      name: string;
+      slug: string;
+      image: string;
+      basePrice: number;
+      price: number;
+      quantity?: number;
+      variantSku?: string | null;
+      discountPercent?: number;
+    }[],
+  ) => Promise<boolean>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   toggleSelect: (itemId: string, selected: boolean) => Promise<void>;
   selectAll: (selected: boolean) => Promise<void>;
@@ -300,6 +313,84 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Add Multiple Items Simultaneously (e.g. Frequently Bought Together Kits)
+  const addMultipleToCart = async (
+    items: {
+      productId: string;
+      name: string;
+      slug: string;
+      image: string;
+      basePrice: number;
+      price: number;
+      quantity?: number;
+      variantSku?: string | null;
+      discountPercent?: number;
+    }[],
+  ): Promise<boolean> => {
+    try {
+      if (!items || items.length === 0) return false;
+
+      if (user) {
+        const payload = items.map((i) => ({
+          productId: i.productId,
+          variantSku: i.variantSku || undefined,
+          quantity: i.quantity || 1,
+        }));
+        const res = await cartService.addMultipleItems(payload);
+        setCartState(res);
+      } else {
+        const existingItems = [...cartState.items];
+        let lastItem: CartItem | null = null;
+
+        for (const item of items) {
+          const qty = item.quantity || 1;
+          const matchIdx = existingItems.findIndex(
+            (ei) => ei.productId === item.productId && (ei.variantSku || null) === (item.variantSku || null),
+          );
+
+          if (matchIdx > -1) {
+            existingItems[matchIdx].quantity += qty;
+            existingItems[matchIdx].selected = true;
+            existingItems[matchIdx].lineTotal = +(
+              existingItems[matchIdx].price * existingItems[matchIdx].quantity
+            ).toFixed(2);
+            lastItem = existingItems[matchIdx];
+          } else {
+            const newItem: CartItem = {
+              id: `guest_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+              productId: item.productId,
+              productSlug: item.slug,
+              name: item.name,
+              image: item.image,
+              variantSku: item.variantSku || null,
+              price: item.price,
+              originalPrice: item.basePrice,
+              savings: +((item.basePrice - item.price) * qty).toFixed(2),
+              quantity: qty,
+              selected: true,
+              stockQuantity: 99,
+              inStock: true,
+              trackInventory: false,
+              lineTotal: +(item.price * qty).toFixed(2),
+            };
+            existingItems.push(newItem);
+            lastItem = newItem;
+          }
+        }
+
+        saveGuestCart(existingItems, cartState.savedForLater);
+        if (lastItem) setLastAddedItem(lastItem);
+      }
+
+      toast.success(`Added ${items.length} bundle items to cart!`);
+      setIsDrawerOpen(true);
+      return true;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to add bundle to cart');
+      return false;
+    }
+  };
+
   // Update Item Quantity
   const updateQuantity = async (itemId: string, quantity: number) => {
     try {
@@ -517,6 +608,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         openDrawer,
         closeDrawer,
         addToCart,
+        addMultipleToCart,
         updateQuantity,
         toggleSelect,
         selectAll,

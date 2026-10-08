@@ -42,6 +42,15 @@ export class CartController {
     return { ...data, message: 'Item added to cart' };
   }
 
+  @Post('items/bulk')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Add multiple bundle items to cart simultaneously' })
+  @ApiResponse({ status: 200, description: 'Updated cart' })
+  async addMultipleItems(@CurrentUser() user: UserDocument, @Body('items') items: AddToCartDto[]) {
+    const data = await this.cartService.addMultipleItems(user._id.toString(), items || []);
+    return { ...data, message: 'Bundle items added to cart' };
+  }
+
   @Patch('items/:id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update cart item quantity or selection' })

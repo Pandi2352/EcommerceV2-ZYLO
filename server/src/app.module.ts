@@ -28,6 +28,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { EmailTemplatesModule } from './modules/email-templates/email-templates.module';
 import { WarehousesModule } from './modules/warehouses/warehouses.module';
+import { BundlesModule } from './modules/bundles/bundles.module';
 import { mongooseAsyncConfig } from './config/database.config';
 import { appConfig } from './config/app.config';
 import { authConfig } from './config/auth.config';
@@ -74,6 +75,7 @@ import { PermissionsGuard } from './common/authorization/permissions.guard';
     UploadsModule,
     EmailTemplatesModule,
     WarehousesModule,
+    BundlesModule,
   ],
   providers: [
     // Guards run in registration order: rate limit → authenticate → forced password change → account type → permissions → roles.

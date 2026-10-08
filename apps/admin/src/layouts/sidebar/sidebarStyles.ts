@@ -127,6 +127,7 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         pages: [
           { label: 'Overview', to: ROUTES.PRODUCTS_OVERVIEW },
           { label: 'All Products', to: ROUTES.PRODUCTS },
+          { label: 'Bundles & Kits', to: ROUTES.BUNDLES },
         ],
       },
       {

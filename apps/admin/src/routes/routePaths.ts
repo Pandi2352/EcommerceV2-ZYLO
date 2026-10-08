@@ -23,6 +23,7 @@ export const ROUTES = {
   CATEGORIES: '/categories',
   BRANDS: '/brands',
   INVENTORY: '/inventory',
+  BUNDLES: '/products/bundles',
 
   // Sales & Fulfillment
   ORDERS: '/orders',

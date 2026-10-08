@@ -42,6 +42,7 @@ import ReturnsPage from '../pages/ReturnsPage';
 import EmailTemplatesListPage from '../pages/email-templates/EmailTemplatesListPage';
 import EmailTemplateCanvasEditorPage from '../pages/email-templates/EmailTemplateCanvasEditorPage';
 import WarehousesPage from '../pages/warehouses/WarehousesPage';
+import BundlesPage from '../pages/bundles/BundlesPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -115,6 +116,7 @@ export const AppRoutes: React.FC = () => {
             <Route path={ROUTES.PRODUCTS_OVERVIEW} element={<ProductsOverviewPage />} />
             <Route path={ROUTES.PRODUCTS} element={<ProductsPage />} />
             <Route path={ROUTES.INVENTORY} element={<InventoryPage />} />
+            <Route path={ROUTES.BUNDLES} element={<BundlesPage />} />
           </Route>
 
           {/* Catalog: Categories */}

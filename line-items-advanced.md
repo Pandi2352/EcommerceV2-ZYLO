@@ -67,7 +67,7 @@
 ---
 
 ## Module 4: Product Catalog & Advanced Merchandising
-- [ ] **Product Bundles & "Buy Together" Kits**: Combine multiple standalone products into a discounted composite package.
+- [x] **Product Bundles & "Buy Together" Kits**: Combine multiple standalone products into a discounted composite package with horizontal PDP visual chain, reactive item checkboxes, 1-click bundle add-to-cart, backend bulk add API, and Admin bundle drawer configurator.
 - [x] **Dynamic Tiered Volume Pricing (B2B Bulk Pricing)**: Automatic discount tables for bulk buyers with interactive PDP bracket selector, live unit savings callout, auto-discounting in Cart & Checkout, and Admin product tier configurator.
 - [ ] **3D Model & Augmented Reality (AR) Preview**: `.glb` / `.usdz` asset viewer allowing customers to project products into their room via smartphone camera.
 - [ ] **Interactive Product Comparison Matrix**: Side-by-side comparison modal analyzing technical specs of up to 4 products.
