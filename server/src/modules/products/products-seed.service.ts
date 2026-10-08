@@ -1455,6 +1455,30 @@ export class ProductsSeedService implements OnModuleInit {
       seeded++;
     }
 
+    // Seed/backfill volume tiers on premier catalog products for wholesale volume pricing
+    const productsNeedingTiers = await this.productModel
+      .find({
+        $or: [{ volumeTiers: { $exists: false } }, { volumeTiers: { $size: 0 } }],
+      })
+      .limit(15)
+      .exec();
+
+    if (productsNeedingTiers.length > 0) {
+      for (const prod of productsNeedingTiers) {
+        const tiers = [
+          { minQuantity: 3, maxQuantity: 4, discountPercent: 5 },
+          { minQuantity: 5, maxQuantity: 9, discountPercent: 12 },
+          { minQuantity: 10, maxQuantity: null, discountPercent: 20 },
+        ];
+        await this.productModel.findByIdAndUpdate(prod._id, {
+          $set: { volumeTiers: tiers },
+        });
+      }
+      this.logger.log(
+        `Seeded volume pricing tiers on ${productsNeedingTiers.length} catalog products.`,
+      );
+    }
+
     this.logger.log(`Successfully seeded ${seeded} premier catalog products.`);
     return { seeded, existing: 0 };
   }

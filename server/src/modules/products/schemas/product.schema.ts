@@ -27,6 +27,13 @@ export interface ProductVariant {
   isActive: boolean;
 }
 
+export interface VolumePricingTier {
+  minQuantity: number;
+  maxQuantity?: number | null;
+  discountPercent?: number;
+  unitPrice?: number | null;
+}
+
 export interface ProductSeo {
   metaTitle: string;
   metaDescription: string;
@@ -88,6 +95,20 @@ export class Product {
 
   @Prop({ type: String, default: 'USD' })
   currency: string;
+
+  // Tiered Volume Pricing (B2B Bulk Pricing)
+  @Prop({
+    type: [
+      {
+        minQuantity: { type: Number, required: true, min: 1 },
+        maxQuantity: { type: Number, default: null },
+        discountPercent: { type: Number, default: 0, min: 0, max: 100 },
+        unitPrice: { type: Number, default: null, min: 0 },
+      },
+    ],
+    default: [],
+  })
+  volumeTiers: VolumePricingTier[];
 
   // Inventory & Stock
   @Prop({ type: Boolean, default: true })

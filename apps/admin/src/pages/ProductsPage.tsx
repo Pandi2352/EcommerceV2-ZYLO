@@ -427,6 +427,12 @@ export const ProductsPage: React.FC = () => {
                           ) : (
                             <span className="text-xs font-bold text-slate-900">${prod.basePrice}</span>
                           )}
+                          {prod.volumeTiers && prod.volumeTiers.length > 0 && (
+                            <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] bg-amber-50 text-amber-700 font-bold border border-amber-200">
+                              <Boxes className="w-2.5 h-2.5 text-amber-600" />
+                              {prod.volumeTiers.length} bulk {prod.volumeTiers.length === 1 ? 'tier' : 'tiers'}
+                            </span>
+                          )}
                         </div>
                       </td>
 

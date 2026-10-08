@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { productsService } from '@shared/api/products.service';
 import type { ProductItem, ProductVariant } from '@shared/types/product';
+import { calculateVolumeTieredPrice } from '@shared/utils/pricing';
 import { toast } from '@shared/ui/Toast';
 import { ROUTES } from '../../../routes/routePaths';
 import { useCart } from '../../cart/context/CartContext';
@@ -98,7 +99,7 @@ export function useProductDetails() {
   }, [product, selectedVariant]);
 
   // Pricing calculations
-  const basePrice = selectedVariant
+  const rawBasePrice = selectedVariant
     ? selectedVariant.price
     : product?.basePrice || 0;
 
@@ -106,12 +107,18 @@ export function useProductDetails() {
     ? selectedVariant.salePrice
     : product?.salePrice;
 
-  const effectivePrice = salePrice && salePrice > 0 ? salePrice : basePrice;
-  const hasDiscount = Boolean(salePrice && salePrice > 0 && salePrice < basePrice);
+  const initialEffectivePrice = salePrice && salePrice > 0 ? salePrice : rawBasePrice;
+
+  // Calculate volume tiered pricing based on current stepper quantity
+  const volumePriceRes = calculateVolumeTieredPrice(rawBasePrice, quantity, product?.volumeTiers);
+
+  const effectivePrice = volumePriceRes.isTiered ? volumePriceRes.unitPrice : initialEffectivePrice;
+  const basePrice = rawBasePrice;
+  const hasDiscount = Boolean((salePrice && salePrice > 0 && salePrice < basePrice) || volumePriceRes.isTiered);
   const discountPercent = hasDiscount && basePrice > 0
-    ? Math.round(((basePrice - salePrice!) / basePrice) * 100)
+    ? Math.round(((basePrice - effectivePrice) / basePrice) * 100)
     : 0;
-  const savingsAmount = hasDiscount ? basePrice - salePrice! : 0;
+  const savingsAmount = hasDiscount ? +(basePrice - effectivePrice).toFixed(2) : 0;
 
   // Stock calculations
   const effectiveStock = selectedVariant
@@ -190,6 +197,7 @@ export function useProductDetails() {
     setActiveTab,
     isWishlisted,
     toggleWishlist,
+    volumePriceRes,
     handleAddToCart,
     handleBuyNow,
     refetchProduct: fetchProductData,

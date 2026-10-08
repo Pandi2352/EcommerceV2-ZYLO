@@ -10,6 +10,7 @@ import { ProductImageGallery } from '../../features/pdp/components/ProductImageG
 import { ProductHeaderMeta } from '../../features/pdp/components/ProductHeaderMeta';
 import { ProductPriceAndBadges } from '../../features/pdp/components/ProductPriceAndBadges';
 import { ProductVariantSelector } from '../../features/pdp/components/ProductVariantSelector';
+import { ProductVolumePricingTable } from '../../features/pdp/components/ProductVolumePricingTable';
 import { ProductPurchaseCard } from '../../features/pdp/components/ProductPurchaseCard';
 import { ProductTabsSection } from '../../features/pdp/components/ProductTabsSection';
 import { RelatedProductsCarousel } from '../../features/pdp/components/RelatedProductsCarousel';
@@ -42,6 +43,7 @@ export const ProductDetailsPage: React.FC = () => {
     setActiveTab,
     isWishlisted,
     toggleWishlist,
+    volumePriceRes,
     handleAddToCart,
     handleBuyNow,
     refetchProduct,
@@ -169,6 +171,8 @@ export const ProductDetailsPage: React.FC = () => {
                 discountPercent={discountPercent}
                 savingsAmount={savingsAmount}
                 currency={product.currency || 'USD'}
+                isVolumeDiscounted={volumePriceRes?.isTiered}
+                volumeDiscountPercent={volumePriceRes?.discountPercent}
               />
 
               {/* Short Description */}
@@ -184,6 +188,16 @@ export const ProductDetailsPage: React.FC = () => {
                   variants={product.variants}
                   selectedVariant={selectedVariant}
                   onSelectVariant={handleSelectVariant}
+                />
+              )}
+
+              {/* Dynamic Tiered Volume Pricing Table (Bulk Wholesale Widget) */}
+              {product.volumeTiers && product.volumeTiers.length > 0 && (
+                <ProductVolumePricingTable
+                  basePrice={basePrice}
+                  volumeTiers={product.volumeTiers}
+                  selectedQuantity={quantity}
+                  onSelectQuantity={handleQuantityChange}
                 />
               )}
 

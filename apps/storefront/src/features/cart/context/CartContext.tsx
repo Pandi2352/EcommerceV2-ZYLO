@@ -3,6 +3,7 @@ import { useAuth } from '@shared/auth/AuthContext';
 import { cartService } from '@shared/api/cart.service';
 import { couponsService } from '@shared/api/coupons.service';
 import type { CartCalculation, CartItem } from '@shared/types/cart';
+import { calculateVolumeTieredPrice } from '@shared/utils/pricing';
 import { toast } from '@shared/ui/Toast';
 
 const GUEST_CART_STORAGE_KEY = 'zylo_guest_cart';
@@ -221,6 +222,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
 
         let createdItem: CartItem;
+        const volumeTiers = product.volumeTiers || [];
+
         if (existingIdx > -1) {
           const current = existingItems[existingIdx];
           const newQty = current.quantity + quantity;
@@ -230,6 +233,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           current.quantity = newQty;
           current.selected = true;
+
+          // Apply volume pricing if product has tiers
+          if (current.volumeTiers?.length || volumeTiers.length) {
+            current.volumeTiers = current.volumeTiers || volumeTiers;
+            const volumeRes = calculateVolumeTieredPrice(current.originalPrice, newQty, current.volumeTiers);
+            current.price = volumeRes.unitPrice;
+            current.savings = volumeRes.totalSavings;
+            current.volumeDiscountPercent = volumeRes.discountPercent > 0 ? volumeRes.discountPercent : undefined;
+            current.isVolumeDiscounted = volumeRes.isTiered;
+          }
+
           current.lineTotal = +(current.price * newQty).toFixed(2);
           createdItem = current;
         } else {
@@ -243,6 +257,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             product.images?.[0]?.url ||
             '';
 
+          // Check if initial quantity qualifies for volume discount
+          const volumeRes = calculateVolumeTieredPrice(basePrice, quantity, volumeTiers);
+          const finalPrice = volumeRes.isTiered ? volumeRes.unitPrice : effectivePrice;
+
           createdItem = {
             id: `guest_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
             productId: product._id || product.id,
@@ -252,15 +270,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             image: primaryImg,
             variantSku: variantSku || null,
             variantTitle: variant?.title || null,
-            price: effectivePrice,
+            price: finalPrice,
             originalPrice: basePrice,
-            savings: +((basePrice - effectivePrice) * quantity).toFixed(2),
+            savings: +((basePrice - finalPrice) * quantity).toFixed(2),
             quantity,
             selected: true,
             stockQuantity: stock,
             inStock: true,
             trackInventory,
-            lineTotal: +(effectivePrice * quantity).toFixed(2),
+            lineTotal: +(finalPrice * quantity).toFixed(2),
+            volumeTiers: volumeTiers.length ? volumeTiers : undefined,
+            volumeDiscountPercent: volumeRes.discountPercent > 0 ? volumeRes.discountPercent : undefined,
+            isVolumeDiscounted: volumeRes.isTiered,
           };
           existingItems.push(createdItem);
         }
@@ -297,6 +318,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return;
             }
             item.quantity = quantity;
+
+            // Recalculate tiered volume pricing
+            if (item.volumeTiers?.length) {
+              const volumeRes = calculateVolumeTieredPrice(item.originalPrice, quantity, item.volumeTiers);
+              item.price = volumeRes.unitPrice;
+              item.savings = volumeRes.totalSavings;
+              item.volumeDiscountPercent = volumeRes.discountPercent > 0 ? volumeRes.discountPercent : undefined;
+              item.isVolumeDiscounted = volumeRes.isTiered;
+            }
+
             item.lineTotal = +(item.price * quantity).toFixed(2);
           }
         }

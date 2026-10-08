@@ -34,6 +34,8 @@ export interface PopulatedCartItem {
   inStock: boolean;
   trackInventory: boolean;
   lineTotal: number;
+  volumeDiscountPercent?: number;
+  isVolumeDiscounted?: boolean;
 }
 
 export interface CartCalculationResult {
@@ -318,7 +320,28 @@ export class CartService {
 
       const basePrice = variant ? variant.price : prod.basePrice || 0;
       const salePrice = variant ? variant.salePrice : prod.salePrice;
-      const effectivePrice = salePrice && salePrice > 0 ? salePrice : basePrice;
+      let effectivePrice = salePrice && salePrice > 0 ? salePrice : basePrice;
+
+      // Tiered Volume Pricing evaluation
+      let isVolumeDiscounted = false;
+      let volumeDiscountPercent = 0;
+      if (prod.volumeTiers?.length) {
+        const matchingTier = [...prod.volumeTiers]
+          .filter((t) => item.quantity >= t.minQuantity && (t.maxQuantity == null || item.quantity <= t.maxQuantity))
+          .sort((a, b) => b.minQuantity - a.minQuantity)[0];
+
+        if (matchingTier) {
+          isVolumeDiscounted = true;
+          if (matchingTier.unitPrice != null && matchingTier.unitPrice > 0) {
+            effectivePrice = matchingTier.unitPrice;
+            volumeDiscountPercent = Math.max(0, Math.round(((basePrice - effectivePrice) / basePrice) * 100));
+          } else if (matchingTier.discountPercent && matchingTier.discountPercent > 0) {
+            volumeDiscountPercent = matchingTier.discountPercent;
+            effectivePrice = +(basePrice * (1 - volumeDiscountPercent / 100)).toFixed(2);
+          }
+        }
+      }
+
       const savingsPerUnit = basePrice > effectivePrice ? basePrice - effectivePrice : 0;
       const stock = variant ? variant.stockQuantity : prod.stockQuantity || 0;
       const inStock = prod.trackInventory ? stock > 0 : true;
@@ -341,6 +364,8 @@ export class CartService {
         inStock,
         trackInventory: prod.trackInventory ?? true,
         lineTotal: +(effectivePrice * item.quantity).toFixed(2),
+        volumeDiscountPercent: volumeDiscountPercent > 0 ? volumeDiscountPercent : undefined,
+        isVolumeDiscounted,
       };
     };
 

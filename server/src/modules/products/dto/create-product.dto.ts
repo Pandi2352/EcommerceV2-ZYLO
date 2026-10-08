@@ -95,6 +95,28 @@ export class ProductVariantDto {
   isActive?: boolean;
 }
 
+export class VolumePricingTierDto {
+  @ApiProperty({ description: 'Minimum bracket purchase quantity', example: 5 })
+  @IsNumber()
+  @Min(1)
+  minQuantity: number;
+
+  @ApiPropertyOptional({ description: 'Maximum bracket purchase quantity (null for unlimited)', example: 9 })
+  @IsOptional()
+  @IsNumber()
+  maxQuantity?: number | null;
+
+  @ApiPropertyOptional({ description: 'Percentage discount (e.g. 10 for 10%)', example: 10 })
+  @IsOptional()
+  @IsNumber()
+  discountPercent?: number;
+
+  @ApiPropertyOptional({ description: 'Fixed unit price override in USD', example: 179.99 })
+  @IsOptional()
+  @IsNumber()
+  unitPrice?: number | null;
+}
+
 export class CreateProductDto {
   @ApiProperty({ description: 'Product marketing title', example: 'iPhone 16 Pro Max' })
   @IsString()
@@ -224,6 +246,13 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => ProductVariantDto)
   variants?: ProductVariantDto[];
+
+  @ApiPropertyOptional({ description: 'Tiered volume pricing rules', type: [VolumePricingTierDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => VolumePricingTierDto)
+  volumeTiers?: VolumePricingTierDto[];
 
   // Merchandising
   @ApiPropertyOptional({ enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'], default: 'DRAFT' })

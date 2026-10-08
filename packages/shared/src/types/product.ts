@@ -30,6 +30,13 @@ export interface ProductSeo {
   ogImage: string | null;
 }
 
+export interface VolumePricingTier {
+  minQuantity: number;
+  maxQuantity?: number | null;
+  discountPercent?: number;
+  unitPrice?: number | null;
+}
+
 export type ProductStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
 export interface ProductItem {
@@ -66,6 +73,7 @@ export interface ProductItem {
   specifications: ProductSpecification[];
   hasVariants: boolean;
   variants: ProductVariant[];
+  volumeTiers?: VolumePricingTier[];
   status: ProductStatus;
   isFeatured: boolean;
   isNewArrival: boolean;
@@ -110,6 +118,7 @@ export interface CreateProductPayload {
   specifications?: ProductSpecification[];
   hasVariants?: boolean;
   variants?: ProductVariant[];
+  volumeTiers?: VolumePricingTier[];
   status?: ProductStatus;
   isFeatured?: boolean;
   isNewArrival?: boolean;

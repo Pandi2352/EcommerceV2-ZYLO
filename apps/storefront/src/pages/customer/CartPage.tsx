@@ -269,6 +269,11 @@ export const CartPage: React.FC = () => {
                                   ({formatPrice(item.price)} each)
                                 </p>
                               )}
+                              {item.isVolumeDiscounted && (
+                                <span className="inline-block mt-1 text-[10px] font-extrabold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded border border-amber-200">
+                                  Bulk Tier (-{item.volumeDiscountPercent}%)
+                                </span>
+                              )}
                             </div>
                           </div>
 

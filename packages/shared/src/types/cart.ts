@@ -1,3 +1,5 @@
+import type { VolumePricingTier } from './product';
+
 export interface CartItem {
   id: string;
   productId: string;
@@ -16,6 +18,9 @@ export interface CartItem {
   inStock: boolean;
   trackInventory: boolean;
   lineTotal: number;
+  volumeDiscountPercent?: number;
+  isVolumeDiscounted?: boolean;
+  volumeTiers?: VolumePricingTier[];
 }
 
 export interface CartCalculation {

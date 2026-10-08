@@ -218,13 +218,18 @@ export const CartDrawer: React.FC = () => {
                                 </span>
                               </p>
                             )}
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
                               <span className="text-xs sm:text-sm font-bold text-slate-900">
                                 {formatPrice(item.price)}
                               </span>
                               {item.originalPrice > item.price && (
                                 <span className="text-[11px] text-slate-400 line-through">
                                   {formatPrice(item.originalPrice)}
+                                </span>
+                              )}
+                              {item.isVolumeDiscounted && (
+                                <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100/90 px-1.5 py-0.2 rounded border border-amber-200">
+                                  Bulk -{item.volumeDiscountPercent}%
                                 </span>
                               )}
                             </div>

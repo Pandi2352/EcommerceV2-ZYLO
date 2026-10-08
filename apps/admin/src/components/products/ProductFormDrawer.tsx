@@ -24,6 +24,7 @@ import Button from '@shared/ui/Button';
 import InputField from '@shared/ui/InputField';
 import Dropdown, { type DropdownOption } from '@shared/ui/Dropdown';
 import Alert from '@shared/ui/Alert';
+import { toast } from '@shared/ui/Toast';
 import TagInput from '@shared/ui/TagInput';
 import SeoSnippetPreview from '@shared/ui/SeoSnippetPreview';
 import ImageUploadDropzone from '@shared/ui/ImageUploadDropzone';
@@ -37,6 +38,7 @@ import type {
   ProductSpecification,
   ProductVariant,
   ProductStatus,
+  VolumePricingTier,
 } from '@shared/types/product';
 
 export interface ProductFormDrawerProps {
@@ -87,6 +89,52 @@ export const ProductFormDrawer: React.FC<ProductFormDrawerProps> = ({
   const [lowStockThreshold, setLowStockThreshold] = useState<number | ''>(5);
   const [trackInventory, setTrackInventory] = useState(true);
   const [allowBackorders, setAllowBackorders] = useState(false);
+
+  // Tiered Volume Pricing (B2B Bulk Pricing)
+  const [volumeTiers, setVolumeTiers] = useState<VolumePricingTier[]>([]);
+  const [newTierMin, setNewTierMin] = useState<number | ''>(5);
+  const [newTierMax, setNewTierMax] = useState<number | ''>(9);
+  const [newTierDiscount, setNewTierDiscount] = useState<number | ''>(10);
+  const [newTierPrice, setNewTierPrice] = useState<number | ''>('');
+
+  const handleAddVolumeTier = () => {
+    if (newTierMin === '' || Number(newTierMin) < 1) {
+      toast.error('Minimum quantity must be at least 1');
+      return;
+    }
+    const minQty = Number(newTierMin);
+    const maxQty = newTierMax !== '' && Number(newTierMax) > 0 ? Number(newTierMax) : null;
+
+    if (maxQty !== null && maxQty < minQty) {
+      toast.error('Maximum quantity cannot be less than minimum quantity');
+      return;
+    }
+
+    const disc = newTierDiscount !== '' && Number(newTierDiscount) > 0 ? Number(newTierDiscount) : undefined;
+    const price = newTierPrice !== '' && Number(newTierPrice) > 0 ? Number(newTierPrice) : null;
+
+    if (!disc && !price) {
+      toast.error('Specify either a discount percentage or a fixed unit price');
+      return;
+    }
+
+    const newTier: VolumePricingTier = {
+      minQuantity: minQty,
+      maxQuantity: maxQty,
+      discountPercent: disc,
+      unitPrice: price,
+    };
+
+    setVolumeTiers([...volumeTiers, newTier].sort((a, b) => a.minQuantity - b.minQuantity));
+    setNewTierMin('');
+    setNewTierMax('');
+    setNewTierDiscount('');
+    setNewTierPrice('');
+  };
+
+  const handleRemoveVolumeTier = (index: number) => {
+    setVolumeTiers(volumeTiers.filter((_, i) => i !== index));
+  };
 
   // Tab 3: Media
   const [images, setImages] = useState<ProductImage[]>([]);
@@ -169,6 +217,7 @@ export const ProductFormDrawer: React.FC<ProductFormDrawerProps> = ({
       setLowStockThreshold(initialData.lowStockThreshold ?? 5);
       setTrackInventory(initialData.trackInventory ?? true);
       setAllowBackorders(initialData.allowBackorders ?? false);
+      setVolumeTiers(initialData.volumeTiers || []);
 
       setImages(initialData.images || []);
       setHasVariants(initialData.hasVariants || false);
@@ -200,6 +249,7 @@ export const ProductFormDrawer: React.FC<ProductFormDrawerProps> = ({
       setLowStockThreshold(5);
       setTrackInventory(true);
       setAllowBackorders(false);
+      setVolumeTiers([]);
 
       setImages([]);
       setHasVariants(false);
@@ -357,6 +407,7 @@ export const ProductFormDrawer: React.FC<ProductFormDrawerProps> = ({
         specifications,
         hasVariants,
         variants: hasVariants ? variants : [],
+        volumeTiers,
         status,
         isFeatured,
         isNewArrival,
@@ -741,6 +792,153 @@ export const ProductFormDrawer: React.FC<ProductFormDrawerProps> = ({
                         </span>
                       </div>
                     )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Card 1.5: Tiered Volume Pricing (B2B Bulk Pricing) */}
+            <div className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-none">
+              <div className="bg-slate-50/75 px-3.5 py-2.5 border-b border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="p-1 rounded bg-amber-50 text-amber-600 border border-amber-100">
+                    <Boxes className="w-3.5 h-3.5" />
+                  </span>
+                  <h4 className="text-xs font-semibold text-slate-800 tracking-wide">
+                    Tiered Volume Pricing (B2B / Wholesale)
+                  </h4>
+                </div>
+                <span className="text-[11px] text-amber-700 font-medium bg-amber-50/60 px-2 py-0.5 rounded border border-amber-200/60">
+                  {volumeTiers.length} {volumeTiers.length === 1 ? 'Tier' : 'Tiers'} Configured
+                </span>
+              </div>
+              <div className="p-4 space-y-4">
+                <p className="text-xs text-slate-500">
+                  Reward high-volume and B2B buyers with automatic tiered unit discounts based on cart item quantity.
+                </p>
+
+                {/* Add Tier Inputs */}
+                <div className="p-3 bg-slate-50/70 rounded-md border border-slate-200/80 space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        Min Qty *
+                      </label>
+                      <InputField
+                        type="number"
+                        min="1"
+                        value={newTierMin}
+                        onChange={(e) => setNewTierMin(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="5"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        Max Qty (Optional)
+                      </label>
+                      <InputField
+                        type="number"
+                        min="1"
+                        value={newTierMax}
+                        onChange={(e) => setNewTierMax(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="9 or Blank for ∞"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        Discount %
+                      </label>
+                      <InputField
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={newTierDiscount}
+                        onChange={(e) => setNewTierDiscount(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="10"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        Or Unit Price ($)
+                      </label>
+                      <InputField
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={newTierPrice}
+                        onChange={(e) => setNewTierPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="179.00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleAddVolumeTier}
+                      leftIcon={<Plus className="w-3.5 h-3.5" />}
+                    >
+                      Add Pricing Tier
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Existing Tiers Table */}
+                {volumeTiers.length > 0 && (
+                  <div className="border border-slate-200 rounded-md overflow-hidden">
+                    <table className="w-full text-left text-xs text-slate-700">
+                      <thead className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
+                        <tr>
+                          <th className="px-3 py-2">Quantity Bracket</th>
+                          <th className="px-3 py-2">Discount</th>
+                          <th className="px-3 py-2">Effective Unit Price</th>
+                          <th className="px-3 py-2 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {volumeTiers.map((tier, idx) => {
+                          const base = Number(basePrice) || 0;
+                          let calcPrice = base;
+                          if (tier.unitPrice != null && tier.unitPrice > 0) {
+                            calcPrice = tier.unitPrice;
+                          } else if (tier.discountPercent && tier.discountPercent > 0) {
+                            calcPrice = +(base * (1 - tier.discountPercent / 100)).toFixed(2);
+                          }
+
+                          return (
+                            <tr key={idx} className="hover:bg-slate-50/50">
+                              <td className="px-3 py-2 font-bold text-slate-900">
+                                {tier.minQuantity} {tier.maxQuantity ? `– ${tier.maxQuantity} units` : '+ units'}
+                              </td>
+                              <td className="px-3 py-2">
+                                {tier.discountPercent ? (
+                                  <span className="font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                    {tier.discountPercent}% OFF
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400">Fixed Rate</span>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 font-extrabold text-slate-900">
+                                {calcPrice > 0 ? `$${calcPrice.toFixed(2)}` : 'Calculated on live price'}
+                              </td>
+                              <td className="px-3 py-2 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveVolumeTier(idx)}
+                                  className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
+                                  title="Delete tier"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>

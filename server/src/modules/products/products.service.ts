@@ -421,6 +421,7 @@ export class ProductsService {
     if (dto.specifications !== undefined) product.specifications = dto.specifications;
     if (dto.hasVariants !== undefined) product.hasVariants = dto.hasVariants;
     if (dto.variants !== undefined) product.variants = dto.variants as any;
+    if (dto.volumeTiers !== undefined) product.volumeTiers = dto.volumeTiers as any;
     if (dto.status !== undefined) product.status = dto.status;
     if (dto.isFeatured !== undefined) product.isFeatured = dto.isFeatured;
     if (dto.isNewArrival !== undefined) product.isNewArrival = dto.isNewArrival;
