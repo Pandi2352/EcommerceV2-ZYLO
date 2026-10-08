@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import * as path from 'path';
 import { AppModule } from './app.module';
 import { setupSwagger } from './config/swagger.config';
 import { buildCorsOptions } from './config/cors.config';
@@ -25,8 +26,17 @@ async function bootstrap() {
   }
 
   // Security Middleware
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
   app.use(cookieParser());
+
+  // Static Assets Serving for Local Uploads (/uploads)
+  app.useStaticAssets(path.join(process.cwd(), 'uploads'), {
+    prefix: '/uploads/',
+  });
 
   // CORS: only the storefront and admin origins (CLIENT_URL / ADMIN_URL) may send cookies
   const { corsOrigins } = config.getOrThrow<AppConfig>('app');

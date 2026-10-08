@@ -19,12 +19,12 @@ export class AdminReturnQueryDto {
 
   @ApiPropertyOptional({
     description: 'Sort criteria',
-    enum: ['recent', 'oldest', 'amount_desc', 'amount_asc'],
-    default: 'recent',
+    enum: ['newest', 'recent', 'oldest', 'amount_desc', 'amount_asc'],
+    default: 'newest',
   })
   @IsOptional()
-  @IsIn(['recent', 'oldest', 'amount_desc', 'amount_asc'])
-  sortBy?: 'recent' | 'oldest' | 'amount_desc' | 'amount_asc' = 'recent';
+  @IsIn(['newest', 'recent', 'oldest', 'amount_desc', 'amount_asc'])
+  sortBy?: 'newest' | 'recent' | 'oldest' | 'amount_desc' | 'amount_asc' = 'newest';
 
   @ApiPropertyOptional({ default: 1, minimum: 1 })
   @IsOptional()

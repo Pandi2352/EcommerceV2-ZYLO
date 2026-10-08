@@ -398,12 +398,12 @@
 ---
 
 ## 21. File Uploads & Media Management
-- [ ] Multer multipart file upload handling in NestJS
-- [ ] Strict file MIME type validation (JPEG, PNG, WebP)
-- [ ] File size limit enforcement (Max 5MB per image)
-- [ ] Local static storage serving `/uploads/`
-- [ ] Storage service abstraction (Ready for S3 / Cloudinary switch)
-- [ ] Delete orphaned image files on product deletion
+- [x] Multer multipart file upload handling in NestJS
+- [x] Strict file MIME type validation (JPEG, PNG, WebP)
+- [x] File size limit enforcement (Max 5MB per image)
+- [x] Local static storage serving `/uploads/`
+- [x] Storage service abstraction (Ready for S3 / Cloudinary switch)
+- [x] Delete orphaned image files on product deletion
 
 ---
 

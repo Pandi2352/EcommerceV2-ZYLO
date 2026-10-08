@@ -9,6 +9,8 @@ import { AdminProductsController } from './admin-products.controller';
 import { AdminInventoryController } from './admin-inventory.controller';
 import { PublicProductsController } from './public-products.controller';
 
+import { UploadsModule } from '../uploads/uploads.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -16,6 +18,7 @@ import { PublicProductsController } from './public-products.controller';
       { name: Brand.name, schema: BrandSchema },
       { name: Category.name, schema: CategorySchema },
     ]),
+    UploadsModule,
   ],
   controllers: [AdminProductsController, AdminInventoryController, PublicProductsController],
   providers: [ProductsService, ProductsSeedService],

@@ -16,7 +16,6 @@ import {
   Sparkles,
   Tag,
   Barcode,
-  UploadCloud,
   TrendingUp,
 } from 'lucide-react';
 import Drawer from '@shared/ui/Drawer';
@@ -27,6 +26,7 @@ import Dropdown, { type DropdownOption } from '@shared/ui/Dropdown';
 import Alert from '@shared/ui/Alert';
 import TagInput from '@shared/ui/TagInput';
 import SeoSnippetPreview from '@shared/ui/SeoSnippetPreview';
+import ImageUploadDropzone from '@shared/ui/ImageUploadDropzone';
 import { categoriesService } from '@shared/api/categories.service';
 import { brandsService } from '@shared/api/brands.service';
 import type {
@@ -90,7 +90,6 @@ export const ProductFormDrawer: React.FC<ProductFormDrawerProps> = ({
 
   // Tab 3: Media
   const [images, setImages] = useState<ProductImage[]>([]);
-  const [newImageUrl, setNewImageUrl] = useState('');
 
   // Tab 4: Variants
   const [hasVariants, setHasVariants] = useState(false);
@@ -230,19 +229,24 @@ export const ProductFormDrawer: React.FC<ProductFormDrawerProps> = ({
   };
 
   // Image actions
-  const handleAddImage = () => {
-    if (!newImageUrl.trim()) return;
-    const isFirst = images.length === 0;
-    setImages([
-      ...images,
-      {
-        url: newImageUrl.trim(),
-        altText: name || 'Product image',
-        isPrimary: isFirst,
-        displayOrder: images.length,
-      },
-    ]);
-    setNewImageUrl('');
+  const handleImagesUploaded = (uploadedUrls: string | string[]) => {
+    const urls = Array.isArray(uploadedUrls) ? uploadedUrls : [uploadedUrls];
+    const newItems: ProductImage[] = [];
+    urls.forEach((url, idx) => {
+      if (!url) return;
+      const alreadyExists = images.some((img) => img.url === url);
+      if (!alreadyExists) {
+        newItems.push({
+          url,
+          altText: name || 'Product image',
+          isPrimary: images.length === 0 && idx === 0,
+          displayOrder: images.length + idx,
+        });
+      }
+    });
+    if (newItems.length > 0) {
+      setImages((prev) => [...prev, ...newItems]);
+    }
   };
 
   const handleRemoveImage = (index: number) => {
@@ -884,48 +888,16 @@ export const ProductFormDrawer: React.FC<ProductFormDrawerProps> = ({
         {/* ─── TAB 3: Media Gallery ─────────────────────────────────────────── */}
         {activeTab === 'media' && (
           <div className="space-y-4 pt-1">
-            {/* Card 1: Add Image Asset */}
-            <div className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-none">
-              <div className="bg-slate-50/75 px-3.5 py-2.5 border-b border-slate-200 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="p-1 rounded bg-sky-50 text-sky-600 border border-sky-100">
-                    <UploadCloud className="w-3.5 h-3.5" />
-                  </span>
-                  <h4 className="text-xs font-semibold text-slate-800 tracking-wide">Media Resource Uploader</h4>
-                </div>
-                <span className="text-[11px] text-sky-600 font-medium bg-sky-50/60 px-2 py-0.5 rounded border border-sky-100/60">
-                  CDN & URL
-                </span>
-              </div>
-              <div className="p-4 space-y-3">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <InputField
-                      value={newImageUrl}
-                      onChange={(e) => setNewImageUrl(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddImage();
-                        }
-                      }}
-                      placeholder="Paste high-res CDN or Unsplash photo link (https://images.unsplash.com/...)"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleAddImage}
-                    className="rounded-md shrink-0 shadow-none border-blue-200 text-blue-700 hover:bg-blue-50"
-                  >
-                    <Plus className="w-4 h-4 mr-1 text-blue-600" />
-                    Add Photo
-                  </Button>
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  First added image will be configured as the primary storefront catalog cover thumbnail.
-                </p>
-              </div>
+            {/* Card 1: Add Image Asset / File Upload */}
+            <div className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-none p-4">
+              <ImageUploadDropzone
+                label="Product Gallery Media Uploader"
+                helperText="Upload product pictures (JPEG, PNG, WebP, max 5MB). The first image will be set as the catalog cover."
+                aspectRatioHint="Recommended: 1:1 Square (1000x1000 or higher)"
+                folder="products"
+                multiple
+                onChange={handleImagesUploaded}
+              />
             </div>
 
             {/* Card 2: Product Gallery Showcase */}

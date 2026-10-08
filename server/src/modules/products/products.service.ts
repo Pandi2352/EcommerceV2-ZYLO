@@ -4,12 +4,14 @@ import {
   BadRequestException,
   ConflictException,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Product, ProductDocument, ProductStatus } from './schemas/product.schema';
 import { Brand, BrandDocument } from '../brands/schemas/brand.schema';
 import { Category, CategoryDocument } from '../categories/schemas/category.schema';
+import { UploadsService } from '../uploads/uploads.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
@@ -25,6 +27,7 @@ export class ProductsService {
     @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
     @InjectModel(Brand.name) private readonly brandModel: Model<BrandDocument>,
     @InjectModel(Category.name) private readonly categoryModel: Model<CategoryDocument>,
+    @Optional() private readonly uploadsService?: UploadsService,
   ) {}
 
   /**
@@ -445,6 +448,21 @@ export class ProductsService {
     if (product.brandId) {
       await this.brandModel.findByIdAndUpdate(product.brandId, { $inc: { productCount: -1 } });
     }
+
+    // Clean up local orphaned images if any
+    if (this.uploadsService) {
+      if (product.images && product.images.length > 0) {
+        for (const img of product.images) {
+          if (img?.url && (img.url.includes('/uploads/') || img.url.startsWith('/uploads/'))) {
+            await this.uploadsService.deleteFile(img.url).catch(() => null);
+          }
+        }
+      }
+      if (product.thumbnailUrl && (product.thumbnailUrl.includes('/uploads/') || product.thumbnailUrl.startsWith('/uploads/'))) {
+        await this.uploadsService.deleteFile(product.thumbnailUrl).catch(() => null);
+      }
+    }
+
     return { success: true, message: `Product "${product.name}" permanently deleted.` };
   }
 

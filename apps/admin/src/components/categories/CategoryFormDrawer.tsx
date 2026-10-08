@@ -15,6 +15,7 @@ import Button from '@shared/ui/Button';
 import InputField from '@shared/ui/InputField';
 import Dropdown from '@shared/ui/Dropdown';
 import Alert from '@shared/ui/Alert';
+import ImageUploadDropzone from '@shared/ui/ImageUploadDropzone';
 import type {
   CategoryItem,
   CreateCategoryPayload,
@@ -445,99 +446,51 @@ export const CategoryFormDrawer: React.FC<CategoryFormDrawerProps> = ({
               </span>
             </div>
 
-            {/* Thumbnail URL */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Thumbnail Image URL (Square 400x400)
-              </label>
-              <div className="flex gap-3 items-center">
-                <div className="flex-1">
-                  <InputField
-                    value={thumbnailUrl}
-                    onChange={(e) => setThumbnailUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                  />
-                </div>
-                <div className="w-12 h-12 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                  {thumbnailUrl ? (
-                    <img
-                      src={thumbnailUrl}
-                      alt="Thumbnail preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <ImageIcon className="w-5 h-5 text-slate-400" />
-                  )}
-                </div>
-              </div>
+            {/* Thumbnail Upload Dropzone */}
+            <div className="p-3 border border-slate-200 rounded-md bg-slate-50/50">
+              <ImageUploadDropzone
+                label="Thumbnail Image (Square 400x400)"
+                helperText="Square image used on category lists and cards"
+                aspectRatioHint="Recommended: 1:1 Square (400x400)"
+                folder="categories"
+                value={thumbnailUrl}
+                onChange={(val) => setThumbnailUrl(val || '')}
+              />
             </div>
 
-            {/* Category Icon URL */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Category Icon URL (SVG or PNG 64x64)
-              </label>
-              <div className="flex gap-3 items-center">
-                <div className="flex-1">
-                  <InputField
-                    value={iconUrl}
-                    onChange={(e) => setIconUrl(e.target.value)}
-                    placeholder="https://cdn.example.com/icons/laptop.svg"
-                  />
-                </div>
-                <div className="w-10 h-10 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                  {iconUrl ? (
-                    <img
-                      src={iconUrl}
-                      alt="Icon preview"
-                      className="w-6 h-6 object-contain"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <ImageIcon className="w-4 h-4 text-slate-400" />
-                  )}
-                </div>
-              </div>
+            {/* Category Icon Upload Dropzone */}
+            <div className="p-3 border border-slate-200 rounded-md bg-slate-50/50">
+              <ImageUploadDropzone
+                label="Category Icon (SVG or PNG 64x64)"
+                helperText="Icon displayed in the mega-menu and sidebar tree"
+                aspectRatioHint="Recommended: 64x64 SVG or PNG"
+                folder="categories"
+                value={iconUrl}
+                onChange={(val) => setIconUrl(val || '')}
+              />
             </div>
 
             {/* Desktop Hero Banner */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Desktop Hero Banner URL (1920x400 Recommended)
-              </label>
-              <InputField
+            <div className="p-3 border border-slate-200 rounded-md bg-slate-50/50">
+              <ImageUploadDropzone
+                label="Desktop Hero Banner (1920x400 Landscape)"
+                helperText="Wide hero banner displayed at the top of category landing pages"
+                aspectRatioHint="Recommended: 1920x400 Widescreen"
+                folder="categories"
                 value={bannerDesktopUrl}
-                onChange={(e) => setBannerDesktopUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
+                onChange={(val) => setBannerDesktopUrl(val || '')}
               />
-              {bannerDesktopUrl && (
-                <div className="mt-2 w-full h-24 rounded-md border border-slate-200 overflow-hidden bg-slate-50">
-                  <img
-                    src={bannerDesktopUrl}
-                    alt="Banner preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
             </div>
 
             {/* Mobile Hero Banner */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Mobile Hero Banner URL (800x400)
-              </label>
-              <InputField
+            <div className="p-3 border border-slate-200 rounded-md bg-slate-50/50">
+              <ImageUploadDropzone
+                label="Mobile Hero Banner (800x400)"
+                helperText="Optimized banner for smartphones and compact screens"
+                aspectRatioHint="Recommended: 800x400"
+                folder="categories"
                 value={bannerMobileUrl}
-                onChange={(e) => setBannerMobileUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
+                onChange={(val) => setBannerMobileUrl(val || '')}
               />
             </div>
 

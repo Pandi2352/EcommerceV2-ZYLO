@@ -5,7 +5,6 @@ import {
   Sparkles,
   Search,
   ExternalLink,
-  Globe,
   Lock,
   Unlock,
   Check,
@@ -19,6 +18,7 @@ import Dropdown, { type DropdownOption } from '@shared/ui/Dropdown';
 import Alert from '@shared/ui/Alert';
 import TagInput from '@shared/ui/TagInput';
 import SeoSnippetPreview from '@shared/ui/SeoSnippetPreview';
+import ImageUploadDropzone from '@shared/ui/ImageUploadDropzone';
 import type {
   BrandItem,
   CreateBrandPayload,
@@ -353,73 +353,29 @@ export const BrandFormDrawer: React.FC<BrandFormDrawerProps> = ({
 
         {/* ─── TAB 2: Media & Assets ─────────────────────────────────────────── */}
         {activeTab === 'media' && (
-          <div className="space-y-5 pt-2">
-            {/* Brand Logo URL */}
+          <div className="space-y-6 pt-2">
+            {/* Brand Logo Upload Dropzone */}
             <div className="p-4 border border-slate-200 rounded-md bg-slate-50/50">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Brand Logo URL (Square / Transparent PNG / SVG)
-              </label>
-              <div className="flex gap-3 items-start">
-                <div className="flex-1">
-                  <InputField
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                    placeholder="https://example.com/brand-logo.svg"
-                  />
-                  <p className="mt-1 text-xs text-slate-400">
-                    Recommended: Transparent vector SVG or high-resolution PNG (minimum 200x200px)
-                  </p>
-                </div>
-                {/* Logo Preview */}
-                <div className="w-16 h-16 rounded-md border border-slate-200 bg-white flex items-center justify-center p-2 overflow-hidden shrink-0">
-                  {logoUrl ? (
-                    <img
-                      src={logoUrl}
-                      alt="Brand Logo Preview"
-                      className="max-w-full max-h-full object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <Globe className="w-6 h-6 text-slate-300" />
-                  )}
-                </div>
-              </div>
+              <ImageUploadDropzone
+                label="Brand Logo (Square / Transparent PNG / SVG)"
+                helperText="Vector SVG or high-resolution PNG (minimum 200x200px)"
+                aspectRatioHint="Recommended: 1:1 Square"
+                folder="brands"
+                value={logoUrl}
+                onChange={(val) => setLogoUrl(val || '')}
+              />
             </div>
 
-            {/* Showcase Banner URL */}
+            {/* Showcase Hero Banner Upload Dropzone */}
             <div className="p-4 border border-slate-200 rounded-md bg-slate-50/50">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Showcase Hero Banner URL (16:9 Landscape)
-              </label>
-              <InputField
+              <ImageUploadDropzone
+                label="Showcase Hero Banner (16:9 Landscape)"
+                helperText="Used for the brand collection header and featured brand spotlights"
+                aspectRatioHint="Recommended: 16:9 Widescreen Landscape (1920x1080)"
+                folder="brands"
                 value={bannerUrl}
-                onChange={(e) => setBannerUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/photo-..."
+                onChange={(val) => setBannerUrl(val || '')}
               />
-              <p className="mt-1 text-xs text-slate-400 mb-3">
-                Used for the brand collection header and featured brand spotlights
-              </p>
-
-              {/* Banner Preview */}
-              <div className="w-full h-32 rounded-md border border-slate-200 bg-white overflow-hidden flex items-center justify-center relative">
-                {bannerUrl ? (
-                  <img
-                    src={bannerUrl}
-                    alt="Banner Preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center gap-1 text-slate-400">
-                    <ImageIcon className="w-8 h-8 stroke-1" />
-                    <span className="text-xs">No banner image URL provided</span>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         )}
