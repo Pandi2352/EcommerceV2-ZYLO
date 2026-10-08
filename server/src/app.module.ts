@@ -26,6 +26,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { ReturnsModule } from './modules/returns/returns.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { EmailTemplatesModule } from './modules/email-templates/email-templates.module';
 import { mongooseAsyncConfig } from './config/database.config';
 import { appConfig } from './config/app.config';
 import { authConfig } from './config/auth.config';
@@ -70,6 +71,7 @@ import { PermissionsGuard } from './common/authorization/permissions.guard';
     ReturnsModule,
     PaymentsModule,
     UploadsModule,
+    EmailTemplatesModule,
   ],
   providers: [
     // Guards run in registration order: rate limit → authenticate → forced password change → account type → permissions → roles.

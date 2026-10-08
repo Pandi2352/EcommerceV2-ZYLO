@@ -9,6 +9,7 @@ import {
   UserCheck,
   FolderTree,
   Award,
+  Mail,
 } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
 import type { SubPageItem } from './SidebarGroup';
@@ -185,6 +186,14 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
           { label: 'Invitations', to: ROUTES.INVITATIONS },
           { label: 'Login Activity', to: ROUTES.LOGIN_ACTIVITY },
           { label: 'Security Logs', to: ROUTES.AUDIT_LOGS },
+        ],
+      },
+      {
+        id: 'email-templates',
+        label: 'Email Templates',
+        icon: Mail,
+        pages: [
+          { label: 'Email Templates', to: ROUTES.EMAIL_TEMPLATES },
         ],
       },
       {

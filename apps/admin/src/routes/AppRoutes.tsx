@@ -39,6 +39,8 @@ import ReviewsPage from '../pages/ReviewsPage';
 import CustomersPage from '../pages/CustomersPage';
 import InventoryPage from '../pages/InventoryPage';
 import ReturnsPage from '../pages/ReturnsPage';
+import EmailTemplatesListPage from '../pages/email-templates/EmailTemplatesListPage';
+import EmailTemplateCanvasEditorPage from '../pages/email-templates/EmailTemplateCanvasEditorPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -72,6 +74,10 @@ export const AppRoutes: React.FC = () => {
       {/* 3. CONSOLE (any staff role; the AuthProvider only admits staff sessions) */}
       <Route element={<ProtectedRoute />}>
         <Route path={ROUTES.CHANGE_PASSWORD} element={<AdminChangePasswordPage />} />
+
+        {/* Dedicated Full-Screen Canvas Email Template Studio */}
+        <Route path={ROUTES.EMAIL_TEMPLATE_EDITOR} element={<EmailTemplateCanvasEditorPage />} />
+        <Route path={ROUTES.EMAIL_TEMPLATE_NEW} element={<EmailTemplateCanvasEditorPage />} />
 
         <Route element={<AppLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<AdminDashboardPage />} />
@@ -149,6 +155,9 @@ export const AppRoutes: React.FC = () => {
           <Route element={<ProtectedRoute permission="settings.view" />}>
             <Route path={ROUTES.SETTINGS} element={<BusinessSettingsPage />} />
           </Route>
+
+          {/* Email Templates Studio & Management */}
+          <Route path={ROUTES.EMAIL_TEMPLATES} element={<EmailTemplatesListPage />} />
 
           <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage homeLabel="Back to Dashboard" />} />
         </Route>

@@ -62,5 +62,10 @@ export const ROUTES = {
   SETTINGS_PAYMENTS: '/settings/payments',
   SETTINGS_SHIPPING: '/settings/shipping',
 
+  // Email Templates & Visual Canvas Editor
+  EMAIL_TEMPLATES: '/email-templates',
+  EMAIL_TEMPLATE_EDITOR: '/email-templates/editor/:id',
+  EMAIL_TEMPLATE_NEW: '/email-templates/new',
+
   NOT_FOUND: '*',
 } as const;

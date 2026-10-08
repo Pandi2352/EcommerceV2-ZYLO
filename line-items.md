@@ -395,6 +395,21 @@
 - [x] Low-stock notification email to store admin
 - [x] Return request status update email
 
+### Email Templates Management & Full-Page Visual Canvas Editor Studio (Admin)
+- [x] Dedicated Email Templates menu item in Admin Sidebar (`/email-templates`) with Canvas Studio badge
+- [x] 11 event types supported: User Invitation, Send OTP, Email Verification, Password Reset, Password Changed, MFA Status, Order Confirmation, Order Status Update, Low Stock Alert, Return Status, Welcome Customer
+- [x] Multi-template creation per event type with single-active enforcement rule (`is_active: true` for exactly one template per type)
+- [x] Dedicated Full-Page Canvas Editor Studio (`/email-templates/editor/:id`) matching reference design
+- [x] Subject template editor with dynamic variable chips, active status toggling, and live draft auto-save
+- [x] Multi-viewport device switcher: Desktop (600px canvas), Tablet (768px canvas), Mobile (375px canvas)
+- [x] Interactive visual email canvas with highlighted section outlines & visual block helpers
+- [x] Contextual Style Manager (Body background, card background, primary accent color, typography, border radius)
+- [x] Dynamic variable chips drawer with allowed mustache variables per event type and click-to-copy/insert
+- [x] Code mode toggle: HTML / MJML source code view with live preview synchronization
+- [x] Live email test dispatch modal directly from Canvas studio or Template list to any recipient
+- [x] Template cloning (safe draft workflow to duplicate active templates before editing)
+- [x] Pre-seeded system email templates including User Invitation with exact UUID `c91cdef6-7ef6-4e11-a20b-1299347ae641`
+
 ---
 
 ## 21. File Uploads & Media Management
