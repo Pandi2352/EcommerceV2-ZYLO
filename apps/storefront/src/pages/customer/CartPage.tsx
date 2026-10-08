@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ShoppingBag,
   Trash2,
   Bookmark,
-  CheckCircle2,
-  Truck,
   ArrowRight,
   ShieldCheck,
   Tag,
@@ -20,6 +18,10 @@ import { useCart } from '../../features/cart/context/CartContext';
 import { useSettings } from '../../features/settings/context/SettingsContext';
 import { ROUTES } from '../../routes/routePaths';
 import { toast } from '@shared/ui/Toast';
+import FreeShippingProgressBar from '../../features/cart/components/FreeShippingProgressBar';
+import CartUpsellCarousel from '../../features/cart/components/CartUpsellCarousel';
+import ShareCartModal from '../../features/cart/components/ShareCartModal';
+import SavedCartsModal from '../../features/cart/components/SavedCartsModal';
 
 export const CartPage: React.FC = () => {
   const { formatPrice, settings } = useSettings();
@@ -29,8 +31,6 @@ export const CartPage: React.FC = () => {
     itemCount,
     subtotal,
     savings,
-    qualifiesForFreeShipping,
-    amountToFreeShipping,
     estimatedShipping,
     estimatedTax,
     discount,
@@ -46,11 +46,51 @@ export const CartPage: React.FC = () => {
     clearCart,
     applyCoupon,
     removeCoupon,
+    addToCart,
   } = useCart();
 
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [couponInput, setCouponInput] = useState('');
   const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isSavedCartsModalOpen, setIsSavedCartsModalOpen] = useState(false);
+
+  // Auto-import shared cart if ?share= parameter is detected
+  useEffect(() => {
+    const shareParam = searchParams.get('share');
+    if (!shareParam) return;
+
+    try {
+      const decodedJson = decodeURIComponent(
+        escape(atob(decodeURIComponent(shareParam))),
+      );
+      const parsedItems = JSON.parse(decodedJson);
+      if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+        const importSharedCart = async () => {
+          let imported = 0;
+          for (const item of parsedItems) {
+            try {
+              if (item.p) {
+                await addToCart({ _id: item.p }, item.v, item.q || 1);
+                imported++;
+              }
+            } catch {
+              // ignore single item fail
+            }
+          }
+          if (imported > 0) {
+            toast.success(`Imported ${imported} items from shared cart!`);
+            // Clean up the URL query parameter
+            setSearchParams({});
+          }
+        };
+        importSharedCart();
+      }
+    } catch (err) {
+      console.error('Failed to import shared cart:', err);
+    }
+  }, [searchParams, addToCart, setSearchParams]);
 
   const allSelected = items.length > 0 && items.every((i) => i.selected);
 
@@ -93,7 +133,29 @@ export const CartPage: React.FC = () => {
                 {/* Header */}
                 <div className="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
                   <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Shopping Cart</h1>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Shopping Cart</h1>
+                      {items.length > 0 && (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setIsShareModalOpen(true)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-200 hover:border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
+                          >
+                            <Share2 className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Share Cart</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsSavedCartsModalOpen(true)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-200 hover:border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
+                          >
+                            <Bookmark className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Saved Carts</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     {items.length > 0 && (
                       <button
                         type="button"
@@ -357,35 +419,22 @@ export const CartPage: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Intelligent Cross-Sells & Add-ons */}
+              {items.length > 0 && (
+                <div className="bg-white border border-slate-200 rounded-md overflow-hidden shadow-none">
+                  <CartUpsellCarousel title="Frequently Bought Together & Recommended Add-ons" />
+                </div>
+              )}
             </div>
 
             {/* Right Column: Sticky Order Summary Card */}
             <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-24">
               {/* Order Summary Box */}
               <div className="bg-white border border-slate-200 rounded-md p-6 shadow-none space-y-5">
-                {/* Free Shipping Qualification Banner */}
+                {/* Multi-Tier Free Shipping Progress Bar */}
                 {items.length > 0 && (
-                  <div className="p-3 bg-amber-50/60 border border-amber-200/80 rounded-md">
-                    {qualifiesForFreeShipping ? (
-                      <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Your order qualifies for <strong>FREE Shipping</strong>.</span>
-                      </div>
-                    ) : (
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
-                          <Truck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                          <span>Add <strong>{formatPrice(amountToFreeShipping)}</strong> of eligible items to get <strong>FREE Shipping</strong>.</span>
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className="bg-amber-500 h-full rounded-full transition-all"
-                            style={{ width: `${Math.min(100, Math.round((subtotal / (settings?.freeShippingThreshold || 50)) * 100))}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <FreeShippingProgressBar subtotal={subtotal} className="rounded-md border border-amber-200/80 -mx-1" />
                 )}
 
                 {/* Subtotal Banner */}
@@ -505,6 +554,20 @@ export const CartPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Share Cart Modal */}
+        <ShareCartModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          items={items}
+          subtotal={subtotal}
+        />
+
+        {/* Saved Carts Modal */}
+        <SavedCartsModal
+          isOpen={isSavedCartsModalOpen}
+          onClose={() => setIsSavedCartsModalOpen(false)}
+        />
       </div>
   );
 };

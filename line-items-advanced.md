@@ -105,10 +105,10 @@
 
 ## Module 8: Shopping Cart & Cart Recovery
 - [ ] **Abandoned Cart Automated Recovery Sequence**: Multi-step automated email reminders sent at 1 hour, 24 hours, and 72 hours with dynamic recovery discount.
-- [ ] **Free Shipping Threshold Progress Bar**: Visual progress indicator in cart drawer showing *"Add $14.50 more to unlock FREE shipping!"*.
-- [ ] **Cart Upsells & Cross-Sells in Drawer**: Intelligent 1-click add-on items (e.g. cleaning spray, warranty extension, matching socks) inside the slide-over cart.
-- [ ] **Saved Carts ("Save for Later")**: Allow shoppers to save separate named shopping carts (e.g. "Office Equipment", "Monthly Groceries").
-- [ ] **Shareable Cart URL**: Generate a link containing current cart line items to share with friends, colleagues, or procurement managers.
+- [x] **Free Shipping Threshold Progress Bar**: Visual progress indicator in cart drawer and cart page showing milestone tiers ($50 Free Standard, $100 Express Delivery, $150 Mystery Gift) with dynamic remaining balance and motivational status badges.
+- [x] **Cart Upsells & Cross-Sells in Drawer**: Intelligent 1-click add-on items (curated recommendations filtered against current basket) inside the slide-over cart drawer and full cart page.
+- [x] **Saved Carts ("Save for Later" & Named Carts)**: Allow shoppers to save separate named shopping carts, restore them in 1-click, and move items directly between active cart and saved for later in drawer.
+- [x] **Shareable Cart URL**: Generate a link containing current cart line items with one-click copy, WhatsApp/Email sharing, and automatic cart import on URL opening.
 
 ---
 
