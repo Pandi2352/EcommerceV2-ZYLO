@@ -20,6 +20,7 @@ import { CreateReturnRequestDto } from './dto/create-return-request.dto';
 import { ReviewReturnDto } from './dto/review-return.dto';
 import { ProcessRefundDto } from './dto/process-refund.dto';
 import { AdminReturnQueryDto } from './dto/admin-return-query.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class ReturnsService {
@@ -34,6 +35,7 @@ export class ReturnsService {
     private readonly productModel: Model<ProductDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -355,6 +357,10 @@ export class ReturnsService {
     }
 
     await returnReq.save();
+
+    // Dispatch return status update notification to customer
+    this.mailService.sendReturnStatusUpdate(returnReq);
+
     return returnReq;
   }
 
@@ -407,6 +413,9 @@ export class ReturnsService {
     this.logger.log(
       `Staff "${staffName}" processed refund of $${refundAmount} for Return ${returnReq.returnNumber} (Txn: ${transactionId})`,
     );
+
+    // Dispatch return refund status notification to customer
+    this.mailService.sendReturnStatusUpdate(returnReq);
 
     return returnReq;
   }

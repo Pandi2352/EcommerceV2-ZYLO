@@ -25,6 +25,8 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto';
 import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 import { CouponsService } from '../coupons/coupons.service';
+import { Setting, SettingDocument } from '../settings/schemas/setting.schema';
+import { MailService } from '../mail/mail.service';
 
 const FREE_SHIPPING_THRESHOLD = 50.0;
 const STANDARD_SHIPPING_FEE = 5.99;
@@ -38,8 +40,34 @@ export class OrdersService {
     @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
     @InjectModel(Cart.name) private readonly cartModel: Model<CartDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(Setting.name) private readonly settingModel: Model<SettingDocument>,
     private readonly couponsService: CouponsService,
+    private readonly mailService: MailService,
   ) {}
+
+  private async getStoreCurrencySymbol(): Promise<string> {
+    try {
+      const setting = await this.settingModel.findOne().exec();
+      return setting?.currencySymbol || '$';
+    } catch {
+      return '$';
+    }
+  }
+
+  private async getStoreAdminEmail(): Promise<string> {
+    try {
+      const setting = await this.settingModel.findOne().exec();
+      return (
+        setting?.supportEmail ||
+        setting?.salesEmail ||
+        process.env.ADMIN_EMAIL ||
+        'admin@zylo.internal'
+      );
+    } catch {
+      return process.env.ADMIN_EMAIL || 'admin@zylo.internal';
+    }
+  }
+
 
   async checkout(userId: string, user: UserDocument, dto: CheckoutDto): Promise<OrderDocument> {
     if (!dto.termsAccepted) {
@@ -116,13 +144,17 @@ export class OrdersService {
 
     subtotal = +subtotal.toFixed(2);
 
-    // 2. Decrement inventory atomically for confirmed items
+    // 2. Decrement inventory atomically for confirmed items & check low stock
+    const adminEmail = await this.getStoreAdminEmail();
     for (const item of selectedCartItems) {
       const prod = productMap.get(item.productId.toString());
       if (!prod || !prod.trackInventory) continue;
 
+      let remainingStock = 0;
+      let variantTitle: string | null = null;
+
       if (item.variantSku) {
-        await this.productModel.updateOne(
+        const updated = await this.productModel.findOneAndUpdate(
           { _id: prod._id, 'variants.sku': item.variantSku },
           {
             $inc: {
@@ -130,12 +162,24 @@ export class OrdersService {
               stockQuantity: -item.quantity,
             },
           },
+          { new: true },
         );
+        const variant = updated?.variants?.find((v) => v.sku === item.variantSku);
+        remainingStock = variant?.stockQuantity ?? ((prod.stockQuantity || 0) - item.quantity);
+        variantTitle = variant?.title || item.variantSku;
       } else {
-        await this.productModel.updateOne(
+        const updated = await this.productModel.findOneAndUpdate(
           { _id: prod._id },
           { $inc: { stockQuantity: -item.quantity } },
+          { new: true },
         );
+        remainingStock = updated?.stockQuantity ?? ((prod.stockQuantity || 0) - item.quantity);
+      }
+
+      // Check low stock threshold
+      const threshold = prod.lowStockThreshold ?? 5;
+      if (remainingStock <= threshold) {
+        this.mailService.sendLowStockAlert(prod, remainingStock, adminEmail, variantTitle);
       }
     }
 
@@ -232,6 +276,12 @@ export class OrdersService {
     cart.items = cart.items.filter((i) => !purchasedItemIds.has(i._id));
     cart.appliedCoupon = null;
     await cart.save();
+
+    // 9. Dispatch order confirmation email (non-blocking in background)
+    const currencySymbol = await this.getStoreCurrencySymbol();
+    if (order.paymentMethod === PaymentMethod.COD || order.paymentStatus === PaymentStatus.PAID) {
+      this.mailService.sendOrderConfirmation(order, currencySymbol);
+    }
 
     return order;
   }
@@ -330,6 +380,11 @@ export class OrdersService {
     }
 
     await order.save();
+
+    // Dispatch status update notification for customer cancellation
+    const cancelCurrencySymbol = await this.getStoreCurrencySymbol();
+    this.mailService.sendOrderStatusUpdate(order, OrderStatus.CANCELLED, cancelCurrencySymbol);
+
     return order;
   }
 
@@ -512,6 +567,11 @@ export class OrdersService {
     });
 
     await order.save();
+
+    // Dispatch status update notification to customer
+    const updateCurrencySymbol = await this.getStoreCurrencySymbol();
+    this.mailService.sendOrderStatusUpdate(order, newStatus, updateCurrencySymbol);
+
     return order;
   }
 
@@ -538,6 +598,11 @@ export class OrdersService {
     });
 
     await order.save();
+
+    // Dispatch tracking update notification to customer
+    const trackingCurrencySymbol = await this.getStoreCurrencySymbol();
+    this.mailService.sendOrderStatusUpdate(order, order.orderStatus, trackingCurrencySymbol);
+
     return order;
   }
 

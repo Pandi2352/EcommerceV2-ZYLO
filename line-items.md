@@ -389,11 +389,11 @@
 ---
 
 ## 20. Transactional Notifications & Emails
-- [ ] Order confirmation email to customer
-- [ ] Order status change notification email (Shipped, Out for Delivery, Delivered)
+- [x] Order confirmation email to customer
+- [x] Order status change notification email (Shipped, Out for Delivery, Delivered)
 - [x] Password reset token email
-- [ ] Low-stock notification email to store admin
-- [ ] Return request status update email
+- [x] Low-stock notification email to store admin
+- [x] Return request status update email
 
 ---
 

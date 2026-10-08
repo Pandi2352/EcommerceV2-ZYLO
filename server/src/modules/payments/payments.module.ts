@@ -10,6 +10,7 @@ import { Setting, SettingSchema } from '../settings/schemas/setting.schema';
 import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { PaymentsWebhookController } from './payments-webhook.controller';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -19,9 +20,11 @@ import { PaymentsWebhookController } from './payments-webhook.controller';
       { name: User.name, schema: UserSchema },
       { name: Setting.name, schema: SettingSchema },
     ]),
+    MailModule,
   ],
   controllers: [PaymentsController, PaymentsWebhookController],
   providers: [PaymentsService],
   exports: [PaymentsService],
 })
 export class PaymentsModule {}
+

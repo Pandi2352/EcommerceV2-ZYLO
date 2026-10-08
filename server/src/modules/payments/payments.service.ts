@@ -22,6 +22,7 @@ import {
 } from '../orders/schemas/order.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Setting, SettingDocument } from '../settings/schemas/setting.schema';
+import { MailService } from '../mail/mail.service';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { PaymentFailureDto } from './dto/payment-failure.dto';
@@ -39,6 +40,7 @@ export class PaymentsService {
     private readonly userModel: Model<UserDocument>,
     @InjectModel(Setting.name)
     private readonly settingModel: Model<SettingDocument>,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -235,6 +237,9 @@ export class PaymentsService {
 
         await order.save();
         this.logger.log(`Order ${order.orderNumber} updated to PAID with transaction ${transaction.transactionId}`);
+
+        // Dispatch order confirmation email upon online payment capture
+        this.mailService.sendOrderConfirmation(order);
       }
     }
 
@@ -404,6 +409,9 @@ export class PaymentsService {
               note: `Payment confirmed via Stripe webhook event (${event.id})`,
             });
             await order.save();
+
+            // Dispatch order confirmation email upon webhook confirmation
+            this.mailService.sendOrderConfirmation(order);
           }
         }
       }

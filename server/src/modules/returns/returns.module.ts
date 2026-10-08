@@ -7,6 +7,7 @@ import { User, UserSchema } from '../users/schemas/user.schema';
 import { ReturnsService } from './returns.service';
 import { CustomerReturnsController } from './customer-returns.controller';
 import { AdminReturnsController } from './admin-returns.controller';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -16,9 +17,11 @@ import { AdminReturnsController } from './admin-returns.controller';
       { name: Product.name, schema: ProductSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    MailModule,
   ],
   controllers: [CustomerReturnsController, AdminReturnsController],
   providers: [ReturnsService],
   exports: [ReturnsService],
 })
 export class ReturnsModule {}
+
