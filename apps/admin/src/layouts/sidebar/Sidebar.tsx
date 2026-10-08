@@ -23,9 +23,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const location = useLocation();
 
-  // Accordion open states in expanded view (dashboards open by default)
+  // Accordion open states in expanded view (catalog open by default)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    dashboards: true,
+    catalog: true,
   });
 
   // Active flyout state in collapsed mode

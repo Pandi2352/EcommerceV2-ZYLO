@@ -104,7 +104,7 @@
 ---
 
 ## Module 8: Shopping Cart & Cart Recovery
-- [ ] **Abandoned Cart Automated Recovery Sequence**: Multi-step automated email reminders sent at 1 hour, 24 hours, and 72 hours with dynamic recovery discount.
+- [x] **Abandoned Cart Automated Recovery Sequence**: Multi-step automated email reminders sent at 1 hour (friendly reminder), 24 hours (10% discount voucher with code `COMEBACK10`), and 72 hours (final notice with 15% voucher `FINAL15`) with dynamic 1-click cart restore links, NestJS Cron background scheduler (`@nestjs/schedule`), storefront 1-click cart restore URL handler, and Admin Analytics Recovery Console tracking pipeline value, recovery emails, and recaptured revenue.
 - [x] **Free Shipping Threshold Progress Bar**: Visual progress indicator in cart drawer and cart page showing milestone tiers ($50 Free Standard, $100 Express Delivery, $150 Mystery Gift) with dynamic remaining balance and motivational status badges.
 - [x] **Cart Upsells & Cross-Sells in Drawer**: Intelligent 1-click add-on items (curated recommendations filtered against current basket) inside the slide-over cart drawer and full cart page.
 - [x] **Saved Carts ("Save for Later" & Named Carts)**: Allow shoppers to save separate named shopping carts, restore them in 1-click, and move items directly between active cart and saved for later in drawer.

@@ -11,6 +11,7 @@ import {
   Award,
   Mail,
   Building2,
+  RotateCcw,
 } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
 import type { SubPageItem } from './SidebarGroup';
@@ -95,12 +96,11 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
     title: 'MENU',
     items: [
       {
-        id: 'dashboards',
-        label: 'Dashboards',
+        id: 'dashboard',
+        label: 'Dashboard',
         icon: LayoutDashboard,
         pages: [
-          { label: 'Ecommerce', to: ROUTES.DASHBOARD },
-          { label: 'Sales Analytics', to: ROUTES.DASHBOARDS_ANALYTICS },
+          { label: 'Dashboard', to: ROUTES.DASHBOARD },
         ],
       },
       {
@@ -127,6 +127,7 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         pages: [
           { label: 'Overview', to: ROUTES.PRODUCTS_OVERVIEW },
           { label: 'All Products', to: ROUTES.PRODUCTS },
+          { label: 'Inventory Control', to: ROUTES.INVENTORY },
           { label: 'Bundles & Kits', to: ROUTES.BUNDLES },
         ],
       },
@@ -145,13 +146,7 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         icon: ShoppingCart,
         pages: [
           { label: 'All Orders', to: ROUTES.ORDERS },
-          { label: 'Shipments & Tracking', to: ROUTES.SHIPMENTS },
-          {
-            label: 'Returns & Refunds',
-            to: ROUTES.RETURNS,
-            badge: { text: 'New', color: 'bg-emerald-500/20 text-emerald-400' },
-          },
-          { label: 'Invoices', to: ROUTES.INVOICES },
+          { label: 'Returns & Refunds', to: ROUTES.RETURNS },
         ],
       },
       {
@@ -169,16 +164,19 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
     title: 'MARKETING',
     items: [
       {
-        id: 'marketing',
-        label: 'Promotions',
+        id: 'coupons',
+        label: 'Coupons & Vouchers',
         icon: Tag,
         pages: [
           { label: 'Coupons & Vouchers', to: ROUTES.COUPONS },
-          {
-            label: 'Flash Deals',
-            to: ROUTES.PROMOTIONS,
-            badge: { text: 'Hot', color: 'bg-orange-500/20 text-orange-400' },
-          },
+        ],
+      },
+      {
+        id: 'abandoned-carts',
+        label: 'Abandoned Carts',
+        icon: RotateCcw,
+        pages: [
+          { label: 'Abandoned Carts', to: ROUTES.ABANDONED_CARTS },
         ],
       },
     ],
@@ -212,9 +210,7 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         label: 'Store Settings',
         icon: Settings,
         pages: [
-          { label: 'General Settings', to: ROUTES.SETTINGS },
-          { label: 'Payment Gateways', to: ROUTES.SETTINGS_PAYMENTS },
-          { label: 'Shipping Methods', to: ROUTES.SETTINGS_SHIPPING },
+          { label: 'Store Settings', to: ROUTES.SETTINGS },
         ],
       },
     ],

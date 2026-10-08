@@ -43,6 +43,7 @@ import EmailTemplatesListPage from '../pages/email-templates/EmailTemplatesListP
 import EmailTemplateCanvasEditorPage from '../pages/email-templates/EmailTemplateCanvasEditorPage';
 import WarehousesPage from '../pages/warehouses/WarehousesPage';
 import BundlesPage from '../pages/bundles/BundlesPage';
+import AbandonedCartsPage from '../pages/abandoned-carts/AbandonedCartsPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -143,9 +144,10 @@ export const AppRoutes: React.FC = () => {
           <Route path={ROUTES.WAREHOUSES} element={<WarehousesPage />} />
           <Route path={ROUTES.STOCK_TRANSFERS} element={<WarehousesPage />} />
 
-          {/* Marketing & Discounts: Coupons */}
+          {/* Marketing & Discounts: Coupons & Abandoned Carts */}
           <Route element={<ProtectedRoute permission="coupons.view" />}>
             <Route path={ROUTES.COUPONS} element={<CouponsPage />} />
+            <Route path={ROUTES.ABANDONED_CARTS} element={<AbandonedCartsPage />} />
           </Route>
 
           {/* Customers & Community: Customers */}

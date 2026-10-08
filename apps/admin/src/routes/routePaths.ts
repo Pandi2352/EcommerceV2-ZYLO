@@ -38,6 +38,7 @@ export const ROUTES = {
   // Marketing & Discounts
   COUPONS: '/coupons',
   PROMOTIONS: '/promotions',
+  ABANDONED_CARTS: '/abandoned-carts',
 
   // User Management (Multi-Admin RBAC)
   USER_MANAGEMENT_OVERVIEW: '/user-management',

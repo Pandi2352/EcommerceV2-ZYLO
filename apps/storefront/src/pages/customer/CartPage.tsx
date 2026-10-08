@@ -22,6 +22,7 @@ import FreeShippingProgressBar from '../../features/cart/components/FreeShipping
 import CartUpsellCarousel from '../../features/cart/components/CartUpsellCarousel';
 import ShareCartModal from '../../features/cart/components/ShareCartModal';
 import SavedCartsModal from '../../features/cart/components/SavedCartsModal';
+import { abandonedCartsService } from '@shared/api/abandoned-carts.service';
 
 export const CartPage: React.FC = () => {
   const { formatPrice, settings } = useSettings();
@@ -91,6 +92,42 @@ export const CartPage: React.FC = () => {
       console.error('Failed to import shared cart:', err);
     }
   }, [searchParams, addToCart, setSearchParams]);
+
+  // Auto-restore abandoned cart if ?restore= token is detected
+  useEffect(() => {
+    const restoreToken = searchParams.get('restore');
+    if (!restoreToken) return;
+
+    const restoreAbandonedCart = async () => {
+      try {
+        const res = await abandonedCartsService.restoreCart(restoreToken);
+        if (res.success) {
+          if (res.items && res.items.length > 0) {
+            for (const it of res.items) {
+              try {
+                await addToCart({ _id: it.productId }, it.variantSku || undefined, it.quantity || 1);
+              } catch {
+                // ignore single item fail
+              }
+            }
+          }
+
+          const couponToApply = res.coupon || searchParams.get('coupon');
+          if (couponToApply) {
+            await applyCoupon(couponToApply);
+          }
+
+          toast.success(res.message || 'Your shopping cart has been restored!');
+          setSearchParams({});
+        }
+      } catch (err: any) {
+        console.error('Failed to restore abandoned cart:', err);
+        toast.error(err.response?.data?.message || 'Could not restore cart link.');
+      }
+    };
+
+    restoreAbandonedCart();
+  }, [searchParams, addToCart, applyCoupon, setSearchParams]);
 
   const allSelected = items.length > 0 && items.every((i) => i.selected);
 
