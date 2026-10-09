@@ -73,5 +73,15 @@ export const ROUTES = {
   WAREHOUSES: '/warehouses',
   STOCK_TRANSFERS: '/warehouses/transfers',
 
+  // Suppliers & Purchase Orders
+  PURCHASE_ORDERS: '/purchase-orders',
+  SUPPLIERS: '/purchase-orders/suppliers',
+  RECEIVING_DOCK: '/purchase-orders/receiving-dock',
+
+  // Shipping Dispatch & Courier Labels
+  SHIPPING_DISPATCH: '/shipping-dispatch',
+  DISPATCH_MANIFESTS: '/shipping-dispatch/manifests',
+  COURIER_WEBHOOKS: '/shipping-dispatch/webhooks',
+
   NOT_FOUND: '*',
 } as const;

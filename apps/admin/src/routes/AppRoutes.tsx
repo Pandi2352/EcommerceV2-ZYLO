@@ -44,6 +44,8 @@ import EmailTemplateCanvasEditorPage from '../pages/email-templates/EmailTemplat
 import WarehousesPage from '../pages/warehouses/WarehousesPage';
 import BundlesPage from '../pages/bundles/BundlesPage';
 import AbandonedCartsPage from '../pages/abandoned-carts/AbandonedCartsPage';
+import PurchaseOrdersPage from '../pages/purchase-orders/PurchaseOrdersPage';
+import ShippingDispatchPage from '../pages/shipping-dispatch/ShippingDispatchPage';
 
 const renderPlanned = (routes: PlannedRoute[]) =>
   routes.map(({ path, title }) => (
@@ -143,6 +145,16 @@ export const AppRoutes: React.FC = () => {
           {/* Warehouses & Fulfillment Centers & Transfers */}
           <Route path={ROUTES.WAREHOUSES} element={<WarehousesPage />} />
           <Route path={ROUTES.STOCK_TRANSFERS} element={<WarehousesPage />} />
+
+          {/* Suppliers, Procurement & Purchase Orders */}
+          <Route path={ROUTES.PURCHASE_ORDERS} element={<PurchaseOrdersPage />} />
+          <Route path={ROUTES.SUPPLIERS} element={<PurchaseOrdersPage />} />
+          <Route path={ROUTES.RECEIVING_DOCK} element={<PurchaseOrdersPage />} />
+
+          {/* Shipping Dispatch & Courier Manifests */}
+          <Route path={ROUTES.SHIPPING_DISPATCH} element={<ShippingDispatchPage />} />
+          <Route path={ROUTES.DISPATCH_MANIFESTS} element={<ShippingDispatchPage />} />
+          <Route path={ROUTES.COURIER_WEBHOOKS} element={<ShippingDispatchPage />} />
 
           {/* Marketing & Discounts: Coupons & Abandoned Carts */}
           <Route element={<ProtectedRoute permission="coupons.view" />}>

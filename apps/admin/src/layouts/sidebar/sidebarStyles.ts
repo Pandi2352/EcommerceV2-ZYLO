@@ -12,6 +12,7 @@ import {
   Mail,
   Building2,
   RotateCcw,
+  ClipboardList,
 } from 'lucide-react';
 import { ROUTES } from '../../routes/routePaths';
 import type { SubPageItem } from './SidebarGroup';
@@ -108,8 +109,7 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         label: 'Categories',
         icon: FolderTree,
         pages: [
-          { label: 'Overview', to: ROUTES.CATEGORIES_OVERVIEW },
-          { label: 'Taxonomy & List', to: ROUTES.CATEGORIES },
+          { label: 'Categories', to: ROUTES.CATEGORIES },
         ],
       },
       {
@@ -125,10 +125,19 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         label: 'Product Catalog',
         icon: Package,
         pages: [
-          { label: 'Overview', to: ROUTES.PRODUCTS_OVERVIEW },
           { label: 'All Products', to: ROUTES.PRODUCTS },
           { label: 'Inventory Control', to: ROUTES.INVENTORY },
           { label: 'Bundles & Kits', to: ROUTES.BUNDLES },
+        ],
+      },
+      {
+        id: 'purchase-orders',
+        label: 'Suppliers & POs',
+        icon: ClipboardList,
+        pages: [
+          { label: 'Purchase Orders', to: ROUTES.PURCHASE_ORDERS },
+          { label: 'Suppliers Directory', to: ROUTES.SUPPLIERS },
+          { label: 'Receiving Dock', to: ROUTES.RECEIVING_DOCK },
         ],
       },
       {
@@ -146,6 +155,7 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         icon: ShoppingCart,
         pages: [
           { label: 'All Orders', to: ROUTES.ORDERS },
+          { label: 'Shipping Dispatch', to: ROUTES.SHIPPING_DISPATCH },
           { label: 'Returns & Refunds', to: ROUTES.RETURNS },
         ],
       },
@@ -189,11 +199,9 @@ export const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
         label: 'User Management',
         icon: UserCheck,
         pages: [
-          { label: 'Overview', to: ROUTES.USER_MANAGEMENT_OVERVIEW },
           { label: 'Users', to: ROUTES.USERS },
           { label: 'Roles', to: ROUTES.ROLES },
           { label: 'Invitations', to: ROUTES.INVITATIONS },
-          { label: 'Login Activity', to: ROUTES.LOGIN_ACTIVITY },
           { label: 'Security Logs', to: ROUTES.AUDIT_LOGS },
         ],
       },

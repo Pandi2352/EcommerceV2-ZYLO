@@ -80,7 +80,7 @@
 ## Module 5: Inventory & Multi-Warehouse Management
 - [x] **Multi-Warehouse Routing & Stock Splitting**: Track inventory across multiple physical fulfillment centers (e.g. US-East, US-West, EU-Central).
 - [ ] **Intelligent Geolocation Order Routing**: Automatically allocate line items to the warehouse closest to customer's shipping address.
-- [ ] **Automated Purchase Order (PO) Generation**: Generate PO PDF to suppliers when stock falls below reorder points.
+- [x] **Automated Purchase Order (PO) Generation & Receiving Dock**: Full vendor catalog management, PO lifecycle tracking (Draft -> Issued -> Partially Received -> Completed), receiving dock quality audit with rejected item inspection, and automatic ledger restock.
 - [ ] **Barcode Scanner Web App for Warehouse Staff**: Camera-based barcode scanner interface for rapid receiving, stock auditing, and picking.
 - [x] **Safety Stock & Reserved Stock Buffer**: Lock a minimum safety stock quantity that is hidden from public storefront to prevent overselling.
 - [x] **Inter-Warehouse Stock Transfers**: Manifest tracking, transit status lifecycle, dispatching, carrier tracking, and atomic receiving verification.
@@ -131,9 +131,9 @@
 ---
 
 ## Module 11: Shipping, Logistics & Carrier Integrations
-- [ ] **Live Carrier Rate Calculation (FedEx, UPS, DHL, EasyPost)**: Fetch real-time shipping carrier rates based on package weight and dimensions.
-- [ ] **Automated Thermal Shipping Label Printing**: Generate and print 4x6 thermal shipping labels (ZPL/PDF) directly from admin order view.
-- [ ] **Real-Time Carrier Webhook Listeners**: Automatic order status transitions when carriers broadcast `Out for Delivery` or `Delivered` webhooks.
+- [x] **Live Carrier Rate Calculation (FedEx, UPS, DHL, EasyPost)**: Fetch real-time shipping carrier rates based on package weight and dimensions with automatic lowest rate suggestion.
+- [x] **Automated Thermal Shipping Label Printing**: Generate and print official 4x6" thermal courier shipping labels (barcodes, routing codes, delivery addresses) directly from admin order view.
+- [x] **Real-Time Carrier Webhook Listeners**: Inbound EDI webhook handler with automated status transitions (`PICKED_UP`, `IN_TRANSIT`, `OUT_FOR_DELIVERY`, `DELIVERED`, `EXCEPTION`) and order status synchronization.
 - [ ] **Proof of Delivery (POD) Image Capture**: Store and display delivery photo signature uploaded by courier.
 - [ ] **Carbon-Neutral Shipping Offset Toggle**: Optional micro-donation option neutralizing delivery carbon footprint.
 
